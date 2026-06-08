@@ -36,3 +36,13 @@ next-env.d.ts.bak
 robots.txt
 sitemap.xml
 sitemap-0.xml
+
+# firebase
+serviceAccountKey.json
+*.firebase.json
+.firebaserc
+.firebase/
+
+# deploy artifacts (la key vive fuera del repo, pero por las dudas)
+deploy.local.sh
+
