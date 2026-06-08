@@ -200,7 +200,7 @@ export default function MinisterioDetailPage() {
           </Button>
         </Link>
         <div
-          className={`flex-1 min-w-0 ${esPastor ? "group relative cursor-pointer" : ""}`}
+          className={`flex-1 min-w-0 ${esPastor ? "group cursor-pointer" : ""}`}
           onClick={() => {
             if (!esPastor) return
             setEditingNombre(ministerio.nombre)
@@ -240,11 +240,13 @@ export default function MinisterioDetailPage() {
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-bold truncate">{ministerio.nombre}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold truncate">{ministerio.nombre}</h1>
+                {esPastor && (
+                  <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground shrink-0" />
+                )}
+              </div>
               {ministerio.descripcion && <p className="text-muted-foreground truncate">{ministerio.descripcion}</p>}
-              {esPastor && (
-                <Pencil className="h-4 w-4 absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
-              )}
             </>
           )}
         </div>
