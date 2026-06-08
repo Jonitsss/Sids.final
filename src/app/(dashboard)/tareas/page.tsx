@@ -70,11 +70,9 @@ export default function TareasPage() {
 
       if (form.responsableId) {
         const userDoc = usuarios.find((u) => u.id === form.responsableId)
-        console.log("[Tareas] userDoc seleccionado:", userDoc?.id, userDoc?.email, "authUid:", userDoc?.authUid, "notificaciones:", userDoc?.notificaciones)
         if (userDoc?.notificaciones !== false) {
           const min = ministerios.find((m) => m.id === form.ministerioId)
           const destId = userDoc?.authUid || form.responsableId
-          console.log("[Tareas] Creando notificación para usuarioId:", destId)
           await crearDocumento<Notificacion>("notificaciones", {
             usuarioId: destId,
             titulo: "Nueva tarea asignada",
@@ -83,8 +81,6 @@ export default function TareasPage() {
             tipo: "tarea",
             referenciaId: "",
           })
-        } else {
-          console.log("[Tareas] Usuario tiene notificaciones desactivadas, se omite")
         }
       }
 

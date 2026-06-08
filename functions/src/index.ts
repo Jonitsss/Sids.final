@@ -63,8 +63,17 @@ function isValidId(id: string): boolean {
   return /^[A-Za-z0-9_-]{1,128}$/.test(id);
 }
 
-function setCors(res: any) {
-  res.set("Access-Control-Allow-Origin", "*");
+const ALLOWED_ORIGINS = [
+  "https://santaiglesia.com.ar",
+  "https://www.santaiglesia.com.ar",
+  "http://localhost:3000",
+];
+
+function setCors(res: any, req: any) {
+  const origin = req.headers.origin || "";
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.set("Access-Control-Allow-Origin", origin);
+  }
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 }
@@ -80,7 +89,7 @@ async function verifyAuth(req: any): Promise<{ uid: string; token: any }> {
 }
 
 export const borrarDocumento = onRequest(async (req, res) => {
-  setCors(res);
+  setCors(res, req);
   if (req.method === "OPTIONS") {
     res.status(200).send();
     return;
@@ -170,7 +179,7 @@ export const borrarDocumento = onRequest(async (req, res) => {
 });
 
 export const setRolUsuario = onRequest(async (req, res) => {
-  setCors(res);
+  setCors(res, req);
   if (req.method === "OPTIONS") {
     res.status(200).send();
     return;

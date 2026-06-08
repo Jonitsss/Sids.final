@@ -127,14 +127,11 @@ export default function CronogramaDetailPage() {
 
       for (const a of nuevas) {
         const userDoc = usuarios.find((u) => u.id === a.usuarioId)
-        console.log("[Crono] Asignación nueva:", a.usuarioId, userDoc?.email, "authUid:", userDoc?.authUid)
         if (userDoc?.notificaciones === false) {
-          console.log("[Crono] Usuario tiene notificaciones desactivadas, se omite")
           continue
         }
         const min = ministerios.find((m) => m.id === a.ministerioId)
         const destId = userDoc?.authUid || a.usuarioId
-        console.log("[Crono] Creando notificación para usuarioId:", destId)
         await crearDocumento<Notificacion>("notificaciones", {
           usuarioId: destId,
           titulo: "Nueva asignación",
