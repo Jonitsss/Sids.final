@@ -11,9 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTickets } from "@/hooks/useTickets"
-import { crearDocumento, actualizarDocumento, obtenerDocumentos, where } from "@/lib/firestore"
+import { crearDocumento, actualizarDocumento, eliminarDocumento, obtenerDocumentos, where } from "@/lib/firestore"
 import { Ticket, Usuario } from "@/types"
-import { Plus, MessageSquare, Loader2, Send, X, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { Plus, MessageSquare, Loader2, Send, X, CheckCircle, Clock, AlertCircle, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { toast } from "sonner"
@@ -49,9 +49,10 @@ export default function TicketsPage() {
   const { user, userData } = useAuth()
   const { tickets, loading, refetch, ticketsEntrantes, ticketsSalientes, noLeidos } = useTickets(user?.uid, userData?.rol)
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLider = userData?.rol === "lider"
+  const puedeCrear = !esPastorOAdmin
 
   const [open, setOpen] = useState(false)
+  const [tab, setTab] = useState<"enviados" | "recibidos">("enviados")
   const [form, setForm] = useState({
     tipo: "sugerencia" as Ticket["tipo"],
     a: "",
@@ -65,11 +66,11 @@ export default function TicketsPage() {
   const [sending, setSending] = useState(false)
   const [filter, setFilter] = useState<"todos" | "pendiente" | "respondido" | "cerrado">("todos")
 
+  const activeList = esPastorOAdmin && tab === "recibidos" ? ticketsEntrantes : ticketsSalientes
   const ticketsToShow = useMemo(() => {
-    const base = esPastorOAdmin ? ticketsEntrantes : ticketsSalientes
-    if (filter === "todos") return base
-    return base.filter((t) => t.estado === filter)
-  }, [esPastorOAdmin, ticketsEntrantes, ticketsSalientes, filter])
+    if (filter === "todos") return activeList
+    return activeList.filter((t) => t.estado === filter)
+  }, [activeList, filter])
 
   const handleOpenCreate = async () => {
     setOpen(true)
@@ -177,6 +178,18 @@ export default function TicketsPage() {
     }
   }
 
+  const handleDelete = async (ticket: Ticket) => {
+    if (!confirm(`¿Eliminar el ticket "${ticket.asunto}"?`)) return
+    try {
+      await eliminarDocumento("tickets", ticket.id)
+      toast.success("Ticket eliminado")
+      setSelectedTicket(null)
+      refetch()
+    } catch {
+      toast.error("Error al eliminar ticket")
+    }
+  }
+
   const handleMarcarLeido = async (ticket: Ticket) => {
     try {
       if (esPastorOAdmin && !ticket.leidoPorDestinatario) {
@@ -201,7 +214,7 @@ export default function TicketsPage() {
               : "Enviá propuestas, temas o sugerencias al Pastor o Administrador"}
           </p>
         </div>
-        {esLider && (
+        {puedeCrear && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleOpenCreate}>
@@ -259,12 +272,24 @@ export default function TicketsPage() {
         )}
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {(["todos", "pendiente", "respondido", "cerrado"] as const).map((f) => (
-          <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)}>
-            {f === "todos" ? "Todos" : ESTADO_LABELS[f]}
-          </Button>
-        ))}
+      <div className="flex flex-col gap-2">
+        {esPastorOAdmin && (
+          <div className="flex gap-2">
+            <Button variant={tab === "recibidos" ? "default" : "outline"} size="sm" onClick={() => setTab("recibidos")}>
+              Recibidos
+            </Button>
+            <Button variant={tab === "enviados" ? "default" : "outline"} size="sm" onClick={() => setTab("enviados")}>
+              Enviados
+            </Button>
+          </div>
+        )}
+        <div className="flex gap-2 flex-wrap">
+          {(["todos", "pendiente", "respondido", "cerrado"] as const).map((f) => (
+            <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)}>
+              {f === "todos" ? "Todos" : ESTADO_LABELS[f]}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4">
@@ -278,12 +303,20 @@ export default function TicketsPage() {
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p>{esPastorOAdmin ? "No tenés tickets recibidos" : "No enviaste tickets aún"}</p>
+              <p>
+                {esPastorOAdmin && tab === "recibidos"
+                  ? "No tenés tickets recibidos"
+                  : esPastorOAdmin
+                  ? "No enviaste tickets aún"
+                  : "No enviaste tickets aún"}
+              </p>
             </CardContent>
           </Card>
         ) : (
           ticketsToShow.map((ticket) => {
-            const isUnread = esPastorOAdmin ? !ticket.leidoPorDestinatario : !ticket.leidoPorRemitente && ticket.estado !== "pendiente"
+            const isUnread = esPastorOAdmin && tab === "recibidos"
+              ? !ticket.leidoPorDestinatario
+              : !ticket.leidoPorRemitente && ticket.estado !== "pendiente"
             return (
               <Card
                 key={ticket.id}
@@ -300,12 +333,22 @@ export default function TicketsPage() {
                         {isUnread && <span className="w-2 h-2 rounded-full bg-red-500" />}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {esPastorOAdmin
+                        {esPastorOAdmin && tab === "recibidos"
                           ? `De: ${ticket.deNombre} · ${format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
                           : `Para: ${ticket.aNombre} · ${format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
                         }
                       </p>
                     </div>
+                    {esPastorOAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive/80 hover:bg-transparent shrink-0"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(ticket) }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -372,6 +415,17 @@ export default function TicketsPage() {
                     </Button>
                   </div>
                 </div>
+              )}
+
+              {esPastorOAdmin && (
+                <Button
+                  variant="outline"
+                  className="w-full text-destructive hover:text-destructive/80 hover:bg-transparent"
+                  onClick={() => handleDelete(selectedTicket)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar ticket
+                </Button>
               )}
 
               {!esPastorOAdmin && selectedTicket.estado === "respondido" && (

@@ -30,6 +30,7 @@ const COLECCIONES_PERMITIDAS_PASTOR_ADMIN = new Set([
   "miembros_ministerio",
   "usuarios",
   "notificaciones",
+  "tickets",
 ]);
 
 function getRol(token: Record<string, unknown> | undefined): string | null {
@@ -263,8 +264,12 @@ export const onNotificacionCreated = onDocumentCreated(
     const usuarioId = notif.usuarioId;
     if (typeof usuarioId !== "string") return;
 
-    const userSnap = await db.collection("usuarios").doc(usuarioId).get();
-    if (!userSnap.exists) return;
+    let userSnap = await db.collection("usuarios").doc(usuarioId).get();
+    if (!userSnap.exists) {
+      const q = await db.collection("usuarios").where("authUid", "==", usuarioId).limit(1).get();
+      if (!q.empty) userSnap = q.docs[0];
+    }
+    if (!userSnap || !userSnap.exists) return;
 
     const fcmTokens: string[] = userSnap.data()?.fcmTokens || [];
     if (fcmTokens.length === 0) return;

@@ -72,6 +72,7 @@ const menuItems = {
     { href: "/cronogramas", icon: ClipboardList, label: "Mis Asignaciones" },
     { href: "/tareas", icon: CheckSquare, label: "Mis Tareas" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
+    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
   ],
 }
