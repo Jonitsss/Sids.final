@@ -17,7 +17,6 @@ export function usePushNotifications() {
   useEffect(() => {
     if (!user || !userData) return
     if (userData.notificaciones === false) return
-    if (permission === "granted") return
 
     const dismissed = localStorage.getItem("push-dismissed")
     if (dismissed) return
@@ -25,7 +24,7 @@ export function usePushNotifications() {
     requestPermission(user.uid).then((token) => {
       if (token) setPermission("granted")
     })
-  }, [user, userData, permission])
+  }, [user, userData])
 
   const dismissPrompt = () => {
     localStorage.setItem("push-dismissed", "true")
