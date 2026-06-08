@@ -259,20 +259,32 @@ export const onNotificacionCreated = onDocumentCreated(
   "notificaciones/{notifId}",
   async (event) => {
     const notif = event.data?.data();
-    if (!notif) return;
+    if (!notif) {
+      logger.warn("onNotificacionCreated: notif vacía");
+      return;
+    }
 
     const usuarioId = notif.usuarioId;
-    if (typeof usuarioId !== "string") return;
+    if (typeof usuarioId !== "string") {
+      logger.warn("onNotificacionCreated: usuarioId no es string", { usuarioId });
+      return;
+    }
 
     let userSnap = await db.collection("usuarios").doc(usuarioId).get();
     if (!userSnap.exists) {
       const q = await db.collection("usuarios").where("authUid", "==", usuarioId).limit(1).get();
       if (!q.empty) userSnap = q.docs[0];
     }
-    if (!userSnap || !userSnap.exists) return;
+    if (!userSnap || !userSnap.exists) {
+      logger.warn("onNotificacionCreated: usuario no encontrado", { usuarioId });
+      return;
+    }
 
     const fcmTokens: string[] = userSnap.data()?.fcmTokens || [];
-    if (fcmTokens.length === 0) return;
+    if (fcmTokens.length === 0) {
+      logger.warn("onNotificacionCreated: usuario sin fcmTokens", { usuarioId });
+      return;
+    }
 
     const titulo = typeof notif.titulo === "string" ? notif.titulo : "Nueva notificación";
     const mensaje = typeof notif.mensaje === "string" ? notif.mensaje : "";

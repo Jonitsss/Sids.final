@@ -83,8 +83,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { theme, toggleTheme } = useTheme()
   const role = userData?.rol || "colaborador"
   const items = menuItems[role] || menuItems.colaborador
-  const { noLeidas } = useNotificaciones(userData?.id || user?.uid)
-  const { noLeidos: ticketsNoLeidos } = useTickets(userData?.id, userData?.rol)
+  const { noLeidas } = useNotificaciones(user?.uid || userData?.id)
+  const { noLeidos: ticketsNoLeidos } = useTickets(user?.uid, userData?.rol)
 
   return (
     <>

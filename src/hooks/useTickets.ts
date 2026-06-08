@@ -19,12 +19,19 @@ export function useTickets(usuarioId?: string, rol?: string) {
         return
       }
       try {
-        let constraints: any[] = [orderBy("createdAt", "desc")]
-        if (!esPastorOAdmin) {
-          constraints.push(where("de", "==", usuarioId))
+        if (esPastorOAdmin) {
+          const data = await obtenerDocumentos<Ticket>("tickets", [orderBy("createdAt", "desc")])
+          if (mounted) setTickets(data)
+        } else {
+          const [sent, received] = await Promise.all([
+            obtenerDocumentos<Ticket>("tickets", [where("de", "==", usuarioId)]),
+            obtenerDocumentos<Ticket>("tickets", [where("a", "==", usuarioId)]),
+          ])
+          const combined = [...sent, ...received].sort(
+            (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+          )
+          if (mounted) setTickets(combined)
         }
-        const data = await obtenerDocumentos<Ticket>("tickets", constraints)
-        if (mounted) setTickets(data)
       } catch (error) {
         if (mounted) console.error("Error fetching tickets:", error)
       } finally {

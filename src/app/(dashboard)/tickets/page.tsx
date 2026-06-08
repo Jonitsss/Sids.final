@@ -66,7 +66,7 @@ export default function TicketsPage() {
   const [sending, setSending] = useState(false)
   const [filter, setFilter] = useState<"todos" | "pendiente" | "respondido" | "cerrado">("todos")
 
-  const activeList = esPastorOAdmin && tab === "recibidos" ? ticketsEntrantes : ticketsSalientes
+  const activeList = tab === "recibidos" ? ticketsEntrantes : ticketsSalientes
   const ticketsToShow = useMemo(() => {
     if (filter === "todos") return activeList
     return activeList.filter((t) => t.estado === filter)
@@ -192,9 +192,9 @@ export default function TicketsPage() {
 
   const handleMarcarLeido = async (ticket: Ticket) => {
     try {
-      if (esPastorOAdmin && !ticket.leidoPorDestinatario) {
+      if (tab === "recibidos" && !ticket.leidoPorDestinatario) {
         await actualizarDocumento<Ticket>("tickets", ticket.id, { leidoPorDestinatario: true })
-      } else if (!esPastorOAdmin && !ticket.leidoPorRemitente) {
+      } else if (tab === "enviados" && !ticket.leidoPorRemitente) {
         await actualizarDocumento<Ticket>("tickets", ticket.id, { leidoPorRemitente: true })
       }
       refetch()
@@ -209,9 +209,11 @@ export default function TicketsPage() {
         <div>
           <h1 className="text-2xl font-bold">Tickets</h1>
           <p className="text-muted-foreground">
-            {esPastorOAdmin
-              ? `Mensajes recibidos de líderes${noLeidos > 0 ? ` (${noLeidos} sin leer)` : ""}`
-              : "Enviá propuestas, temas o sugerencias al Pastor o Administrador"}
+            {tab === "recibidos" && ticketsEntrantes.length > 0
+              ? `Tickets recibidos${noLeidos > 0 ? ` (${noLeidos} sin leer)` : ""}`
+              : tab === "enviados"
+              ? "Tickets enviados"
+              : "Tickets"}
           </p>
         </div>
         {puedeCrear && (
@@ -273,16 +275,14 @@ export default function TicketsPage() {
       </div>
 
       <div className="flex flex-col gap-2">
-        {esPastorOAdmin && (
-          <div className="flex gap-2">
-            <Button variant={tab === "recibidos" ? "default" : "outline"} size="sm" onClick={() => setTab("recibidos")}>
-              Recibidos
-            </Button>
-            <Button variant={tab === "enviados" ? "default" : "outline"} size="sm" onClick={() => setTab("enviados")}>
-              Enviados
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Button variant={tab === "recibidos" ? "default" : "outline"} size="sm" onClick={() => setTab("recibidos")}>
+            Recibidos
+          </Button>
+          <Button variant={tab === "enviados" ? "default" : "outline"} size="sm" onClick={() => setTab("enviados")}>
+            Enviados
+          </Button>
+        </div>
         <div className="flex gap-2 flex-wrap">
           {(["todos", "pendiente", "respondido", "cerrado"] as const).map((f) => (
             <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)}>
@@ -304,17 +304,15 @@ export default function TicketsPage() {
             <CardContent className="py-12 text-center text-muted-foreground">
               <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-30" />
               <p>
-                {esPastorOAdmin && tab === "recibidos"
+                {tab === "recibidos"
                   ? "No tenés tickets recibidos"
-                  : esPastorOAdmin
-                  ? "No enviaste tickets aún"
                   : "No enviaste tickets aún"}
               </p>
             </CardContent>
           </Card>
         ) : (
           ticketsToShow.map((ticket) => {
-            const isUnread = esPastorOAdmin && tab === "recibidos"
+            const isUnread = tab === "recibidos"
               ? !ticket.leidoPorDestinatario
               : !ticket.leidoPorRemitente && ticket.estado !== "pendiente"
             return (
@@ -333,7 +331,7 @@ export default function TicketsPage() {
                         {isUnread && <span className="w-2 h-2 rounded-full bg-red-500" />}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {esPastorOAdmin && tab === "recibidos"
+                        {tab === "recibidos"
                           ? `De: ${ticket.deNombre} · ${format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
                           : `Para: ${ticket.aNombre} · ${format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
                         }

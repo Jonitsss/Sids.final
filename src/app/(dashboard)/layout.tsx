@@ -3,13 +3,24 @@
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
+import { requestPermission } from "@/lib/messaging"
+import { useAuth } from "@/contexts/AuthContext"
 import { Bell, X } from "lucide-react"
 
 function PushPrompt() {
+  const { user } = useAuth()
   const { permission, dismissPrompt } = usePushNotifications()
 
   if (permission !== "default") return null
   if (typeof window !== "undefined" && localStorage.getItem("push-dismissed")) return null
+
+  const handleEnable = async () => {
+    if (!user?.uid) return
+    const token = await requestPermission(user.uid)
+    if (token) {
+      window.location.reload()
+    }
+  }
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 rounded-lg border bg-background p-4 shadow-lg md:left-auto md:right-4 md:max-w-sm">
@@ -18,12 +29,20 @@ function PushPrompt() {
         <p className="font-medium">¿Querés recibir notificaciones?</p>
         <p className="text-muted-foreground">Te avisaremos sobre tareas, eventos y asignaciones.</p>
       </div>
-      <button
-        onClick={dismissPrompt}
-        className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted"
-      >
-        <X className="h-4 w-4" />
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleEnable}
+          className="shrink-0 rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Habilitar
+        </button>
+        <button
+          onClick={dismissPrompt}
+          className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   )
 }
