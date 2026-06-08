@@ -22,6 +22,7 @@ import {
   X,
   Bell,
 } from "lucide-react"
+import { APP_VERSION } from "@/lib/version"
 import { useTheme } from "@/contexts/ThemeContext"
 
 interface SidebarProps {
@@ -93,9 +94,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         )}
       >
         <div className="flex items-center justify-between p-4 border-b shrink-0">
-          <Link href="/dashboard" className="font-bold text-lg text-foreground hover:text-primary transition-colors">
-            SIDS
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard" className="font-bold text-lg text-foreground hover:text-primary transition-colors">
+              SIDS
+            </Link>
+            <span className="text-xs text-muted-foreground">v{APP_VERSION}</span>
+          </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden">
             <X className="h-5 w-5" />
           </Button>
