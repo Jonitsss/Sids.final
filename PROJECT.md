@@ -191,6 +191,13 @@ Pendiente:
 
 ## 9. Convenciones y reglas de la casa
 
+- **Versionado** (SemVer): la versión se define en dos lugares que deben mantenerse sincronizados:
+  - `package.json` → campo `"version"`
+  - `src/lib/version.ts` → constante `APP_VERSION` (se muestra en el sidebar)
+  - **Patch** (1.3.0 → 1.3.1): bug fixes, correcciones menores
+  - **Minor** (1.3.0 → 1.4.0): features nuevas, mejoras funcionales
+  - **Major** (1.3.0 → 2.0.0): breaking changes, reestructuración significativa
+  - Siempre actualizar ambos archivos al hacer un cambio de versión
 - TypeScript strict en raíz y en `functions/`. El `tsconfig.json` raíz excluye
   `functions/` para que cada codebase use el suyo.
 - Sin comentarios en código (regla del system prompt de opencode).
