@@ -13,6 +13,7 @@ import { toast } from "sonner"
 import { GrillaServicio, Evento, Usuario, Asignacion, Notificacion } from "@/types"
 import { obtenerDocumento, actualizarDocumento, crearDocumento } from "@/lib/firestore"
 import { useMinisterios } from "@/hooks/useMinisterios"
+import { useAuth } from "@/contexts/AuthContext"
 import { obtenerDocumentos } from "@/lib/firestore"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -45,6 +46,11 @@ export default function CronogramaDetailPage() {
   const [asignaciones, setAsignaciones] = useState<Asignacion[]>([])
 
   const { ministerios } = useMinisterios()
+  const { userData } = useAuth()
+  const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
+  const esLider = userData?.rol === "lider"
+  const puedeEditar = esPastorOAdmin || esLider
+  const uid = userData?.authUid || userData?.id
 
   useEffect(() => {
     let mounted = true
@@ -214,10 +220,12 @@ export default function CronogramaDetailPage() {
             </p>
           </div>
         </div>
+        {puedeEditar && (
         <Button onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Guardar
         </Button>
+        )}
       </div>
 
       {ministerios.length === 0 ? (
@@ -232,7 +240,12 @@ export default function CronogramaDetailPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {ministerios.map((min) => {
+          {ministerios
+            .filter((min) => {
+              if (puedeEditar) return true
+              return asignaciones.some((a) => a.ministerioId === min.id && a.usuarioId === uid)
+            })
+            .map((min) => {
             const asignados = asignadosPorMinisterio(min.id)
             return (
               <Card key={min.id} className="border-l-4" style={{ borderLeftColor: min.color }}>
@@ -265,6 +278,7 @@ export default function CronogramaDetailPage() {
                                   {user ? `${user.nombre} ${user.apellido}` : "Externo"}
                                 </p>
                                 <div className="flex gap-1 mt-0.5">
+                                  {puedeEditar ? (
                                   <button
                                     className={`text-[10px] px-1.5 py-0.5 rounded ${
                                       asig.estado === "confirmado"
@@ -291,8 +305,24 @@ export default function CronogramaDetailPage() {
                                       ? "Rechazado"
                                       : "Pendiente"}
                                   </button>
+                                  ) : (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                      asig.estado === "confirmado"
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                        : asig.estado === "rechazado"
+                                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                    }`}>
+                                    {asig.estado === "confirmado"
+                                      ? "Confirmado"
+                                      : asig.estado === "rechazado"
+                                      ? "Rechazado"
+                                      : "Pendiente"}
+                                  </span>
+                                  )}
                                 </div>
                               </div>
+                              {puedeEditar && (
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -301,8 +331,9 @@ export default function CronogramaDetailPage() {
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
+                              )}
                             </div>
-                          ) : (
+                          ) : puedeEditar ? (
                             <div className="flex items-center gap-2 mt-1">
                               <Select
                                 value=""
@@ -326,7 +357,7 @@ export default function CronogramaDetailPage() {
                                 </SelectContent>
                               </Select>
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     )

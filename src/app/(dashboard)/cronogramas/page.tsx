@@ -51,6 +51,12 @@ export default function CronogramasPage() {
 
   const eventoSeleccionado = eventos.find((e) => e.id === selectedEventoId)
 
+  const cronogramasFiltrados = cronogramas.filter((g) => {
+    if (esPastor || userData?.rol === "lider") return true
+    const uid = userData?.authUid || userData?.id
+    return g.asignaciones?.some((a) => a.usuarioId === uid)
+  })
+
   const handleCreate = async () => {
     if (!selectedEventoId || creating) return
     setCreating(true)
@@ -113,7 +119,7 @@ export default function CronogramasPage() {
         </div>
       </div>
 
-      {cronogramas.length === 0 ? (
+      {cronogramasFiltrados.length === 0 ? (
         eventos.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center text-muted-foreground">
@@ -144,7 +150,7 @@ export default function CronogramasPage() {
         )
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {cronogramas.map((g) => {
+          {cronogramasFiltrados.map((g) => {
             const evento = eventos.find((e) => e.id === g.eventoId)
             return (
               <Link key={g.id} href={`/cronogramas/${g.id}`}>

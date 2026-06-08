@@ -25,22 +25,26 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.rol in ['pastor', 'administrador'];
     }
 
+    function esLider() {
+      return isSignedIn() && request.auth.token.rol == 'lider';
+    }
+
+    function puedeCrearEventosOCronogramas() {
+      return esPastorOAdmin() || esLider();
+    }
+
     // ---------------------------------------------------------------------
     // usuarios: cualquier autenticado lee; solo autenticado puede actualizar
     //           su propio documento (matching por authUid)
     // ---------------------------------------------------------------------
     match /usuarios/{userId} {
       allow read: if isSignedIn();
-      // Crear/eliminar usuarios: solo desde un contexto confiable.
-      // (Por ahora, cualquier autenticado puede crear — revisar con custom
-      // claims en el TODO de abajo.)
-      allow create: if isSignedIn();
-      // Actualizar: el dueño del documento o pastor/administrador
+      allow create: if esPastorOAdmin();
       allow update: if isSignedIn()
         && (resource.data.authUid == request.auth.uid
             || request.auth.uid == userId
             || esPastorOAdmin());
-      allow delete: if false;  // nadie borra desde el cliente
+      allow delete: if false;
     }
 
     // ---------------------------------------------------------------------
@@ -48,8 +52,8 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /ministerios/{ministerioId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
-      allow delete: if false;  // solo Cloud Function
+      allow create, update: if esPastorOAdmin();
+      allow delete: if false;
     }
 
     // ---------------------------------------------------------------------
@@ -57,7 +61,7 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /eventos/{eventoId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow create, update: if puedeCrearEventosOCronogramas();
       allow delete: if false;
     }
 
@@ -66,7 +70,7 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /cronogramas/{cronogramaId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow create, update: if puedeCrearEventosOCronogramas();
       allow delete: if false;
     }
 
@@ -75,7 +79,7 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /tareas/{tareaId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow create, update: if esPastorOAdmin();
       allow delete: if false;
     }
 
@@ -94,7 +98,7 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /asistencias/{asistenciaId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow create, update: if esPastorOAdmin();
       allow delete: if false;
     }
 
@@ -103,7 +107,7 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /miembros_ministerio/{miembroId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow create, update: if esPastorOAdmin();
       allow delete: if false;
     }
 
@@ -116,20 +120,4 @@ service cloud.firestore {
   }
 }
 
-// =============================================================================
-// TODO: endurecer create/update por colección con custom claims
-// =============================================================================
-// El borrado ya está delegado a Cloud Function (borrarDocumento).
-// Queda pendiente aplicar el mismo criterio a create/update de las
-// colecciones sensibles (ministerios, usuarios, eventos, cronogramas,
-// tareas, asistencias, miembros_ministerio):
-//
-//   allow create, update: if request.auth.token.rol in ['pastor','administrador'];
-//
-// Y leer:
-/*
-function esDestructivo() {
-  return request.auth.token.rol in ['pastor','administrador'];
-}
-*/
-// =============================================================================
+
