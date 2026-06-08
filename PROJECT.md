@@ -155,40 +155,26 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-feat(notificaciones): unificar formato de textos de notificaciones
+fix: iOS white status bar + compact calendar grid
 ```
 
 Cambios de esta sesión:
-- **PWA instalable**: `manifest.json`, Service Worker (`sw.js`), meta tags Apple, icons (192, 512, maskable, apple-touch)
-- **Push notifications**: Firebase Cloud Messaging completo
-  - `firebase-messaging-sw.js` para background push
-  - `src/lib/messaging.ts` con `requestPermission()` y `onForegroundMessage()`
-  - `src/hooks/usePushNotifications.ts` para registro y foreground
-  - Cloud Function `onNotificacionCreated` (trigger Firestore → FCM multicast)
-  - Limpieza automática de tokens inválidos
-- **Icono actualizado**: `logo_sin_fondo.png` en web y PWA
-- **Prompt de permiso**: banner no intrusivo en dashboard layout
-- **Seguridad cronogramas**: colaborador solo ve cronogramas donde tiene asignación, no puede editar ni ver la grilla completa
-- **Firestore rules endurecidas**:
-  - `ministerios`, `tareas`, `asistencias`, `miembros_ministerio`: solo pastor/admin pueden crear/editar
-  - `eventos`, `cronogramas`: pastor/admin/líder pueden crear/editar
-  - `usuarios` (create): solo pastor/admin
-  - Helpers `esLider()` y `puedeCrearEventosOCronogramas()` agregados
+- **Barra de estado iOS**: fix para que en dark mode la status bar no quede blanca. Se agregó `html { background-color }` en `globals.css`, script inline en `layout.tsx` que setea background y `theme-color` dinámicamente al cargar, y `ThemeContext` sincroniza ambos al alternar tema.
+- **Calendario compacto**: grilla de eventos en `eventos/page.tsx` con celdas `aspect-square` (cuadradas, no estiradas), nombres de días abreviados (`Do`, `Lu`, `Ma`...), tamaños de texto reducidos en mobile, y overflow hidden para eventos que desbordan la celda.
 - **Textos de notificaciones unificados**: todas siguen estructura consistente (qué pasó → quién → función/ministerio → evento → fecha/hora)
-  - Asignación en grilla: incluye fecha y hora del evento
-  - Rechazo desde grilla: incluye fecha, hora y justificación
-  - Respuesta a asignación: usa nombre/apellido y fecha/hora
-  - Ministerio asignado: usa "incorporado" en vez de "asignado"
-  - Tarea asignada: usa "en el ministerio" en vez de "en"
 
 ## 8. Pendiente para próximas sesiones
 
-Hecho en esta sesión:
+Hecho en sesiones anteriores:
 - ~~PWA instalable~~ — manifest, service worker, icons, meta tags
 - ~~Push notifications~~ — FCM completo (cliente + servidor + trigger)
 - ~~Icono actualizado~~ — logo_sin_fondo.png en web, PWA y OG image
 - ~~Endurecer Firestore rules~~ — restringir create/update por rol con custom claims
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
+
+Hecho en esta sesión:
+- ~~iOS status bar fix~~ — html background + theme-color dinámico para dark mode
+- ~~Calendario compacto~~ — grilla cuadrada, días abreviados, mobile-friendly
 
 Pendiente:
 1. **Migrar de `next lint` a ESLint CLI**
