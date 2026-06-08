@@ -146,6 +146,12 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
+ada19f1 fix(ui): ocultar controles de edicion en ministerios para colaboradores
+31de5dd fix(ui): usar helper rolLabel en Sidebar, perfil y ministerios
+e5264af feat(usuarios): listener en tiempo real con onSnapshot
+3b7018f feat(ui): renombrar rol 'Líder' a 'Líder de área'
+060d3ac fix(security): remover console.log con PII y restringir CORS
+9695a1e fix(auth): resolver permisos para cuentas re-creadas y custom claims
 59498c3 docs: agregar PROJECT.md con contexto técnico para resume de sesión
 b337988 feat(deploy): setInitialRol acepta service account JSON inline
 ec3534d chore(deploy): agregar deploy.sh y proteger secrets en .gitignore
@@ -163,8 +169,14 @@ Hecho en esta sesión:
 - ~~Custom claim sync en login~~ — `login()` busca el documento por Auth UID → authUid → email, y llama `asignarRolUsuario` para setear el claim.
 - ~~Cloud Functions: email fallback~~ — `getRolFromFirestore` busca por email si no encuentra por UID/authUid, y auto-linke `authUid`.
 - ~~Cloud Functions: sparse doc fix~~ — `setRolUsuario` escribe `rol` al documento real encontrado por email/authUid, no crea documento duplicado.
-- ~~firestore.rules: notificaciones read~~ — cambiado a `if isSignedIn()` (el query del cliente filtra por `usuarioId`).
+- ~~firestore.rules: notificaciones read~~ — cambiado a `if isSignedIn()`.
 - ~~firestore.rules: notificaciones create~~ — cambiado a `isSignedIn() && usuarioId != request.auth.uid`.
+- ~~Rol "Líder" renombrado a "Líder de área"~~ — en Selects, Badge y Sidebar.
+- ~~helper `rolLabel()`~~ — en `utils.ts`, usado en Sidebar, perfil, ministerios, usuarios.
+- ~~Usuarios: listener en tiempo real~~ — `onSnapshot` reemplaza fetch único.
+- ~~Ministerios: role guards~~ — controles de edición ocultos para colaboradores/líderes.
+- ~~Seguridad: console.log con PII removidos~~ — 4 logs en tareas y cronogramas.
+- ~~CORS restringido~~ — allowlist `santaiglesia.com.ar` + `localhost:3000` (no wildcard `*`).
 
 Pendiente:
 1. **Endurecer `create/update` por colección con custom claims**
@@ -182,6 +194,9 @@ Pendiente:
 - TypeScript strict en raíz y en `functions/`. El `tsconfig.json` raíz excluye
   `functions/` para que cada codebase use el suyo.
 - Sin comentarios en código (regla del system prompt de opencode).
+- Sin `console.log` con datos personales (emails, UIDs, tokens) — usar solo
+  `console.error` para errores sin exponer PII.
+- CORS en Cloud Functions restringido a allowlist (no wildcard `*`).
 - Tailwind v4 para dashboard/auth, vanilla CSS (`src/styles/landing.css`) para
   la landing (`/`). Coexisten sin colisión.
 - Route groups: `(public)`, `(auth)`, `(dashboard)`.
@@ -194,12 +209,14 @@ Pendiente:
   `src/lib/firestore.ts` llama a `borrarDocumento` vía HTTP POST con Bearer
   token. Si necesitás borrar algo, agregá el caso en la function y en la
   allowlist.
+- Helper `rolLabel()` en `utils.ts` para mostrar nombres de rol legibles.
+  Usar en vez de mostrar `u.rol` directamente.
 
 ## 10. Para empezar una nueva sesión de opencode
 
 Pegar este prompt (o equivalente) al abrir opencode:
 
 > "Estoy retomando el proyecto SIDS. Leé `PROJECT.md` (contexto técnico) y
-> `README.md` (cara pública). El último commit es `b337988`. Revisá
+> `README.md` (cara pública). El último commit es `ada19f1`. Revisá
 > `git status` y `git log --oneline -10` para ver el estado, y consultá
 > la sección 'Pendiente' de PROJECT.md para saber por dónde seguir."

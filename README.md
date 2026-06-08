@@ -121,7 +121,7 @@ Firebase Authentication (sincronizado con el campo `usuarios.rol`):
 
 - **Pastor** — acceso total. Puede borrar ministerios, eventos, cronogramas, tareas, usuarios, etc.
 - **Administrador** — mismos permisos que Pastor. Creado para delegar la operación sin entregar la cuenta pastor.
-- **Líder** — crea eventos y cronogramas, ve todo pero no elimina.
+- **Líder de área** — crea eventos y cronogramas, ve todo pero no elimina ni gestiona miembros.
 - **Colaborador** — solo visualiza sus asignaciones, edita su perfil.
 
 #### Cómo se aplican los permisos
