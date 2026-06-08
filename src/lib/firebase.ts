@@ -1,7 +1,8 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app"
-import { getAuth, Auth } from "firebase/auth"
-import { getFirestore, Firestore } from "firebase/firestore"
-import { getStorage, FirebaseStorage } from "firebase/storage"
+import { getAuth, Auth, connectAuthEmulator } from "firebase/auth"
+import { getFirestore, Firestore, connectFirestoreEmulator } from "firebase/firestore"
+import { getStorage, FirebaseStorage, connectStorageEmulator } from "firebase/storage"
+import { getFunctions, Functions, connectFunctionsEmulator } from "firebase/functions"
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,6 +12,8 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
+
+const FUNCTIONS_REGION = "southamerica-east1"
 
 function createFirebaseApp() {
   if (typeof window === "undefined") return null
@@ -23,5 +26,18 @@ const app = createFirebaseApp()
 const auth = app ? getAuth(app) : null
 const db = app ? getFirestore(app) : null
 const storage = app ? getStorage(app) : null
+const functions: Functions | null = app
+  ? getFunctions(app, FUNCTIONS_REGION)
+  : null
 
-export { app, auth, db, storage }
+if (
+  typeof window !== "undefined" &&
+  process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
+) {
+  if (auth) connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true })
+  if (db) connectFirestoreEmulator(db, "127.0.0.1", 8080)
+  if (storage) connectStorageEmulator(storage, "127.0.0.1", 9199)
+  if (functions) connectFunctionsEmulator(functions, "127.0.0.1", 5001)
+}
+
+export { app, auth, db, storage, functions, FUNCTIONS_REGION }

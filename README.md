@@ -47,6 +47,13 @@ sids-next/
 │   ├── robots.txt               # generado por next-sitemap
 │   ├── sitemap.xml              # generado por next-sitemap
 │   └── sitemap-0.xml            # generado por next-sitemap
+├── functions/                   # Cloud Functions (TypeScript)
+│   ├── src/
+│   │   ├── index.ts             # borrarDocumento, setRolUsuario (callables)
+│   │   └── scripts/
+│   │       └── setInitialRol.ts # bootstrap del primer pastor/admin
+│   ├── package.json
+│   └── tsconfig.json
 ├── src/
 │   ├── app/
 │   │   ├── (public)/            # Landing page (/)
@@ -75,9 +82,11 @@ sids-next/
 │   ├── contexts/                # AuthContext, ThemeContext
 │   ├── data/content.ts          # stats, schedule, navLinks, heroLines
 │   ├── hooks/                   # useEventos, useTareas, useDashboard, etc.
-│   ├── lib/                     # firebase, firestore, seo, utils, constants
+│   ├── lib/                     # firebase, firestore, roles, seo, utils, constants
 │   ├── styles/landing.css       # CSS vanilla del landing (700+ líneas)
 │   └── types/index.ts           # Tipos TypeScript del sistema
+├── firestore.rules              # reglas de seguridad (delete = false, via CF)
+├── firebase.json                # firestore + functions
 ├── next.config.mjs
 ├── next-sitemap.config.js
 ├── postcss.config.mjs
@@ -103,18 +112,55 @@ Necesitás:
 
 ### Roles
 
-El sistema distingue tres roles en Firestore (`usuarios.rol`):
+El sistema distingue cuatro roles, almacenados como **custom claim** `rol` en
+Firebase Authentication (sincronizado con el campo `usuarios.rol`):
 
-- **Pastor** — acceso total, puede crear/eliminar ministerios, eventos, tareas, usuarios
-- **Líder** — crea eventos y cronogramas, ve todo pero no elimina
-- **Colaborador** — solo visualiza sus asignaciones, edita su perfil
+- **Pastor** — acceso total. Puede borrar ministerios, eventos, cronogramas, tareas, usuarios, etc.
+- **Administrador** — mismos permisos que Pastor. Creado para delegar la operación sin entregar la cuenta pastor.
+- **Líder** — crea eventos y cronogramas, ve todo pero no elimina.
+- **Colaborador** — solo visualiza sus asignaciones, edita su perfil.
 
-El primer usuario que se registre debe ser promovido a `pastor` manualmente desde Firebase Console → Firestore → `usuarios` → cambiar `rol` a `pastor`.
+#### Cómo se aplican los permisos
+
+- **Borrado**: el cliente **nunca** borra directo en Firestore. Llama a la
+  Cloud Function `borrarDocumento` (`functions/src/index.ts`), que valida el
+  custom claim `rol in {pastor, administrador}` y aplica una allowlist de
+  colecciones. Los usuarios con otros roles solo pueden borrar **sus propias
+  notificaciones** (mismo criterio que las reglas originales).
+- **Custom claims**: se asignan con la Cloud Function `setRolUsuario` (solo
+  pastor/administrador). Sincroniza el campo `rol` en `usuarios/{uid}`.
+
+#### Bootstrap del primer Pastor/Administrador
+
+Como la función `setRolUsuario` requiere un rol destructivo previo, el primer
+admin debe configurarse con un script local usando Admin SDK:
+
+```bash
+cd functions
+npm install
+
+# Opción A: con service account JSON
+export GOOGLE_APPLICATION_CREDENTIALS="/ruta/a/serviceAccountKey.json"
+npm run set-initial-rol -- juan@sids.org pastor
+
+# Opción B: con variables de entorno
+export FIREBASE_PROJECT_ID="..."
+export FIREBASE_CLIENT_EMAIL="..."
+export FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+npm run set-initial-rol -- juan@sids.org administrador
+```
+
+A partir de ahí, ese usuario (o cualquier pastor/administrador) puede asignar
+roles desde la app usando `asignarRolUsuario(uid, rol)` de `src/lib/roles.ts`.
+
+> Importante: el cambio de custom claim se refleja en el token del usuario
+> después de un refresh del idToken (forzar re-login o esperar ~1 h).
 
 ## Comandos
 
 ```bash
-npm install          # Instalar dependencias
+npm install          # Instalar dependencias (raíz)
+cd functions && npm install && cd ..   # Dependencias de Cloud Functions
 npm run dev          # Servidor de desarrollo → http://localhost:3000
 npm run build        # Build de producción (genera .next/)
 npm start            # Servidor de producción
@@ -122,6 +168,17 @@ npm run lint         # ESLint
 ```
 
 `npm run build` ejecuta automáticamente `next-sitemap` (vía `postbuild`) para generar `robots.txt` y `sitemap.xml` en `public/`.
+
+### Cloud Functions
+
+```bash
+cd functions
+npm run build        # Compila TypeScript -> lib/
+npm run deploy       # Despliega a Firebase (firebase deploy --only functions)
+npm run logs         # Ver logs en producción
+```
+
+Región: `southamerica-east1` (São Paulo) por cercanía a Argentina.
 
 ## Decisiones técnicas
 

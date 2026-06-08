@@ -5,8 +5,10 @@ rules_version = '2';
 // =============================================================================
 // Reemplaza la regla de "30 días" que vence el 1 de julio 2026.
 // Bloquea acceso público y exige autenticación. Las operaciones destructivas
-// se pueden afinar con custom claims (request.auth.token.rol) en una segunda
-// iteración — ver TODO al final.
+// (delete) NO se hacen desde el cliente: se delega a Cloud Functions
+// (functions/src/index.ts -> borrarDocumento), que valida el custom claim
+// `rol` (pastor | administrador | lider | colaborador) y aplica una
+// allowlist de colecciones. Ver TODO al final.
 // =============================================================================
 
 service cloud.firestore {
@@ -110,13 +112,19 @@ service cloud.firestore {
 }
 
 // =============================================================================
-// TODO: endurecer con custom claims (próxima iteración)
+// TODO: endurecer create/update por colección con custom claims
 // =============================================================================
-// 1. En Cloud Function, al crear/modificar un usuario en Firestore, hacer
-//    `admin.auth().setCustomUserClaims(uid, { rol: 'pastor' })`.
-// 2. Reemplazar `allow create, update: if isSignedIn()` por:
-//      allow create, update: if request.auth.token.rol == 'pastor';
-//    para ministerios/eventos/etc. según corresponda.
-// 3. Eso evita que un colaborador autenticado borre o modifique datos
-//    sensibles.
+// El borrado ya está delegado a Cloud Function (borrarDocumento).
+// Queda pendiente aplicar el mismo criterio a create/update de las
+// colecciones sensibles (ministerios, usuarios, eventos, cronogramas,
+// tareas, asistencias, miembros_ministerio):
+//
+//   allow create, update: if request.auth.token.rol in ['pastor','administrador'];
+//
+// Y leer:
+/*
+function esDestructivo() {
+  return request.auth.token.rol in ['pastor','administrador'];
+}
+*/
 // =============================================================================

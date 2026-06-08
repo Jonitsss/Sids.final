@@ -5,7 +5,6 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
@@ -14,7 +13,8 @@ import {
   Timestamp,
   DocumentData,
 } from "firebase/firestore"
-import { db } from "./firebase"
+import { httpsCallable } from "firebase/functions"
+import { db, functions } from "./firebase"
 
 function getDb() {
   if (!db) throw new Error("Firestore no está inicializado. Verifica las variables de entorno de Firebase.")
@@ -92,8 +92,16 @@ export async function eliminarDocumento(
   coleccion: string,
   id: string
 ): Promise<void> {
-  const firestore = getDb()
-  await deleteDoc(fbDoc(firestore, coleccion, id))
+  if (!functions) {
+    throw new Error(
+      "Firebase Functions no está inicializado. Verifica las variables de entorno."
+    )
+  }
+  const fn = httpsCallable<{ coleccion: string; id: string }, { ok: true }>(
+    functions,
+    "borrarDocumento"
+  )
+  await fn({ coleccion, id })
 }
 
 export { where, orderBy, limit, query, Timestamp }
