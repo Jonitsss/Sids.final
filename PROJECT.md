@@ -155,7 +155,7 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-feat(tickets): colaboradores pueden crear, tabs recibidos/enviados, eliminar
+chore: bump 1.4.2 → 1.4.3 + docs tickets
 ```
 
 Cambios de esta sesión:
