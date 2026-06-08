@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -94,98 +94,95 @@ export default function TicketsPage() {
 
     const destUid = destinatario.authUid || destinatario.id
 
+    setOpen(false)
+    setForm({ tipo: "sugerencia", a: "", asunto: "", mensaje: "" })
     setSending(true)
-    try {
-      const ticketId = await crearDocumento<Ticket>("tickets", {
-        de: user.uid,
-        deNombre: `${userData?.nombre || ""} ${userData?.apellido || ""}`.trim(),
-        a: destUid,
-        aNombre: `${destinatario.nombre} ${destinatario.apellido}`,
-        asunto: form.asunto,
-        mensaje: form.mensaje,
-        estado: "pendiente",
-        respuesta: "",
-        tipo: form.tipo,
-        leidoPorDestinatario: false,
-        leidoPorRemitente: true,
-      })
 
-      await enviarNotificacion({
-        usuarioId: destUid,
-        titulo: `Nuevo ticket: ${form.asunto}`,
-        mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} te envió un ticket de tipo ${TIPO_LABELS[form.tipo]}`,
-        tipo: "tarea",
-        referenciaId: `ticket:${ticketId}`,
+    crearDocumento<Ticket>("tickets", {
+      de: user.uid,
+      deNombre: `${userData?.nombre || ""} ${userData?.apellido || ""}`.trim(),
+      a: destUid,
+      aNombre: `${destinatario.nombre} ${destinatario.apellido}`,
+      asunto: form.asunto,
+      mensaje: form.mensaje,
+      estado: "pendiente",
+      respuesta: "",
+      tipo: form.tipo,
+      leidoPorDestinatario: false,
+      leidoPorRemitente: true,
+    })
+      .then((ticketId) => {
+        enviarNotificacion({
+          usuarioId: destUid,
+          titulo: `Nuevo ticket: ${form.asunto}`,
+          mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} te envió un ticket de tipo ${TIPO_LABELS[form.tipo]}`,
+          tipo: "tarea",
+          referenciaId: `ticket:${ticketId}`,
+        })
+        toast.success("Ticket enviado exitosamente")
+        refetch()
       })
-
-      toast.success("Ticket enviado exitosamente")
-      setOpen(false)
-      setForm({ tipo: "sugerencia", a: "", asunto: "", mensaje: "" })
-      refetch()
-    } catch (err) {
-      console.error("Error al enviar ticket:", err)
-      toast.error("Error al enviar ticket")
-    } finally {
-      setSending(false)
-    }
+      .catch((err) => {
+        console.error("Error al enviar ticket:", err)
+        toast.error("Error al enviar ticket")
+      })
+      .finally(() => setSending(false))
   }
 
   const handleResponder = async () => {
     if (!selectedTicket || !respuesta.trim()) return
+    const ticket = selectedTicket
     setSending(true)
-    try {
-      await actualizarDocumento<Ticket>("tickets", selectedTicket.id, {
-        respuesta: respuesta.trim(),
-        estado: "respondido",
-        leidoPorDestinatario: true,
-        leidoPorRemitente: false,
-      })
+    setSelectedTicket(null)
+    setRespuesta("")
 
-      await enviarNotificacion({
-        usuarioId: selectedTicket.de,
-        titulo: `Respuesta a tu ticket: ${selectedTicket.asunto}`,
-        mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} respondió tu ticket`,
-        tipo: "tarea",
-        referenciaId: `ticket:${selectedTicket.id}`,
+    actualizarDocumento<Ticket>("tickets", ticket.id, {
+      respuesta: respuesta.trim(),
+      estado: "respondido",
+      leidoPorDestinatario: true,
+      leidoPorRemitente: false,
+    })
+      .then(() =>
+        enviarNotificacion({
+          usuarioId: ticket.de,
+          titulo: `Respuesta a tu ticket: ${ticket.asunto}`,
+          mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} respondió tu ticket`,
+          tipo: "tarea",
+          referenciaId: `ticket:${ticket.id}`,
+        })
+      )
+      .then(() => {
+        toast.success("Respuesta enviada")
+        refetch()
       })
-
-      toast.success("Respuesta enviada")
-      setSelectedTicket(null)
-      setRespuesta("")
-      refetch()
-    } catch (err) {
-      console.error("Error al responder:", err)
-      toast.error("Error al responder")
-    } finally {
-      setSending(false)
-    }
+      .catch((err) => {
+        console.error("Error al responder:", err)
+        toast.error("Error al responder")
+      })
+      .finally(() => setSending(false))
   }
 
   const handleCerrar = async (ticket: Ticket) => {
-    try {
-      await actualizarDocumento<Ticket>("tickets", ticket.id, {
-        estado: "cerrado",
-        leidoPorDestinatario: true,
-        leidoPorRemitente: true,
+    setSelectedTicket(null)
+    actualizarDocumento<Ticket>("tickets", ticket.id, {
+      estado: "cerrado",
+      leidoPorDestinatario: true,
+      leidoPorRemitente: true,
+    })
+      .then(() => {
+        toast.success("Ticket cerrado")
+        refetch()
       })
-      toast.success("Ticket cerrado")
-      setSelectedTicket(null)
-      refetch()
-    } catch {
-      toast.error("Error al cerrar ticket")
-    }
+      .catch(() => toast.error("Error al cerrar ticket"))
   }
 
   const handleDelete = async (ticket: Ticket) => {
     if (!confirm(`¿Eliminar el ticket "${ticket.asunto}"?`)) return
-    try {
-      await eliminarDocumento("tickets", ticket.id)
-      toast.success("Ticket eliminado")
-      setSelectedTicket(null)
-      refetch()
-    } catch {
-      toast.error("Error al eliminar ticket")
-    }
+    setSelectedTicket(null)
+    toast.success("Ticket eliminado")
+    eliminarDocumento("tickets", ticket.id)
+      .catch(() => toast.error("Error al eliminar ticket"))
+      .finally(() => refetch())
   }
 
   const handleMarcarLeido = async (ticket: Ticket) => {
@@ -201,6 +198,26 @@ export default function TicketsPage() {
     }
   }
 
+  const handleEliminarTodos = async () => {
+    if (tickets.length === 0) return
+    if (!confirm(`¿Eliminar TODOS los tickets (${tickets.length})? Esta acción no se puede deshacer.`)) return
+    toast.success("Eliminando tickets...")
+    try {
+      await Promise.all(tickets.map(t => eliminarDocumento("tickets", t.id)))
+      toast.success(`${tickets.length} tickets eliminados`)
+      refetch()
+    } catch {
+      toast.error("Error al eliminar todos los tickets")
+    }
+  }
+
+  useEffect(() => {
+    if (!user?.uid || ticketsEntrantes.length === 0 || loading) return
+    const ids = ticketsEntrantes.filter(t => !t.leidoPorDestinatario).map(t => t.id)
+    if (ids.length === 0) return
+    Promise.all(ids.map(id => actualizarDocumento<Ticket>("tickets", id, { leidoPorDestinatario: true })))
+  }, [user?.uid, loading])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -214,8 +231,15 @@ export default function TicketsPage() {
               : "Tickets"}
           </p>
         </div>
-        {puedeCrear && (
-          <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex gap-2">
+          {esPastorOAdmin && (
+            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive/80" onClick={handleEliminarTodos}>
+              <Trash2 className="h-4 w-4" />
+              Eliminar todos
+            </Button>
+          )}
+          {puedeCrear && (
+            <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleOpenCreate}>
                 <Plus className="h-4 w-4" />
@@ -270,6 +294,7 @@ export default function TicketsPage() {
             </DialogContent>
           </Dialog>
         )}
+      </div>
       </div>
 
       <div className="flex flex-col gap-2">

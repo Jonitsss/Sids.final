@@ -20,6 +20,7 @@ export default function NotificacionesPage() {
   const { user, userData } = useAuth()
   const { notificaciones, noLeidas, loading, refetch, setNotificaciones } = useNotificaciones(user?.uid || userData?.id)
   const { ministerios, loading: loadingMin } = useMinisterios()
+  const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const [respondiendo, setRespondiendo] = useState<string | null>(null)
   const [fechasGrilla, setFechasGrilla] = useState<Record<string, string>>({})
   const [eventosGrilla, setEventosGrilla] = useState<Record<string, string>>({})
@@ -167,6 +168,27 @@ export default function NotificacionesPage() {
     }
   }
 
+  const handleMarcarTodasLeidas = async () => {
+    const ids = notificaciones.filter((n) => !n.leido).map((n) => n.id)
+    if (ids.length === 0) return
+    setNotificaciones((prev) => prev.map((n) => ({ ...n, leido: true })))
+    try {
+      await Promise.all(ids.map((id) => actualizarDocumento("notificaciones", id, { leido: true })))
+      toast.success(`${ids.length} notificación${ids.length > 1 ? "es" : ""} marcada${ids.length > 1 ? "s" : ""} como leída${ids.length > 1 ? "s" : ""}`)
+    } catch {
+      setNotificaciones((prev) => prev.map((n) => ({ ...n, leido: !ids.includes(n.id) ? n.leido : false })))
+      toast.error("Error al marcar como leídas")
+    }
+  }
+
+  useEffect(() => {
+    if (notificaciones.length === 0 || loading) return
+    const ids = notificaciones.filter((n) => !n.leido).map((n) => n.id)
+    if (ids.length === 0) return
+    setNotificaciones((prev) => prev.map((n) => ({ ...n, leido: true })))
+    Promise.all(ids.map((id) => actualizarDocumento("notificaciones", id, { leido: true })))
+  }, [notificaciones.length > 0, loading])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -178,12 +200,20 @@ export default function NotificacionesPage() {
               : "No tenés notificaciones pendientes"}
           </p>
         </div>
-        {notificaciones.some((n) => n.leido) && (
-          <Button variant="outline" size="sm" className="gap-2" onClick={handleEliminarLeidas}>
-            <Trash2 className="h-4 w-4" />
-            Eliminar leídas
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {esPastorOAdmin && notificaciones.some((n) => !n.leido) && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleMarcarTodasLeidas}>
+              <Check className="h-4 w-4" />
+              Marcar todas leídas
+            </Button>
+          )}
+          {notificaciones.some((n) => n.leido) && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleEliminarLeidas}>
+              <Trash2 className="h-4 w-4" />
+              Eliminar leídas
+            </Button>
+          )}
+        </div>
       </div>
 
       {loading ? (

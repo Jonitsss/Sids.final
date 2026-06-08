@@ -14,7 +14,8 @@
     "set-initial-rol": "ts-node src/scripts/setInitialRol.ts",
     "test-push": "ts-node src/scripts/testPush.ts",
     "clean-duplicates": "ts-node src/scripts/cleanDuplicateNotifs.ts",
-    "clean-tokens": "ts-node src/scripts/cleanDuplicateTokens.ts"
+    "clean-tokens": "ts-node src/scripts/cleanDuplicateTokens.ts",
+    "clean-orphans": "ts-node src/scripts/cleanOrphans.ts"
   },
   "engines": {
     "node": "22"
