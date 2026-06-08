@@ -6,6 +6,10 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 📍 **Dirección**: Calle 21 y 7, Barrio el Parque, Ingeniero Allan
 ⛪ **Fundada**: 1974
 
+> 📋 **Contexto técnico completo** (arquitectura, roles, deploy, pendientes) en
+> [`PROJECT.md`](./PROJECT.md). Es el documento de cabecera para retomar trabajo
+> en una nueva sesión de opencode.
+
 ## Rutas
 
 | Ruta | Tipo | Descripción |
