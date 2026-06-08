@@ -12,10 +12,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-self.skipWaiting();
+messaging.onBackgroundMessage((payload) => {
+  const { title, body, icon, badge } = payload.data || {};
+  if (!title) return;
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  self.registration.showNotification(title, {
+    body: body || "",
+    icon: icon || "/icon-192.png",
+    badge: badge || "/icon-192.png",
+  });
 });
 
 self.addEventListener("notificationclick", (event) => {

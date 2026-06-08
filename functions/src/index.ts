@@ -33,13 +33,11 @@ async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string
 
   try {
     const response = await getMessaging().sendEachForMulticast({
-      webpush: {
-        notification: {
-          title: titulo,
-          body: mensaje,
-          icon: "/icon-192.png",
-          badge: "/icon-192.png",
-        },
+      data: {
+        title: titulo,
+        body: mensaje,
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
       },
       tokens: fcmTokens,
     });

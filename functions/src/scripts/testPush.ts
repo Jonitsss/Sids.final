@@ -53,13 +53,11 @@ async function main() {
   console.log(`Enviando push a ${allTokens.length} token(s)...`);
 
   const response = await getMessaging(app).sendEachForMulticast({
-    webpush: {
-      notification: {
-        title,
-        body,
-        icon: "/icon-192.png",
-        badge: "/icon-192.png",
-      },
+    data: {
+      title,
+      body,
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
     },
     tokens: allTokens,
   });
