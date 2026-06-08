@@ -1,4 +1,4 @@
-const siteUrl = "https://sidsiglesia.com.ar";
+const siteUrl = "https://santaiglesia.com.ar";
 
 const protectedPaths = [
   "/login",

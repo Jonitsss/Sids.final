@@ -4,7 +4,7 @@ export const siteConfig = {
   tagline: "Árbol de Vida",
   description:
     "Santa Iglesia del Señor (SIDS) · Árbol de Vida. Iglesia cristiana evangélica en Ingeniero Allan. Jueves 20 hs, Sábado 18 hs, Domingo 18 hs. ¡Las puertas están abiertas!",
-  url: "https://sidsiglesia.com.ar",
+  url: "https://santaiglesia.com.ar",
   founded: 1974,
   address: {
     street: "Calle 21 y 7",

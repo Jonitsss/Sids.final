@@ -2,7 +2,7 @@
 
 Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (SIDS).
 
-🌐 **Sitio**: [sidsiglesia.com.ar](https://sidsiglesia.com.ar)
+🌐 **Sitio**: [santaiglesia.com.ar](https://santaiglesia.com.ar)
 📍 **Dirección**: Calle 21 y 7, Barrio el Parque, Ingeniero Allan
 ⛪ **Fundada**: 1974
 
@@ -164,7 +164,7 @@ Los paréntesis en `(public)`, `(auth)`, `(dashboard)` organizan las rutas sin a
    - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
    - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
-4. (Opcional) Configurá el dominio personalizado `sidsiglesia.com.ar`
+4. (Opcional) Configurá el dominio personalizado `santaiglesia.com.ar`
 
 ## Licencia
 
