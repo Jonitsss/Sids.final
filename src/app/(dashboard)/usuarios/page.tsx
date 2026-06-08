@@ -298,45 +298,49 @@ export default function UsuariosPage() {
           <CardContent className="p-0">
             <div className="divide-y">
               {filtered.map((u) => (
-                <div key={u.id} className="flex items-center gap-3 p-4 group">
-                  <Avatar>
+                <div key={u.id} className="flex items-start gap-3 p-4 group">
+                  <Avatar className="shrink-0 mt-0.5">
                     <AvatarImage src={u.fotoURL} alt="Foto" className="object-cover" />
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {u.nombre?.[0]}{u.apellido?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium">{u.nombre} {u.apellido}</p>
-                    <p className="text-sm text-muted-foreground truncate">{u.email}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={rolBadge[u.rol]}>{rolLabel(u.rol)}</Badge>
-                    {u.ministerioIds?.map((mid) => {
-                      const min = ministerios.find((m) => m.id === mid)
-                      return min ? (
-                        <Badge key={mid} variant="outline" className="text-xs" style={{ borderColor: min.color, color: min.color }}>
-                          {min.nombre}
-                        </Badge>
-                      ) : null
-                    })}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <p className="font-medium">{u.nombre} {u.apellido}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Badge variant={rolBadge[u.rol]}>{rolLabel(u.rol)}</Badge>
+                        {u.ministerioIds?.map((mid) => {
+                          const min = ministerios.find((m) => m.id === mid)
+                          return min ? (
+                            <Badge key={mid} variant="outline" className="text-xs" style={{ borderColor: min.color, color: min.color }}>
+                              {min.nombre}
+                            </Badge>
+                          ) : null
+                        })}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate mt-0.5">{u.email}</p>
                     {esPastor && (
-                      <>
+                      <div className="flex items-center gap-1 mt-2">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           onClick={() => openEdit(u)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3.5 w-3.5 mr-1" />
+                          Editar
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           className="text-destructive hover:text-destructive/80 hover:bg-transparent"
                           onClick={() => handleDelete(u.id, `${u.nombre} ${u.apellido}`)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5 mr-1" />
+                          Eliminar
                         </Button>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
