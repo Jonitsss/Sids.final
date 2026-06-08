@@ -17,10 +17,13 @@ import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check } from 
 import Link from "next/link"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function MinisterioDetailPage() {
   const params = useParams()
   const slug = params.slug as string
+  const { userData } = useAuth()
+  const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
   const [ministerio, setMinisterio] = useState<Ministerio | null>(null)
   const [miembros, setMiembros] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
@@ -135,6 +138,7 @@ export default function MinisterioDetailPage() {
           <p className="text-muted-foreground">{ministerio.descripcion}</p>
         </div>
         <div className="ml-auto flex gap-2">
+          {esPastor && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" onClick={handleOpenDialog}>
@@ -204,6 +208,7 @@ export default function MinisterioDetailPage() {
               </div>
             </DialogContent>
           </Dialog>
+          )}
         </div>
       </div>
 
@@ -254,13 +259,16 @@ export default function MinisterioDetailPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Roles del Ministerio</CardTitle>
+                {esPastor && (
                 <Button size="sm" onClick={handleSaveRoles} disabled={savingRoles}>
                   {savingRoles ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Guardar
                 </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {esPastor && (
               <div className="flex gap-2">
                 <Input
                   placeholder="Nuevo rol..."
@@ -272,6 +280,7 @@ export default function MinisterioDetailPage() {
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+              )}
               <div className="space-y-2">
                 {roles.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
@@ -281,6 +290,7 @@ export default function MinisterioDetailPage() {
                   roles.map((rol) => (
                     <div key={rol} className="flex items-center justify-between p-3 rounded-lg border group">
                       <span>{rol}</span>
+                      {esPastor && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -289,6 +299,7 @@ export default function MinisterioDetailPage() {
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
+                      )}
                     </div>
                   ))
                 )}
