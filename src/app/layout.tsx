@@ -4,7 +4,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 const fullTitle = `${siteConfig.name} · ${siteConfig.shortName}`;
-const ogImage = `${siteConfig.url}/assets/logo.jpeg`;
+const ogImage = `${siteConfig.url}/assets/logo_sin_fondo.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/assets/logo.jpeg",
+    icon: "/assets/logo_sin_fondo.png",
     apple: "/apple-touch-icon.png",
   },
   other: {
