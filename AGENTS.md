@@ -66,15 +66,18 @@ npm run deploy       # firebase deploy --only functions
 - Theme color dinámico según dark/light mode (ver `layout.tsx` script inline)
 - Push notifications: Firebase Cloud Messaging (`firebase-messaging-sw.js`)
 
-## Versionado (SemVer)
+## Versionado (SemVer) — Regla obligatoria
 
-La versión se define en dos lugares que deben mantenerse sincronizados:
-- `package.json` → campo `"version"`
-- `src/lib/version.ts` → constante `APP_VERSION` (se muestra en el sidebar)
+- **Antes de commitear cualquier cambio de código, verificar si hay que actualizar la versión.**
+- La versión se define en **dos lugares** que deben mantenerse sincronizados:
+  - `package.json` → campo `"version"`
+  - `src/lib/version.ts` → constante `APP_VERSION` (se muestra en el sidebar)
+- **Siempre actualizar ambos archivos al mismo tiempo.** Nunca solo uno.
 
-**Patch** (1.3.0 → 1.3.1): bug fixes, correcciones menores  
-**Minor** (1.3.0 → 1.4.0): features nuevas, mejoras funcionales  
-**Major** (1.3.0 → 2.0.0): breaking changes, reestructuración significativa
+**Cuándo bump:**
+- **Patch** (1.4.0 → 1.4.1): bug fixes, correcciones menores, ajustes de CSS, docs
+- **Minor** (1.4.0 → 1.5.0): features nuevas, nuevas páginas, hooks, mejoras funcionales
+- **Major** (1.4.0 → 2.0.0): breaking changes, reestructuración significativa, migraciones
 
 ## Para empezar una nueva sesión
 
