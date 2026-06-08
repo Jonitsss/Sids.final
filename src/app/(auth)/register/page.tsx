@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
+import { APP_VERSION } from "@/lib/version"
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -32,8 +33,10 @@ export default function RegisterPage() {
   }, [user, loading, router])
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[300px]">
-      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <p className="text-sm text-muted-foreground">Cargando...</p>
+      <p className="text-xs text-muted-foreground/50">v{APP_VERSION}</p>
     </div>
   )
 
@@ -125,6 +128,7 @@ export default function RegisterPage() {
               Inicia sesión
             </Link>
           </p>
+          <p className="text-xs text-muted-foreground/50">v{APP_VERSION}</p>
         </CardFooter>
       </form>
     </Card>
