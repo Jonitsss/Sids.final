@@ -42,6 +42,10 @@ export default function MinisterioDetailPage() {
   const [configLiderId, setConfigLiderId] = useState("")
   const [savingConfig, setSavingConfig] = useState(false)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const [editingName, setEditingName] = useState(false)
+  const [editingNombre, setEditingNombre] = useState("")
+  const [editingDescripcion, setEditingDescripcion] = useState("")
+  const [savingName, setSavingName] = useState(false)
 
   const handleOpenDialog = async () => {
     setDialogOpen(true)
@@ -162,6 +166,26 @@ export default function MinisterioDetailPage() {
     }
   }
 
+  const handleSaveName = async () => {
+    if (!ministerio) return
+    const nombre = editingNombre.trim()
+    if (!nombre) return
+    setSavingName(true)
+    try {
+      const updates: Record<string, string> = { nombre }
+      const desc = editingDescripcion.trim()
+      updates.descripcion = desc
+      await actualizarDocumento("ministerios", ministerio.id, updates)
+      setMinisterio((prev) => prev ? { ...prev, nombre, descripcion: desc } : prev)
+      setEditingName(false)
+      toast.success("Ministerio actualizado")
+    } catch {
+      toast.error("Error al guardar")
+    } finally {
+      setSavingName(false)
+    }
+  }
+
   if (loading) return <MinisterioDetailSkeleton />
   if (!ministerio) return <div className="p-8 text-center text-muted-foreground">Ministerio no encontrado</div>
 
@@ -175,9 +199,54 @@ export default function MinisterioDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold">{ministerio.nombre}</h1>
-          <p className="text-muted-foreground">{ministerio.descripcion}</p>
+        <div
+          className={`flex-1 min-w-0 ${esPastor ? "group relative cursor-pointer" : ""}`}
+          onClick={() => {
+            if (!esPastor) return
+            setEditingNombre(ministerio.nombre)
+            setEditingDescripcion(ministerio.descripcion || "")
+            setEditingName(true)
+          }}
+        >
+          {editingName ? (
+            <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+              <Input
+                autoFocus
+                value={editingNombre}
+                onChange={(e) => setEditingNombre(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveName()
+                  if (e.key === "Escape") setEditingName(false)
+                }}
+                className="text-2xl font-bold h-auto py-1"
+                placeholder="Nombre del ministerio"
+              />
+              <Input
+                value={editingDescripcion}
+                onChange={(e) => setEditingDescripcion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveName()
+                  if (e.key === "Escape") setEditingName(false)
+                }}
+                placeholder="Descripción (opcional)"
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveName} disabled={savingName}>
+                  {savingName ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                  Guardar
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditingName(false)}>Cancelar</Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold truncate">{ministerio.nombre}</h1>
+              {ministerio.descripcion && <p className="text-muted-foreground truncate">{ministerio.descripcion}</p>}
+              {esPastor && (
+                <Pencil className="h-4 w-4 absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+              )}
+            </>
+          )}
         </div>
         <div className="ml-auto flex gap-2">
           {esPastor && (
