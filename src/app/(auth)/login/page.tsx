@@ -16,7 +16,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const { login, user, loading } = useAuth()
+  const [resetting, setResetting] = useState(false)
+  const { login, user, loading, resetPassword } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -49,6 +50,26 @@ export default function LoginPage() {
       toast.error(mensajes[error.code] || "Error al iniciar sesión")
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!email.trim()) {
+      toast.error("Ingresá tu correo electrónico primero")
+      return
+    }
+    setResetting(true)
+    try {
+      await resetPassword(email.trim().toLowerCase())
+      toast.success("Correo de restablecimiento enviado. Revisá tu bandeja.")
+    } catch (error: any) {
+      const mensajes: Record<string, string> = {
+        "auth/user-not-found": "No existe una cuenta con ese correo",
+        "auth/invalid-email": "Correo electrónico inválido",
+      }
+      toast.error(mensajes[error.code] || "Error al enviar correo")
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -97,6 +118,16 @@ export default function LoginPage() {
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                disabled={resetting}
+                className="text-sm text-primary hover:underline disabled:opacity-50"
+              >
+                {resetting ? "Enviando..." : "¿Olvidaste tu contraseña?"}
+              </button>
             </div>
           </div>
         </CardContent>
