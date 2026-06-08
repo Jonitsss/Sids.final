@@ -24,6 +24,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(next)
     localStorage.setItem("theme", next)
     document.documentElement.classList.toggle("dark", next === "dark")
+    const bgColor = next === "dark" ? "#0a0a0a" : "#FFFFFF"
+    document.documentElement.style.background = bgColor
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) meta.setAttribute("content", bgColor)
   }
 
   return (

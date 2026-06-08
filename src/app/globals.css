@@ -38,6 +38,10 @@
   --color-sidebar-ring: #2A6A47;
 }
 
+html {
+  background-color: var(--color-background);
+}
+
 body {
   touch-action: pan-x pan-y;
   -webkit-font-smoothing: antialiased;

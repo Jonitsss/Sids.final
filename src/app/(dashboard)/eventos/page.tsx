@@ -13,12 +13,13 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useEventos } from "@/hooks/useEventos"
 import { Plus, ChevronLeft, ChevronRight, Trash2, CalendarDays, Loader2 } from "lucide-react"
 import { CalendarSkeleton, SidebarListSkeleton } from "@/components/skeletons"
-import { DIAS_SEMANA } from "@/lib/constants"
 import { crearDocumento, eliminarDocumento, obtenerDocumentos, where } from "@/lib/firestore"
 import { Evento, GrillaServicio, Notificacion } from "@/types"
 import { toast } from "sonner"
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay } from "date-fns"
 import { es } from "date-fns/locale"
+
+const DIAS_CORTOS = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"]
 
 
 type ViewMode = "month" | "list"
@@ -192,33 +193,35 @@ export default function EventosPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-7 gap-px">
-                  {DIAS_SEMANA.map((d) => (
-                    <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">{d}</div>
+                <div className="grid grid-cols-7 gap-1">
+                  {DIAS_CORTOS.map((d) => (
+                    <div key={d} className="text-center text-[10px] sm:text-xs font-medium text-muted-foreground py-1">{d}</div>
                   ))}
                   {days.map((d, idx) => {
                     const evs = eventos.filter((e) => isSameDay(e.fecha, d))
                     return (
                       <div
                         key={idx}
-                        className={`min-h-[80px] p-1 border rounded-md text-sm ${
+                        className={`aspect-square p-0.5 sm:p-1 border rounded-md text-sm flex flex-col ${
                           !isSameMonth(d, currentDate) ? "text-muted-foreground/40" : ""
                         } ${isSameDay(d, new Date()) ? "border-primary" : ""}`}
                       >
-                        <span className="text-xs font-medium">{format(d, "d")}</span>
-                        {evs.map((e) => (
-                          <div key={e.id} className="group/ev flex items-center gap-1 text-xs bg-primary/10 text-primary rounded px-1 mt-1">
-                            <span className="truncate flex-1">{e.titulo}</span>
-                            {esPastor && (
-                              <button
-                                className="shrink-0 opacity-0 group-hover/ev:opacity-100 hover:text-destructive transition-opacity"
-                                onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id, e.titulo) }}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
+                        <span className="text-[10px] sm:text-xs font-medium leading-none">{format(d, "d")}</span>
+                        <div className="flex-1 overflow-hidden">
+                          {evs.map((e) => (
+                            <div key={e.id} className="group/ev flex items-center gap-0.5 text-[8px] sm:text-[10px] bg-primary/10 text-primary rounded px-0.5 mt-0.5">
+                              <span className="truncate flex-1 leading-tight">{e.titulo}</span>
+                              {esPastor && (
+                                <button
+                                  className="shrink-0 opacity-0 group-hover/ev:opacity-100 hover:text-destructive transition-opacity"
+                                  onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id, e.titulo) }}
+                                >
+                                  <Trash2 className="h-2.5 w-2.5" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )
                   })}
