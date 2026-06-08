@@ -76,7 +76,7 @@ salta, continuando con los fallbacks de `authUid` y `email`.
 sids-next/
 ├── functions/                          # Cloud Functions (TypeScript)
 │   ├── src/
-│   │   ├── index.ts                    # borrarDocumento, setRolUsuario
+│   │   ├── index.ts                    # borrarDocumento, setRolUsuario, onNotificacionCreated
 │   │   └── scripts/setInitialRol.ts    # bootstrap del primer admin
 │   ├── package.json
 │   ├── tsconfig.json
@@ -85,14 +85,22 @@ sids-next/
 │   ├── app/                            # (public), (auth), (dashboard)
 │   ├── components/                     # ui/ (shadcn), auth/, layout/
 │   ├── contexts/                       # AuthContext, ThemeContext
-│   ├── hooks/
+│   ├── hooks/                          # usePushNotifications, useNotificaciones, etc.
 │   ├── lib/
-│   │   ├── firebase.ts                 # inicializa Firebase + Functions
+│   │   ├── firebase.ts                 # inicializa Firebase + Functions + Messaging
 │   │   ├── firestore.ts                # CRUD cliente (delete via CF)
+│   │   ├── messaging.ts                # FCM helpers (requestPermission, onForegroundMessage)
 │   │   └── roles.ts                    # asignarRolUsuario(uid, rol)
 │   ├── styles/                         # landing.css (vanilla)
 │   └── types/
-├── public/                             # assets + sitemap generado
+├── public/                             # assets + sitemap + PWA files
+│   ├── manifest.json                   # Web App Manifest
+│   ├── sw.js                           # Service Worker (cache offline)
+│   ├── firebase-messaging-sw.js        # Push notifications en background
+│   ├── icon-192.png                    # Icono PWA
+│   ├── icon-512.png                    # Icono PWA grande
+│   ├── icon-maskable.png               # Icono Android adaptive
+│   └── apple-touch-icon.png            # Icono iOS
 ├── deploy.sh                           # script de deploy interactivo
 ├── firebase.json                       # firestore + functions config
 ├── firestore.rules                     # reglas (delete=false en todo)
@@ -113,6 +121,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
 NEXT_PUBLIC_FIREBASE_APP_ID
+NEXT_PUBLIC_FIREBASE_VAPID_KEY            # para push notifications (FCM)
 NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true   # opcional, para dev local
 ```
 
@@ -146,37 +155,26 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-ada19f1 fix(ui): ocultar controles de edicion en ministerios para colaboradores
-31de5dd fix(ui): usar helper rolLabel en Sidebar, perfil y ministerios
-e5264af feat(usuarios): listener en tiempo real con onSnapshot
-3b7018f feat(ui): renombrar rol 'Líder' a 'Líder de área'
-060d3ac fix(security): remover console.log con PII y restringir CORS
-9695a1e fix(auth): resolver permisos para cuentas re-creadas y custom claims
-59498c3 docs: agregar PROJECT.md con contexto técnico para resume de sesión
-b337988 feat(deploy): setInitialRol acepta service account JSON inline
-ec3534d chore(deploy): agregar deploy.sh y proteger secrets en .gitignore
-f13a750 feat(functions): borrado y roles vía Cloud Functions
-442e1de chore: cambiar dominio a santaiglesia.com.ar
+feat(pwa): convertir app a PWA con notificaciones push
 ```
 
-Todo pusheado a `main` en `github.com/Jonitsss/Sids.final`.
+Cambios de esta sesión:
+- **PWA instalable**: `manifest.json`, Service Worker (`sw.js`), meta tags Apple, icons (192, 512, maskable, apple-touch)
+- **Push notifications**: Firebase Cloud Messaging completo
+  - `firebase-messaging-sw.js` para background push
+  - `src/lib/messaging.ts` con `requestPermission()` y `onForegroundMessage()`
+  - `src/hooks/usePushNotifications.ts` para registro y foreground
+  - Cloud Function `onNotificacionCreated` (trigger Firestore → FCM multicast)
+  - Limpieza automática de tokens inválidos
+- **Icono actualizado**: `logo.jpeg` reemplaza `logo.png` en web y PWA
+- **Prompt de permiso**: banner no intrusivo en dashboard layout
 
 ## 8. Pendiente para próximas sesiones
 
 Hecho en esta sesión:
-- ~~Asignar roles desde la página `/usuarios`~~ — dropdown con `asignarRolUsuario`.
-- ~~Auto-refresh del idToken~~ — `getIdToken(true)` en login y después de `asignarRolUsuario`.
-- ~~Custom claim sync en login~~ — `login()` busca el documento por Auth UID → authUid → email, y llama `asignarRolUsuario` para setear el claim.
-- ~~Cloud Functions: email fallback~~ — `getRolFromFirestore` busca por email si no encuentra por UID/authUid, y auto-linke `authUid`.
-- ~~Cloud Functions: sparse doc fix~~ — `setRolUsuario` escribe `rol` al documento real encontrado por email/authUid, no crea documento duplicado.
-- ~~firestore.rules: notificaciones read~~ — cambiado a `if isSignedIn()`.
-- ~~firestore.rules: notificaciones create~~ — cambiado a `isSignedIn() && usuarioId != request.auth.uid`.
-- ~~Rol "Líder" renombrado a "Líder de área"~~ — en Selects, Badge y Sidebar.
-- ~~helper `rolLabel()`~~ — en `utils.ts`, usado en Sidebar, perfil, ministerios, usuarios.
-- ~~Usuarios: listener en tiempo real~~ — `onSnapshot` reemplaza fetch único.
-- ~~Ministerios: role guards~~ — controles de edición ocultos para colaboradores/líderes.
-- ~~Seguridad: console.log con PII removidos~~ — 4 logs en tareas y cronogramas.
-- ~~CORS restringido~~ — allowlist `santaiglesia.com.ar` + `localhost:3000` (no wildcard `*`).
+- ~~PWA instalable~~ — manifest, service worker, icons, meta tags
+- ~~Push notifications~~ — FCM completo (cliente + servidor + trigger)
+- ~~Icono actualizado~~ — logo.jpeg en web, PWA y OG image
 
 Pendiente:
 1. **Endurecer `create/update` por colección con custom claims**
@@ -217,6 +215,6 @@ Pendiente:
 Pegar este prompt (o equivalente) al abrir opencode:
 
 > "Estoy retomando el proyecto SIDS. Leé `PROJECT.md` (contexto técnico) y
-> `README.md` (cara pública). El último commit es `ada19f1`. Revisá
-> `git status` y `git log --oneline -10` para ver el estado, y consultá
-> la sección 'Pendiente' de PROJECT.md para saber por dónde seguir."
+> `README.md` (cara pública). Revisá `git status` y `git log --oneline -10`
+> para ver el estado, y consultá la sección 'Pendiente' de PROJECT.md para
+> saber por dónde seguir."

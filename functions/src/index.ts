@@ -1,7 +1,9 @@
 import { onRequest } from "firebase-functions/v2/https";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
+import { getMessaging } from "firebase-admin/messaging";
 import { logger, setGlobalOptions } from "firebase-functions/v2";
 
 setGlobalOptions({ region: "southamerica-east1", maxInstances: 10 });
@@ -251,3 +253,58 @@ export const setRolUsuario = onRequest(async (req, res) => {
     res.status(status).send({ error: err?.message || "Error al asignar rol." });
   }
 });
+
+export const onNotificacionCreated = onDocumentCreated(
+  "notificaciones/{notifId}",
+  async (event) => {
+    const notif = event.data?.data();
+    if (!notif) return;
+
+    const usuarioId = notif.usuarioId;
+    if (typeof usuarioId !== "string") return;
+
+    const userSnap = await db.collection("usuarios").doc(usuarioId).get();
+    if (!userSnap.exists) return;
+
+    const fcmTokens: string[] = userSnap.data()?.fcmTokens || [];
+    if (fcmTokens.length === 0) return;
+
+    const titulo = typeof notif.titulo === "string" ? notif.titulo : "Nueva notificación";
+    const mensaje = typeof notif.mensaje === "string" ? notif.mensaje : "";
+
+    try {
+      const response = await getMessaging().sendEachForMulticast({
+        notification: { title: titulo, body: mensaje },
+        webpush: {
+          notification: {
+            icon: "/icon-192.png",
+            badge: "/icon-192.png",
+          },
+        },
+        tokens: fcmTokens,
+      });
+
+      if (response.failureCount > 0) {
+        const invalidTokens: string[] = [];
+        response.responses.forEach((resp, idx) => {
+          if (
+            !resp.success &&
+            (resp.error?.code === "messaging/registration-token-not-registered" ||
+              resp.error?.code === "messaging/invalid-registration-token")
+          ) {
+            invalidTokens.push(fcmTokens[idx]);
+          }
+        });
+        if (invalidTokens.length > 0) {
+          await userSnap.ref.update({
+            fcmTokens: FieldValue.arrayRemove(...invalidTokens),
+          });
+        }
+      }
+
+      logger.info("push enviado", { usuarioId, success: response.successCount, failure: response.failureCount });
+    } catch (err: any) {
+      logger.error("Error enviando push", { error: err?.message });
+    }
+  }
+);

@@ -3,6 +3,7 @@ import { getAuth, Auth, connectAuthEmulator } from "firebase/auth"
 import { getFirestore, Firestore, connectFirestoreEmulator } from "firebase/firestore"
 import { getStorage, FirebaseStorage, connectStorageEmulator } from "firebase/storage"
 import { getFunctions, Functions, connectFunctionsEmulator } from "firebase/functions"
+import { getMessaging, Messaging } from "firebase/messaging"
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -29,6 +30,7 @@ const storage = app ? getStorage(app) : null
 const functions: Functions | null = app
   ? getFunctions(app, FUNCTIONS_REGION)
   : null
+const messaging: Messaging | null = app ? getMessaging(app) : null
 
 if (
   typeof window !== "undefined" &&
@@ -40,4 +42,4 @@ if (
   if (functions) connectFunctionsEmulator(functions, "127.0.0.1", 5001)
 }
 
-export { app, auth, db, storage, functions, FUNCTIONS_REGION }
+export { app, auth, db, storage, functions, messaging, FUNCTIONS_REGION }

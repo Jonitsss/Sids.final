@@ -4,7 +4,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 const fullTitle = `${siteConfig.name} · ${siteConfig.shortName}`;
-const ogImage = `${siteConfig.url}/assets/logo.png`;
+const ogImage = `${siteConfig.url}/assets/logo.jpeg`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -60,8 +60,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/assets/logo.png",
-    apple: "/assets/logo.png",
+    icon: "/assets/logo.jpeg",
+    apple: "/apple-touch-icon.png",
   },
   other: {
     "geo.region": "AR-B",
@@ -100,6 +100,16 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
         />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="SIDS" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}`,
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `if("scrollRestoration" in history){history.scrollRestoration="manual";}window.scrollTo(0,0);`,

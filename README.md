@@ -36,24 +36,48 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
   - `src/styles/landing.css` — vanilla CSS para `/` (1:1 con el diseño Astro original)
   - `src/app/globals.css` — Tailwind v4 + shadcn tokens para `/login`, `/register`, `/dashboard/*`
 - **TypeScript** — strict mode
-- **Firebase** — Auth + Firestore + Storage
+- **Firebase** — Auth + Firestore + Storage + Cloud Messaging
 - **framer-motion** — animaciones dashboard
 - **shadcn/ui** — componentes accesibles (Radix primitives)
 - **[next-sitemap](https://github.com/iamvishnusankar/next-sitemap)** — sitemap + robots en postbuild
-- **Despliegue**: Vercel
+- **Despliegue**: Vercel (frontend) + Firebase (backend + push notifications)
+
+## PWA (Progressive Web App)
+
+La aplicación es instalable como PWA en Android e iOS:
+
+- **Manifest**: `public/manifest.json` — nombre, iconos, theme color, display standalone
+- **Service Worker**: `public/sw.js` — cache offline de assets estáticos
+- **Push Notifications**: Firebase Cloud Messaging
+  - `public/firebase-messaging-sw.js` — notificaciones en background
+  - `src/lib/messaging.ts` — helpers para `getToken()` y `onMessage()`
+  - `src/hooks/usePushNotifications.ts` — hook de registro y foreground messages
+  - Cloud Function `onNotificacionCreated` — trigger Firestore que envía push al crear una notificación
+
+Para activar notificaciones push:
+1. Generar VAPID key en Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+2. Agregar `NEXT_PUBLIC_FIREBASE_VAPID_KEY` en `.env.local` y en Vercel
+3. Deploy: `firebase deploy --only functions`
 
 ## Estructura
 
 ```
 sids-next/
 ├── public/
-│   ├── assets/                  # logo + imágenes (logo.png, img/*.jpg|png)
+│   ├── assets/                  # logo + imágenes (logo.jpeg, img/*.jpg|png)
+│   ├── manifest.json            # Web App Manifest (PWA)
+│   ├── sw.js                    # Service Worker (cache offline)
+│   ├── firebase-messaging-sw.js # Push notifications en background
+│   ├── icon-192.png             # Icono PWA 192x192
+│   ├── icon-512.png             # Icono PWA 512x512
+│   ├── icon-maskable.png        # Icono Android adaptive
+│   ├── apple-touch-icon.png     # Icono iOS 180x180
 │   ├── robots.txt               # generado por next-sitemap
 │   ├── sitemap.xml              # generado por next-sitemap
 │   └── sitemap-0.xml            # generado por next-sitemap
 ├── functions/                   # Cloud Functions (TypeScript)
 │   ├── src/
-│   │   ├── index.ts             # borrarDocumento, setRolUsuario (onRequest)
+│   │   ├── index.ts             # borrarDocumento, setRolUsuario, onNotificacionCreated
 │   │   └── scripts/
 │   │       └── setInitialRol.ts # bootstrap del primer pastor/admin
 │   ├── package.json
@@ -76,7 +100,7 @@ sids-next/
 │   │   │   ├── reportes/
 │   │   │   └── usuarios/
 │   │   ├── globals.css          # Tailwind v4 + tema tokens + dark mode
-│   │   ├── layout.tsx           # html, fonts, scroll restoration, providers
+│   │   ├── layout.tsx           # html, fonts, scroll restoration, providers, PWA meta tags
 │   │   └── providers.tsx        # AuthProvider + ThemeProvider
 │   ├── components/
 │   │   ├── *.tsx                # Componentes del landing (Hero, Nav, Marquee, etc.)
@@ -85,8 +109,8 @@ sids-next/
 │   │   └── layout/              # DashboardLayout, Sidebar
 │   ├── contexts/                # AuthContext, ThemeContext
 │   ├── data/content.ts          # stats, schedule, navLinks, heroLines
-│   ├── hooks/                   # useEventos, useTareas, useDashboard, etc.
-│   ├── lib/                     # firebase, firestore, roles, seo, utils, constants
+│   ├── hooks/                   # useEventos, useTareas, useDashboard, usePushNotifications, etc.
+│   ├── lib/                     # firebase, firestore, messaging, roles, seo, utils, constants
 │   ├── styles/landing.css       # CSS vanilla del landing (700+ líneas)
 │   └── types/index.ts           # Tipos TypeScript del sistema
 ├── firestore.rules              # reglas de seguridad (delete = false, via CF)
@@ -225,6 +249,7 @@ Los paréntesis en `(public)`, `(auth)`, `(dashboard)` organizan las rutas sin a
    - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
    - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
+   - `NEXT_PUBLIC_FIREBASE_VAPID_KEY` (para push notifications)
 4. (Opcional) Configurá el dominio personalizado `santaiglesia.com.ar`
 
 ## Licencia
