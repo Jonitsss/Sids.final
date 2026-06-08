@@ -73,6 +73,7 @@ export interface Asignacion {
   estado: EstadoAsignacion
   esExterno: boolean
   nombreExterno: string
+  justificacionRechazo?: string
 }
 
 export interface Tarea {

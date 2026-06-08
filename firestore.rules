@@ -33,6 +33,10 @@ service cloud.firestore {
       return esPastorOAdmin() || esLider();
     }
 
+    function puedeActualizarCronograma() {
+      return puedeCrearEventosOCronogramas() || isSignedIn();
+    }
+
     // ---------------------------------------------------------------------
     // usuarios: cualquier autenticado lee; solo autenticado puede actualizar
     //           su propio documento (matching por authUid)
@@ -70,7 +74,8 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /cronogramas/{cronogramaId} {
       allow read: if isSignedIn();
-      allow create, update: if puedeCrearEventosOCronogramas();
+      allow create: if puedeCrearEventosOCronogramas();
+      allow update: if puedeActualizarCronograma();
       allow delete: if false;
     }
 

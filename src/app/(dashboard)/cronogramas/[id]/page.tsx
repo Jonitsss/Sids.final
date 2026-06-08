@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Loader2, Trash2, Save } from "lucide-react"
+import { ArrowLeft, Loader2, Trash2, Save, Check, X as XIcon } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { GrillaServicio, Evento, Usuario, Asignacion, Notificacion } from "@/types"
@@ -17,6 +17,9 @@ import { useAuth } from "@/contexts/AuthContext"
 import { obtenerDocumentos } from "@/lib/firestore"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 
 const TIPO_COLORS: Record<string, string> = {
   reunion_general: "default",
@@ -44,6 +47,8 @@ export default function CronogramaDetailPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [asignaciones, setAsignaciones] = useState<Asignacion[]>([])
+  const [modalRechazo, setModalRechazo] = useState<{ ministerioId: string; rol: string } | null>(null)
+  const [justificacion, setJustificacion] = useState("")
 
   const { ministerios } = useMinisterios()
   const { userData } = useAuth()
@@ -114,6 +119,74 @@ export default function CronogramaDetailPage() {
         a.ministerioId === ministerioId && a.rol === rol ? { ...a, estado } : a
       )
     )
+  }
+
+  const handleAceptarColaborador = async (ministerioId: string, rol: string) => {
+    if (!grilla || !uid) return
+    setSaving(true)
+    try {
+      const nuevasAsignaciones = asignaciones.map((a) =>
+        a.ministerioId === ministerioId && a.rol === rol && a.usuarioId === uid
+          ? { ...a, estado: "confirmado" as const }
+          : a
+      )
+      await actualizarDocumento("cronogramas", id, { asignaciones: nuevasAsignaciones })
+      setAsignaciones(nuevasAsignaciones)
+      toast.success("Asignación aceptada")
+    } catch (error) {
+      console.error("Error al aceptar:", error)
+      toast.error("Error al aceptar la asignación")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleRechazarColaborador = async () => {
+    if (!modalRechazo || !grilla || !uid) return
+    if (!justificacion.trim()) {
+      toast.error("Debés ingresar una justificación")
+      return
+    }
+    setSaving(true)
+    try {
+      const { ministerioId, rol } = modalRechazo
+      const nuevasAsignaciones = asignaciones.map((a) =>
+        a.ministerioId === ministerioId && a.rol === rol && a.usuarioId === uid
+          ? { ...a, estado: "rechazado" as const, justificacionRechazo: justificacion.trim() }
+          : a
+      )
+      await actualizarDocumento("cronogramas", id, { asignaciones: nuevasAsignaciones })
+      setAsignaciones(nuevasAsignaciones)
+
+      const min = ministerios.find((m) => m.id === ministerioId)
+      const minNombre = min?.nombre || "el ministerio"
+      const eventoTitulo = evento?.titulo || "el evento"
+
+      const destinatarios = usuarios.filter(
+        (u) => u.rol === "pastor" || u.rol === "administrador" || (u.rol === "lider" && u.ministerioIds?.includes(ministerioId))
+      )
+
+      for (const dest of destinatarios) {
+        const destId = dest.authUid || dest.id
+        await crearDocumento<Notificacion>("notificaciones", {
+          usuarioId: destId,
+          titulo: "Asignación rechazada",
+          mensaje: `${userData?.nombre} ${userData?.apellido} rechazó la asignación de "${rol}" en ${minNombre} para "${eventoTitulo}". Motivo: ${justificacion.trim()}`,
+          leido: false,
+          tipo: "confirmacion",
+          referenciaId: `rechazo:${id}:${ministerioId}:${rol}`,
+        })
+      }
+
+      toast.success("Asignación rechazada")
+      setModalRechazo(null)
+      setJustificacion("")
+    } catch (error) {
+      console.error("Error al rechazar:", error)
+      toast.error("Error al rechazar la asignación")
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleSave = async () => {
@@ -305,6 +378,23 @@ export default function CronogramaDetailPage() {
                                       ? "Rechazado"
                                       : "Pendiente"}
                                   </button>
+                                  ) : asig.usuarioId === uid && asig.estado === "pendiente" ? (
+                                  <div className="flex gap-1">
+                                    <button
+                                      className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-0.5"
+                                      onClick={() => handleAceptarColaborador(min.id, rol)}
+                                      disabled={saving}
+                                    >
+                                      <Check className="h-3 w-3" /> Aceptar
+                                    </button>
+                                    <button
+                                      className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 flex items-center gap-0.5"
+                                      onClick={() => setModalRechazo({ ministerioId: min.id, rol })}
+                                      disabled={saving}
+                                    >
+                                      <XIcon className="h-3 w-3" /> Rechazar
+                                    </button>
+                                  </div>
                                   ) : (
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                                       asig.estado === "confirmado"
@@ -368,6 +458,36 @@ export default function CronogramaDetailPage() {
           })}
         </div>
       )}
+
+      <Dialog open={!!modalRechazo} onOpenChange={(open) => { if (!open) { setModalRechazo(null); setJustificacion("") } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rechazar asignación</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Justificación</Label>
+              <Textarea
+                placeholder="Explicá el motivo por el cual rechazás esta asignación..."
+                value={justificacion}
+                onChange={(e) => setJustificacion(e.target.value)}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                Esta justificación será enviada al Pastor, Administrador y Líder del ministerio.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setModalRechazo(null); setJustificacion("") }} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleRechazarColaborador} disabled={saving || !justificacion.trim()}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar rechazo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
