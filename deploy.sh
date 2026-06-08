@@ -188,7 +188,7 @@ if $DO_SET_ROL; then
   cd "$FUNCTIONS_DIR"
 
   info "Asignando rol a: $EMAIL"
-  npx ts-node src/scripts/setInitialRol.ts "$EMAIL"
+  npx ts-node src/scripts/setInitialRol.ts "$EMAIL" "pastor" "$KEY_PATH"
 
   ok "Listo. El usuario $EMAIL ya tiene el custom claim en Firebase Auth"
   echo -e "  ${YELLOW}IMPORTANTE${NC}: pedirle que cierre sesión y vuelva a entrar"

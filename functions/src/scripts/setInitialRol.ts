@@ -2,6 +2,13 @@ import { initializeApp, applicationDefault, cert, App } from "firebase-admin/app
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
+const ROLES_VALIDOS = new Set([
+  "pastor",
+  "administrador",
+  "lider",
+  "colaborador",
+]);
+
 function getApp(): App {
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     return initializeApp({ credential: applicationDefault() });
@@ -15,18 +22,33 @@ function getApp(): App {
     });
   }
   throw new Error(
-    "Configurá las credenciales de Admin SDK (GOOGLE_APPLICATION_CREDENTIALS o FIREBASE_PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY)."
+    "Configurá credenciales de Admin SDK: pasá un JSON como 3er argumento, " +
+      "o definí GOOGLE_APPLICATION_CREDENTIALS, " +
+      "o FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY."
   );
 }
 
 async function main() {
   const email = process.argv[2];
   const rol = process.argv[3] || "pastor";
+  const keyFile = process.argv[4];
+
   if (!email) {
     console.error(
-      "Uso: npm run set-initial-rol -- <email> [rol=pastor|administrador|lider|colaborador]"
+      "Uso:\n" +
+        "  npx ts-node src/scripts/setInitialRol.ts <email> [rol] [path/to/serviceAccountKey.json]\n" +
+        "Roles válidos: " +
+        Array.from(ROLES_VALIDOS).join(", ")
     );
     process.exit(1);
+  }
+  if (!ROLES_VALIDOS.has(rol)) {
+    console.error(`Rol "${rol}" no es válido. Permitidos: ${Array.from(ROLES_VALIDOS).join(", ")}`);
+    process.exit(1);
+  }
+
+  if (keyFile) {
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = keyFile;
   }
 
   const app = getApp();
