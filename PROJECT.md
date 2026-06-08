@@ -163,23 +163,21 @@ ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones 
 244d826 fix: notificaciones push no llegaban si el usuario fue creado por admin (doc ID != auth UID)
 ```
 
-Cambios de esta sesión (v1.5.0):
-- **Fix tickets líder/colaborador**: el hook `useTickets` ahora hace dos queries en paralelo (`where("de")` + `where("a")`) sin `orderBy` para evitar el índice compuesto faltante. Ordena del lado del cliente. Los líderes ahora también ven la pestaña **Recibidos**.
-- **Fix notificaciones push iOS**: se agregó botón **"Habilitar"** en `PushPrompt` que llama `requestPermission()` con gesto del usuario (requisito de iOS Safari para mostrar el diálogo de permiso).
-- **Fix FCM token con doc ID ≠ authUid**: `messaging.ts` ahora busca por campo `authUid` si el documento no existe en la ruta `doc(uid)`. Esto cubre usuarios cuyo perfil fue pre-creado por admin (ID auto-generado).
-- **Nueva función `enviarNotificacionPush`** (HTTP): crea el documento en `notificaciones` y envía el push FCM sincrónicamente. El cliente la llama directamente en vez de crear el documento raw.
-- **Actualizadas todas las creaciones de notificaciones** (tickets, tareas, cronogramas, usuarios, notificaciones) para usar `enviarNotificacion` en vez de `crearDocumento` directo.
-- **Sidebar** ahora usa `user?.uid` consistente con tickets page en vez de `userData?.id`.
-- **Tabs** Recibidos/Enviados visibles para todos los roles (antes solo pastor/admin).
-- **Script `testPush.ts`**: envía notificación push de prueba a todos los tokens FCM registrados. `npm run test-push` en `functions/`.
+Cambios de esta sesión (v1.6.0):
+- **Sistema de aprobación de cuentas**: usuarios nuevos se registran con `activo: false` y no pueden acceder hasta que un Pastor/Admin los apruebe.
+- **Pantalla "Cuenta pendiente"**: componente `PendingApproval.tsx` que se muestra cuando el usuario no está activo.
+- **Login con estado pendiente**: si el usuario está logueado pero `activo: false`, muestra mensaje de pendiente en vez de redirigir.
+- **Botón Aprobar/Desactivar** en la página de Usuarios: Pastor/Admin puede activar o desactivar usuarios.
+- **Usuarios pendientes aparecen primero** en la lista, con badge "Pendiente".
+- **Fix notificaciones dobles**: eliminado `onNotificacionCreated` trigger (causaba doble push). Deploy OK.
+- **Mejorado cleanup de tokens inválidos** en Cloud Functions (captura más códigos de error FCM).
+- **Versión visible** en login, register y pantalla de carga.
 
-Cambios de sesiones anteriores:
-- **Colaboradores pueden crear tickets**: antes solo líderes, ahora cualquier no-pastor/admin puede enviar tickets.
-- **Eliminar tickets**: pastor/admin puede eliminar tickets. Agregado `"tickets"` a allowlist de `borrarDocumento`.
-- **Sistema de tickets**: flujo de comunicación entre Líder de Área y Pastor/Administrador.
-  - Colección `tickets` en Firestore. Tipos: `sugerencia`, `tema`, `consulta`, `urgente`. Estados: `pendiente`, `respondido`, `cerrado`.
-  - Notificaciones push integradas.
-- **iOS status bar fix**, **Calendario compacto**, **Textos de notificaciones unificados**.
+Cambios de sesiones anteriores (v1.5.x):
+- **Fix tickets líder/colaborador** — useTickets con queries paralelas, sin índice compuesto
+- **Fix notificaciones push iOS** — PushPrompt con botón Habilitar (user gesture)
+- **Función enviarNotificacionPush** — HTTP function sincrónica para push confiable
+- **Tabs recibidos/enviados para todos** — ya no solo pastor/admin
 
 ## 8. Pendiente para próximas sesiones
 
@@ -191,14 +189,11 @@ Hecho en sesiones anteriores:
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Hecho en esta sesión:
+- ~~Sistema de aprobación de cuentas~~ — usuarios nuevos con activo:false, pantalla pendiente, botón aprobar
+- ~~Fix notificaciones dobles~~ — eliminado onNotificacionCreated trigger
+- ~~Cleanup tokens inválidos~~ — mejorado manejo de errores FCM
+- ~~Versión visible~~ — login, register, pantalla de carga
 - ~~Fix tickets líder/colaborador~~ — useTickets con queries paralelas, sin índice compuesto
-- ~~Fix FCM token doc ID ≠ authUid~~ — messaging.ts busca por authUid
-- ~~Fix notificaciones iOS~~ — PushPrompt con botón Habilitar (user gesture)
-- ~~Función enviarNotificacionPush~~ — HTTP function sincrónica para push confiable
-- ~~Tabs recibidos/enviados para todos~~ — ya no solo pastor/admin
-- ~~Sidebar consistente~~ — user.uid en vez de userData.id
-- ~~Script testPush.ts~~ — npm run test-push para probar notificaciones
-- ~~Logging en CF~~ — logger.warn en puntos de retorno silencioso
 
 Pendiente (notificaciones push):
 - ~~Notificaciones dobles~~ — eliminado `onNotificacionCreated` trigger (causaba doble push). Deploy OK.
@@ -307,7 +302,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.5.1 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.6.0 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 

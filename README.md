@@ -150,6 +150,20 @@ Firebase Authentication (sincronizado con el campo `usuarios.rol`):
 - **Líder de área** — crea eventos y cronogramas, ve todo pero no elimina ni gestiona miembros.
 - **Colaborador** — solo visualiza sus asignaciones en cronogramas, puede aceptar/rechazar con justificación, edita su perfil.
 
+#### Aprobación de cuentas
+
+Los usuarios nuevos se registran con `activo: false` y **no pueden acceder** al
+sistema hasta que un Pastor o Administrador los apruebe desde la página de
+Usuarios (`/usuarios`). Al aprobar, se cambia `activo: true` y el usuario
+puede iniciar sesión normalmente.
+
+- **Pantalla de pendiente**: si un usuario intenta acceder sin estar activo,
+  ve una pantalla indicando que su cuenta está pendiente de aprobación.
+- **Aprobar/Desactivar**: en la página de Usuarios, el botón "Aprobar" cambia
+  `activo: false` → `true`. El botón "Desactivar" hace lo contrario.
+- **Perfiles pre-creados**: si un admin creó un perfil con `activo: true` antes
+  de que el usuario se registre, el usuario puede acceder inmediatamente.
+
 #### Cómo se aplican los permisos
 
 - **Borrado**: el cliente **nunca** borra directo en Firestore. Llama a la

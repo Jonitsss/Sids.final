@@ -5,9 +5,10 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Loader2 } from "lucide-react"
+import { PendingApproval } from "./PendingApproval"
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, userData, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -25,6 +26,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   if (!user) return null
+
+  if (userData && userData.activo === false) {
+    return <PendingApproval />
+  }
 
   return <>{children}</>
 }

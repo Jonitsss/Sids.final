@@ -154,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fotoURL: data.fotoURL || "",
         authUid: uid,
         notificaciones: true,
-        activo: true,
+        activo: false,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       })

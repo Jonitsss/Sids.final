@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Plus, Trash2, Loader2, Pencil } from "lucide-react"
+import { Search, Plus, Trash2, Loader2, Pencil, UserCheck, UserX } from "lucide-react"
 import { Usuario, Rol } from "@/types"
 import { eliminarDocumento, crearDocumento, actualizarDocumento, enviarNotificacion } from "@/lib/firestore"
 import { asignarRolUsuario, RolValido } from "@/lib/roles"
@@ -56,11 +56,17 @@ export default function UsuariosPage() {
     return unsub
   }, [])
 
-  const filtered = usuarios.filter(
-    (u) =>
-      `${u.nombre} ${u.apellido}`.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = usuarios
+    .filter(
+      (u) =>
+        `${u.nombre} ${u.apellido}`.toLowerCase().includes(search.toLowerCase()) ||
+        u.email?.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (a.activo === false && b.activo !== false) return -1
+      if (a.activo !== false && b.activo === false) return 1
+      return 0
+    })
 
   const handleCreate = async () => {
     if (!form.nombre || !form.email) return
@@ -158,6 +164,16 @@ export default function UsuariosPage() {
       toast.success("Usuario eliminado")
     } catch {
       toast.error("Error al eliminar usuario")
+    }
+  }
+
+  const handleToggleActivo = async (u: Usuario) => {
+    const nuevoEstado = u.activo === false
+    try {
+      await actualizarDocumento("usuarios", u.id, { activo: nuevoEstado })
+      toast.success(nuevoEstado ? "Usuario aprobado" : "Usuario desactivado")
+    } catch {
+      toast.error("Error al actualizar usuario")
     }
   }
 
@@ -309,6 +325,9 @@ export default function UsuariosPage() {
                       <p className="font-medium">{u.nombre} {u.apellido}</p>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <Badge variant={rolBadge[u.rol]}>{rolLabel(u.rol)}</Badge>
+                        {u.activo === false && (
+                          <Badge variant="warning">Pendiente</Badge>
+                        )}
                         {u.ministerioIds?.map((mid) => {
                           const min = ministerios.find((m) => m.id === mid)
                           return min ? (
@@ -322,6 +341,28 @@ export default function UsuariosPage() {
                     <p className="text-sm text-muted-foreground truncate mt-0.5">{u.email}</p>
                     {esPastor && (
                       <div className="flex items-center gap-1 mt-2">
+                        {u.activo === false && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-green-600 hover:text-green-700 hover:bg-transparent"
+                            onClick={() => handleToggleActivo(u)}
+                          >
+                            <UserCheck className="h-3.5 w-3.5 mr-1" />
+                            Aprobar
+                          </Button>
+                        )}
+                        {u.activo !== false && u.rol !== "pastor" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-orange-600 hover:text-orange-700 hover:bg-transparent"
+                            onClick={() => handleToggleActivo(u)}
+                          >
+                            <UserX className="h-3.5 w-3.5 mr-1" />
+                            Desactivar
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { Loader2, Eye, EyeOff, Clock, LogOut } from "lucide-react"
 import { toast } from "sonner"
 import { APP_VERSION } from "@/lib/version"
 
@@ -18,12 +18,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [resetting, setResetting] = useState(false)
-  const { login, user, loading, resetPassword } = useAuth()
+  const { login, user, userData, loading, resetPassword, logout } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && user) router.replace("/dashboard")
-  }, [user, loading, router])
+    if (!loading && user && userData?.activo !== false) router.replace("/dashboard")
+  }, [user, userData, loading, router])
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
@@ -31,6 +31,26 @@ export default function LoginPage() {
       <p className="text-sm text-muted-foreground">Cargando...</p>
       <p className="text-xs text-muted-foreground/50">v{APP_VERSION}</p>
     </div>
+  )
+
+  if (user && userData?.activo === false) return (
+    <Card>
+      <CardHeader className="text-center">
+        <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+          <Clock className="h-7 w-7 text-primary" />
+        </div>
+        <CardTitle className="text-xl">Cuenta pendiente</CardTitle>
+        <CardDescription>Tu cuenta está esperando aprobación de un administrador.</CardDescription>
+      </CardHeader>
+      <CardContent className="text-center space-y-3">
+        <p className="text-sm text-muted-foreground">{userData?.nombre} {userData?.apellido}</p>
+        <p className="text-xs text-muted-foreground/60">Te notificaremos cuando sea activada.</p>
+        <Button variant="outline" onClick={logout} className="mt-2">
+          <LogOut className="h-4 w-4 mr-2" />
+          Cerrar sesión
+        </Button>
+      </CardContent>
+    </Card>
   )
 
   if (user) return null
