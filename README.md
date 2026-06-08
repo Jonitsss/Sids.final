@@ -146,7 +146,7 @@ Firebase Authentication (sincronizado con el campo `usuarios.rol`):
 - **Pastor** — acceso total. Puede borrar ministerios, eventos, cronogramas, tareas, usuarios, etc.
 - **Administrador** — mismos permisos que Pastor. Creado para delegar la operación sin entregar la cuenta pastor.
 - **Líder de área** — crea eventos y cronogramas, ve todo pero no elimina ni gestiona miembros.
-- **Colaborador** — solo visualiza sus asignaciones, edita su perfil.
+- **Colaborador** — solo visualiza sus asignaciones en cronogramas, puede aceptar/rechazar con justificación, edita su perfil.
 
 #### Cómo se aplican los permisos
 
@@ -187,6 +187,19 @@ roles desde la app usando `asignarRolUsuario(uid, rol)` de `src/lib/roles.ts`.
 
 > Importante: el cambio de custom claim se refleja en el token del usuario
 > después de un refresh del idToken (forzar re-login o esperar ~1 h).
+
+### Notificaciones
+
+El sistema envía notificaciones in-app (Firestore) y push (FCM) con formato consistente:
+
+- **Estructura**: qué pasó → quién → función/ministerio → evento → fecha/hora
+- **Tipos**:
+  - `asignacion` — nueva asignación en grilla
+  - `confirmacion` — respuesta a asignación (aceptar/rechazar)
+  - `tarea` — nueva tarea asignada
+  - `ministerio` — incorporación a ministerio
+- **Rechazo**: requiere justificación obligatoria, notifica a Pastor/Administrador/Líder del ministerio
+- **Push**: Cloud Function `onNotificacionCreated` envía FCM al crear documento en `notificaciones`
 
 ## Comandos
 

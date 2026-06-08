@@ -155,7 +155,7 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-fix(security): restringir cronogramas y endurecer Firestore rules
+feat(notificaciones): unificar formato de textos de notificaciones
 ```
 
 Cambios de esta sesión:
@@ -174,6 +174,12 @@ Cambios de esta sesión:
   - `eventos`, `cronogramas`: pastor/admin/líder pueden crear/editar
   - `usuarios` (create): solo pastor/admin
   - Helpers `esLider()` y `puedeCrearEventosOCronogramas()` agregados
+- **Textos de notificaciones unificados**: todas siguen estructura consistente (qué pasó → quién → función/ministerio → evento → fecha/hora)
+  - Asignación en grilla: incluye fecha y hora del evento
+  - Rechazo desde grilla: incluye fecha, hora y justificación
+  - Respuesta a asignación: usa nombre/apellido y fecha/hora
+  - Ministerio asignado: usa "incorporado" en vez de "asignado"
+  - Tarea asignada: usa "en el ministerio" en vez de "en"
 
 ## 8. Pendiente para próximas sesiones
 
@@ -191,6 +197,11 @@ Pendiente:
 
 ## 9. Convenciones y reglas de la casa
 
+- **Documentación**: siempre mantener actualizados `README.md` y `PROJECT.md` después de cambios significativos:
+  - `README.md`: cara pública del proyecto (instalación, deploy, comandos, roles)
+  - `PROJECT.md`: contexto técnico para retomar sesiones (estado, pendientes, convenciones)
+  - Actualizar sección 7 (estado) y sección 8 (pendientes) de PROJECT.md
+  - Actualizar README.md si hay cambios en roles, comandos, estructura o funcionalidad pública
 - **Versionado** (SemVer): la versión se define en dos lugares que deben mantenerse sincronizados:
   - `package.json` → campo `"version"`
   - `src/lib/version.ts` → constante `APP_VERSION` (se muestra en el sidebar)
