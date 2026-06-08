@@ -13,12 +13,29 @@ import {
   Timestamp,
   DocumentData,
 } from "firebase/firestore"
-import { httpsCallable } from "firebase/functions"
-import { db, functions } from "./firebase"
+import { db, auth, FUNCTIONS_REGION } from "./firebase"
 
 function getDb() {
   if (!db) throw new Error("Firestore no está inicializado. Verifica las variables de entorno de Firebase.")
   return db
+}
+
+const FUNCTION_URL = `https://${FUNCTIONS_REGION}-sids-eb607.cloudfunctions.net`
+
+async function callFunction(name: string, body: Record<string, unknown>): Promise<any> {
+  if (!auth?.currentUser) throw new Error("No hay usuario autenticado.")
+  const token = await auth.currentUser.getIdToken()
+  const res = await fetch(`${FUNCTION_URL}/${name}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || "Error en la función.")
+  return data
 }
 
 export async function obtenerDocumentos<T>(
@@ -92,16 +109,7 @@ export async function eliminarDocumento(
   coleccion: string,
   id: string
 ): Promise<void> {
-  if (!functions) {
-    throw new Error(
-      "Firebase Functions no está inicializado. Verifica las variables de entorno."
-    )
-  }
-  const fn = httpsCallable<{ coleccion: string; id: string }, { ok: true }>(
-    functions,
-    "borrarDocumento"
-  )
-  await fn({ coleccion, id })
+  await callFunction("borrarDocumento", { coleccion, id })
 }
 
 export { where, orderBy, limit, query, Timestamp }

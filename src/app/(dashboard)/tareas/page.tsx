@@ -34,7 +34,7 @@ export default function TareasPage() {
     ministerioId: "",
   })
 
-  const esPastor = userData?.rol === "pastor"
+  const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
 
   useEffect(() => {
     let mounted = true

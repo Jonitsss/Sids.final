@@ -53,7 +53,7 @@ sids-next/
 │   └── sitemap-0.xml            # generado por next-sitemap
 ├── functions/                   # Cloud Functions (TypeScript)
 │   ├── src/
-│   │   ├── index.ts             # borrarDocumento, setRolUsuario (callables)
+│   │   ├── index.ts             # borrarDocumento, setRolUsuario (onRequest)
 │   │   └── scripts/
 │   │       └── setInitialRol.ts # bootstrap del primer pastor/admin
 │   ├── package.json

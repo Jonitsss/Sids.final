@@ -21,6 +21,10 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function esPastorOAdmin() {
+      return isSignedIn() && request.auth.token.rol in ['pastor', 'administrador'];
+    }
+
     // ---------------------------------------------------------------------
     // usuarios: cualquier autenticado lee; solo autenticado puede actualizar
     //           su propio documento (matching por authUid)
@@ -31,10 +35,11 @@ service cloud.firestore {
       // (Por ahora, cualquier autenticado puede crear — revisar con custom
       // claims en el TODO de abajo.)
       allow create: if isSignedIn();
-      // Actualizar: el dueño del documento (su authUid coincide con su uid)
+      // Actualizar: el dueño del documento o pastor/administrador
       allow update: if isSignedIn()
         && (resource.data.authUid == request.auth.uid
-            || request.auth.uid == userId);
+            || request.auth.uid == userId
+            || esPastorOAdmin());
       allow delete: if false;  // nadie borra desde el cliente
     }
 
@@ -78,8 +83,8 @@ service cloud.firestore {
     // notificaciones: SOLO el destinatario (por usuarioId) puede leer/actualizar/borrar
     // ---------------------------------------------------------------------
     match /notificaciones/{notifId} {
-      allow read: if isSignedIn() && resource.data.usuarioId == request.auth.uid;
-      allow create: if false;  // solo desde Cloud Function
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.usuarioId != request.auth.uid;
       allow update: if isSignedIn() && resource.data.usuarioId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.usuarioId == request.auth.uid;
     }

@@ -12,6 +12,7 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { Usuario, Rol } from "@/types"
+import { asignarRolUsuario, RolValido } from "@/lib/roles"
 
 interface AuthContextType {
   user: User | null
@@ -36,7 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const docRef = doc(db, "usuarios", firebaseUser.uid)
       const docSnap = await getDoc(docRef)
-      if (docSnap.exists()) return { ...docSnap.data(), id: docSnap.id } as Usuario
+      if (docSnap.exists()) {
+        const data = docSnap.data()
+        if (data.email || data.nombre) return { ...data, id: docSnap.id } as Usuario
+      }
 
       const q = query(collection(db, "usuarios"), where("authUid", "==", firebaseUser.uid))
       const snap = await getDocs(q)
@@ -46,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const emailSnap = await getDocs(emailQ)
       if (!emailSnap.empty) {
         const d = emailSnap.docs[0]
-        await setDoc(doc(db, "usuarios", d.id), { authUid: firebaseUser.uid }, { merge: true })
+        setDoc(doc(db, "usuarios", d.id), { authUid: firebaseUser.uid }, { merge: true }).catch(() => {})
         return { ...d.data(), authUid: firebaseUser.uid, id: d.id } as Usuario
       }
 
@@ -78,8 +82,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
-    if (!auth) throw new Error("Firebase no inicializado")
-    await signInWithEmailAndPassword(auth, email, password)
+    if (!auth || !db) throw new Error("Firebase no inicializado")
+    const cred = await signInWithEmailAndPassword(auth, email, password)
+    const uid = cred.user.uid
+
+    let userDoc = await getDoc(doc(db, "usuarios", uid))
+    let userData = userDoc.exists() ? userDoc.data() : null
+
+    if (!userData?.email) {
+      const q = query(collection(db, "usuarios"), where("authUid", "==", uid))
+      const snap = await getDocs(q)
+      if (!snap.empty) {
+        userData = snap.docs[0].data()
+        if (!userData?.authUid) {
+          await setDoc(snap.docs[0].ref, { authUid: uid }, { merge: true }).catch(() => {})
+        }
+      }
+    }
+
+    if (!userData?.email) {
+      const emailQ = query(collection(db, "usuarios"), where("email", "==", email.toLowerCase()))
+      const emailSnap = await getDocs(emailQ)
+      if (!emailSnap.empty) {
+        const d = emailSnap.docs[0]
+        userData = d.data()
+        await setDoc(d.ref, { authUid: uid }, { merge: true }).catch(() => {})
+      }
+    }
+
+    if (userData?.rol) {
+      try { await asignarRolUsuario(uid, userData.rol as RolValido) } catch {}
+    }
+    await cred.user.getIdToken(true)
   }
 
   const register = async (email: string, password: string, data: Partial<Usuario>) => {
@@ -104,6 +138,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         activo: true,
         updatedAt: serverTimestamp(),
       }, { merge: true })
+      const preRol = preProfile.data()?.rol
+      if (preRol) {
+        try { await asignarRolUsuario(uid, preRol as RolValido) } catch {}
+      }
     } else {
       await setDoc(doc(db, "usuarios", uid), {
         id: uid,

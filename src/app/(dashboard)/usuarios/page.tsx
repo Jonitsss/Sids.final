@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Plus, Trash2, Loader2, Pencil } from "lucide-react"
 import { Usuario, Rol, Notificacion } from "@/types"
 import { obtenerDocumentos, eliminarDocumento, crearDocumento, actualizarDocumento } from "@/lib/firestore"
+import { asignarRolUsuario, RolValido } from "@/lib/roles"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMinisterios } from "@/hooks/useMinisterios"
 import { toast } from "sonner"
@@ -37,7 +38,7 @@ export default function UsuariosPage() {
     notificaciones: true,
   })
 
-  const esPastor = userData?.rol === "pastor"
+  const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
 
   useEffect(() => {
     let mounted = true
@@ -121,6 +122,14 @@ export default function UsuariosPage() {
         ministerioIds: form.ministerioIds,
         notificaciones: form.notificaciones,
       })
+
+      if (oldUser?.rol !== form.rol) {
+        try {
+          await asignarRolUsuario(oldUser?.authUid || editId, form.rol as RolValido)
+        } catch {
+          // Custom claims may fail if caller lacks permissions
+        }
+      }
 
       for (const mid of newIds) {
         const min = ministerios.find((m) => m.id === mid)
@@ -216,6 +225,7 @@ export default function UsuariosPage() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pastor">Pastor</SelectItem>
+                      <SelectItem value="administrador">Administrador</SelectItem>
                       <SelectItem value="lider">Líder</SelectItem>
                       <SelectItem value="colaborador">Colaborador</SelectItem>
                     </SelectContent>
@@ -368,11 +378,12 @@ export default function UsuariosPage() {
               <Label>Rol</Label>
               <Select value={form.rol} onValueChange={(v: Rol) => setForm({ ...form, rol: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pastor">Pastor</SelectItem>
-                  <SelectItem value="lider">Líder</SelectItem>
-                  <SelectItem value="colaborador">Colaborador</SelectItem>
-                </SelectContent>
+                  <SelectContent>
+                    <SelectItem value="pastor">Pastor</SelectItem>
+                    <SelectItem value="administrador">Administrador</SelectItem>
+                    <SelectItem value="lider">Líder</SelectItem>
+                    <SelectItem value="colaborador">Colaborador</SelectItem>
+                  </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">

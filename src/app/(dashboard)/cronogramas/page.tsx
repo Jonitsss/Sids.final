@@ -22,7 +22,7 @@ export default function CronogramasPage() {
   const { eventos, loading: loadingEventos } = useEventos()
   const { cronogramas, loading: loadingCrono, setCronogramas } = useCronogramas()
   const { userData } = useAuth()
-  const esPastor = userData?.rol === "pastor"
+  const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
   const puedeCrear = esPastor || userData?.rol === "lider"
   const [open, setOpen] = useState(false)
   const [selectedEventoId, setSelectedEventoId] = useState("")

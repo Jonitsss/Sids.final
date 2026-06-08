@@ -41,6 +41,17 @@ const menuItems = {
     { href: "/usuarios", icon: UserCircle, label: "Usuarios" },
     { href: "/reportes", icon: BarChart3, label: "Reportes" },
   ],
+  administrador: [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/ministerios", icon: Building2, label: "Ministerios" },
+    { href: "/eventos", icon: Calendar, label: "Eventos" },
+    { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
+    { href: "/tareas", icon: CheckSquare, label: "Tareas" },
+    { href: "/asistencia", icon: Users, label: "Asistencia" },
+    { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
+    { href: "/usuarios", icon: UserCircle, label: "Usuarios" },
+    { href: "/reportes", icon: BarChart3, label: "Reportes" },
+  ],
   lider: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },

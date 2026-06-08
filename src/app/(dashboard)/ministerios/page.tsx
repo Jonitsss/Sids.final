@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/AuthContext"
 import { Plus, Building2, Music, Volume2, Monitor, BookOpen, Trash2, Loader2 } from "lucide-react"
 import { crearDocumento, eliminarDocumento, obtenerDocumentos, where, actualizarDocumento } from "@/lib/firestore"
-import { Ministerio, Notificacion, Usuario } from "@/types"
+import { Ministerio, Notificacion } from "@/types"
 import { MINISTERIOS_PREDETERMINADOS } from "@/lib/constants"
 import { slugify } from "@/lib/utils"
 import { toast } from "sonner"
@@ -22,8 +22,8 @@ const iconos: Record<string, any> = { Building2, Music, Volume2, Monitor, BookOp
 
 export default function MinisteriosPage() {
   const { ministerios, loading, setMinisterios } = useMinisterios()
-  const { userData } = useAuth()
-  const esPastor = userData?.rol === "pastor"
+  const { userData, user } = useAuth()
+  const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ nombre: "", descripcion: "" })
   const [creating, setCreating] = useState(false)
@@ -31,18 +31,22 @@ export default function MinisteriosPage() {
 
   useEffect(() => {
     if (!esPastor || cleaned.current || loading || ministerios.length === 0) return
+    cleaned.current = true
     ;(async () => {
-      cleaned.current = true
-      const ministerioIds = new Set(ministerios.map((m) => m.id))
-      const notifs = await obtenerDocumentos<Notificacion>("notificaciones", [
-        where("tipo", "==", "ministerio"),
-      ])
-      const aEliminar = notifs.filter((n) => !ministerioIds.has(n.referenciaId))
-      for (const n of aEliminar) {
-        await eliminarDocumento("notificaciones", n.id)
+      try {
+        const ministerioIds = new Set(ministerios.map((m) => m.id))
+        const notifs = await obtenerDocumentos<Notificacion>("notificaciones", [
+          where("tipo", "==", "ministerio"),
+          where("usuarioId", "==", user?.uid || ""),
+        ])
+        const aEliminar = notifs.filter((n) => !ministerioIds.has(n.referenciaId))
+        for (const n of aEliminar) {
+          await eliminarDocumento("notificaciones", n.id)
+        }
+      } catch {
       }
     })()
-  }, [esPastor, loading, ministerios])
+  }, [esPastor, loading, ministerios, user?.uid])
 
   const slugBackfilled = useRef(false)
 
@@ -112,26 +116,13 @@ export default function MinisteriosPage() {
     const anterior = ministerios
     setMinisterios((prev) => prev.filter((m) => m.id !== id))
     try {
-      const notificaciones = await obtenerDocumentos<Notificacion>("notificaciones", [
-        where("tipo", "==", "ministerio"),
-        where("referenciaId", "==", id),
-      ])
-      await Promise.all(notificaciones.map((n) => eliminarDocumento("notificaciones", n.id)))
-
-      const usuarios = await obtenerDocumentos<Usuario>("usuarios", [
-        where("ministerioIds", "array-contains", id),
-      ])
-      await Promise.all(
-        usuarios.map((u) => {
-          const nuevosIds = (u.ministerioIds || []).filter((mid) => mid !== id)
-          if (nuevosIds.length !== (u.ministerioIds || []).length) {
-            return actualizarDocumento("usuarios", u.id, { ministerioIds: nuevosIds })
-          }
-        })
-      )
-
       await eliminarDocumento("ministerios", id)
-    } catch {
+      toast.success("Ministerio eliminado")
+    } catch (err: any) {
+      console.error("[handleDelete] Error completo:", err)
+      console.error("[handleDelete] Code:", err?.code)
+      console.error("[handleDelete] Message:", err?.message)
+      console.error("[handleDelete] Details:", err?.details)
       setMinisterios(anterior)
       toast.error("Error al eliminar ministerio")
     }
