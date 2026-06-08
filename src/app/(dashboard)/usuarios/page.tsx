@@ -135,7 +135,7 @@ export default function UsuariosPage() {
           await crearDocumento<Notificacion>("notificaciones", {
             usuarioId: (oldUser as any)?.authUid || editId,
             titulo: "Nuevo ministerio",
-            mensaje: `Has sido asignado al ministerio "${min.nombre}"`,
+            mensaje: `Has sido incorporado al ministerio "${min.nombre}".`,
             leido: false,
             tipo: "ministerio",
             referenciaId: mid,

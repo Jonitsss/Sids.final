@@ -76,7 +76,7 @@ export default function TareasPage() {
           await crearDocumento<Notificacion>("notificaciones", {
             usuarioId: destId,
             titulo: "Nueva tarea asignada",
-            mensaje: `Te asignaron la tarea "${form.titulo}"${min ? ` en ${min.nombre}` : ""}`,
+            mensaje: `Te asignaron la tarea "${form.titulo}"${min ? ` en el ministerio ${min.nombre}` : ""}.`,
             leido: false,
             tipo: "tarea",
             referenciaId: "",

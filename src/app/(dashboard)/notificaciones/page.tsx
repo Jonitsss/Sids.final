@@ -81,7 +81,7 @@ export default function NotificacionesPage() {
 
       const grilla = await obtenerDocumento<GrillaServicio>("cronogramas", grillaId)
       if (!grilla) { toast.error("La grilla ya no existe"); return }
-      const fechaStr = format(new Date(grilla.fecha), "d 'de' MMMM", { locale: es })
+      const fechaStr = format(new Date(grilla.fecha), "dd/MM/yyyy", { locale: es })
 
       const nuevas = grilla.asignaciones.map((a) =>
         a.ministerioId === ministerioId && a.rol === rol
@@ -104,6 +104,7 @@ export default function NotificacionesPage() {
       const ministerioNombre = ministerios.find((m) => m.id === ministerioId)?.nombre || ""
       const eventoDoc = await obtenerDocumento<Evento>("eventos", grilla.eventoId)
       const eventoTitulo = eventoDoc?.titulo || ""
+      const horaStr = eventoDoc?.horaInicio ? ` a las ${eventoDoc.horaInicio} hs` : ""
 
       const pastores = await obtenerDocumentos<Usuario>("usuarios", [
         where("rol", "==", "pastor"),
@@ -111,11 +112,12 @@ export default function NotificacionesPage() {
       for (const p of pastores) {
         const destId = (p as any).authUid || p.id
         if (destId === user?.uid) continue
-        const pal = userData?.nombre || "Alguien"
+        const nombre = userData?.nombre || "Alguien"
+        const apellido = userData?.apellido || ""
         await crearDocumento("notificaciones", {
           usuarioId: destId,
           titulo: accion === "confirmado" ? "Asignación confirmada" : "Asignación rechazada",
-          mensaje: `Se ${accion === "confirmado" ? "confirmó" : "rechazó"} la asignación de ${pal} como "${rol}" en ${ministerioNombre} para "${eventoTitulo}" del ${fechaStr}.`,
+          mensaje: `${nombre} ${apellido} ${accion === "confirmado" ? "confirmó" : "rechazó"} la función de "${rol}" en el ministerio ${ministerioNombre} para "${eventoTitulo}" del ${fechaStr}${horaStr}.`,
           leido: false,
           tipo: "confirmacion",
           referenciaId: notif.referenciaId,

@@ -161,6 +161,8 @@ export default function CronogramaDetailPage() {
       const min = ministerios.find((m) => m.id === ministerioId)
       const minNombre = min?.nombre || "el ministerio"
       const eventoTitulo = evento?.titulo || "el evento"
+      const fechaStr = grilla ? format(new Date(grilla.fecha), "dd/MM/yyyy", { locale: es }) : ""
+      const horaStr = evento?.horaInicio ? ` a las ${evento.horaInicio} hs` : ""
 
       const destinatarios = usuarios.filter(
         (u) => u.rol === "pastor" || u.rol === "administrador" || (u.rol === "lider" && u.ministerioIds?.includes(ministerioId))
@@ -171,7 +173,7 @@ export default function CronogramaDetailPage() {
         await crearDocumento<Notificacion>("notificaciones", {
           usuarioId: destId,
           titulo: "Asignación rechazada",
-          mensaje: `${userData?.nombre} ${userData?.apellido} rechazó la asignación de "${rol}" en ${minNombre} para "${eventoTitulo}". Motivo: ${justificacion.trim()}`,
+          mensaje: `${userData?.nombre} ${userData?.apellido} rechazó la función de "${rol}" en el ministerio ${minNombre} para "${eventoTitulo}" del ${fechaStr}${horaStr}. Motivo: ${justificacion.trim()}`,
           leido: false,
           tipo: "confirmacion",
           referenciaId: `rechazo:${id}:${ministerioId}:${rol}`,
@@ -211,10 +213,12 @@ export default function CronogramaDetailPage() {
         }
         const min = ministerios.find((m) => m.id === a.ministerioId)
         const destId = userDoc?.authUid || a.usuarioId
+        const fechaStr = grilla ? format(new Date(grilla.fecha), "dd/MM/yyyy", { locale: es }) : ""
+        const horaStr = evento?.horaInicio ? ` a las ${evento.horaInicio} hs` : ""
         await crearDocumento<Notificacion>("notificaciones", {
           usuarioId: destId,
           titulo: "Nueva asignación",
-          mensaje: `Te asignaron como "${a.rol}"${min ? ` en ${min.nombre}` : ""}${evento ? ` para "${evento.titulo}"` : ""}`,
+          mensaje: `Te asignaron la función de "${a.rol}"${min ? ` en el ministerio ${min.nombre}` : ""}${evento ? ` para "${evento.titulo}"` : ""}${fechaStr ? ` el ${fechaStr}` : ""}${horaStr}.`,
           leido: false,
           tipo: "asignacion",
           referenciaId: `asignacion:${id}:${a.ministerioId}:${a.rol}`,
