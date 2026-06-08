@@ -117,6 +117,19 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
+    // tickets (sistema de mensajes líder → pastor/admin)
+    // ---------------------------------------------------------------------
+    match /tickets/{ticketId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.de == request.auth.uid;
+      allow update: if isSignedIn()
+        && (resource.data.de == request.auth.uid
+            || resource.data.a == request.auth.uid
+            || esPastorOAdmin());
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
     // Deny everything else by default (fail-safe)
     // ---------------------------------------------------------------------
     match /{document=**} {

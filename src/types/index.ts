@@ -121,6 +121,23 @@ export interface MiembroMinisterio {
   activo: boolean
 }
 
+export interface Ticket {
+  id: string
+  de: string
+  deNombre: string
+  a: string
+  aNombre: string
+  asunto: string
+  mensaje: string
+  estado: "pendiente" | "respondido" | "cerrado"
+  respuesta: string
+  tipo: "sugerencia" | "tema" | "consulta" | "urgente"
+  leidoPorDestinatario: boolean
+  leidoPorRemitente: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
 export type DashboardStats = {
   proximosEventos: Evento[]
   tareasPendientes: number

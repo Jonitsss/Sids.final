@@ -155,10 +155,19 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-fix: iOS white status bar + compact calendar grid
+feat: sistema de tickets (líder → pastor/admin)
 ```
 
 Cambios de esta sesión:
+- **Sistema de tickets**: nuevo flujo de comunicación entre Líder de Área y Pastor/Administrador.
+  - Colección `tickets` en Firestore con reglas: create por remitente, update por remitente/destinatario/pastor/admin.
+  - Tipos: `sugerencia`, `tema`, `consulta`, `urgente`. Estados: `pendiente`, `respondido`, `cerrado`.
+  - Hook `useTickets` para obtener tickets entrantes/salientes y contar no leídos.
+  - Página `/tickets` con vista adaptativa según rol:
+    - **Líder**: crea tickets (tipo + destinatario + asunto + mensaje), ve historial de enviados.
+    - **Pastor/Admin**: ve tickets recibidos, responde, cierra. Badge de no leídos en sidebar.
+  - Notificaciones push integradas: al crear ticket o responder se genera notificación para el destinatario.
+  - Firestore rules actualizadas para la colección `tickets`.
 - **Barra de estado iOS**: fix para que en dark mode la status bar no quede blanca. Se agregó `html { background-color }` en `globals.css`, script inline en `layout.tsx` que setea background y `theme-color` dinámicamente al cargar, y `ThemeContext` sincroniza ambos al alternar tema.
 - **Calendario compacto**: grilla de eventos en `eventos/page.tsx` con celdas `aspect-square` (cuadradas, no estiradas), nombres de días abreviados (`Do`, `Lu`, `Ma`...), tamaños de texto reducidos en mobile, y overflow hidden para eventos que desbordan la celda.
 - **Textos de notificaciones unificados**: todas siguen estructura consistente (qué pasó → quién → función/ministerio → evento → fecha/hora)
@@ -175,6 +184,7 @@ Hecho en sesiones anteriores:
 Hecho en esta sesión:
 - ~~iOS status bar fix~~ — html background + theme-color dinámico para dark mode
 - ~~Calendario compacto~~ — grilla cuadrada, días abreviados, mobile-friendly
+- ~~Sistema de tickets~~ — líder envía propuestas/sugerencias a pastor/admin, con respuesta y notificaciones
 
 Pendiente:
 1. **Migrar de `next lint` a ESLint CLI**

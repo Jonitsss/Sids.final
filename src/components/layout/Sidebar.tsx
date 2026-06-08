@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn, rolLabel } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotificaciones } from "@/hooks/useNotificaciones"
+import { useTickets } from "@/hooks/useTickets"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -21,6 +22,7 @@ import {
   Moon,
   X,
   Bell,
+  MessageSquare,
 } from "lucide-react"
 import { APP_VERSION } from "@/lib/version"
 import { useTheme } from "@/contexts/ThemeContext"
@@ -37,6 +39,7 @@ const menuItems = {
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
+    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
     { href: "/asistencia", icon: Users, label: "Asistencia" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
     { href: "/usuarios", icon: UserCircle, label: "Usuarios" },
@@ -48,6 +51,7 @@ const menuItems = {
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
+    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
     { href: "/asistencia", icon: Users, label: "Asistencia" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
     { href: "/usuarios", icon: UserCircle, label: "Usuarios" },
@@ -59,6 +63,7 @@ const menuItems = {
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
+    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
     { href: "/asistencia", icon: Users, label: "Asistencia" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
   ],
@@ -78,6 +83,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const role = userData?.rol || "colaborador"
   const items = menuItems[role] || menuItems.colaborador
   const { noLeidas } = useNotificaciones(userData?.id || user?.uid)
+  const { noLeidos: ticketsNoLeidos } = useTickets(userData?.id, userData?.rol)
 
   return (
     <>
@@ -123,6 +129,11 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               {item.href === "/notificaciones" && noLeidas > 0 && (
                 <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                   {noLeidas > 99 ? "99+" : noLeidas}
+                </span>
+              )}
+              {item.href === "/tickets" && ticketsNoLeidos > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {ticketsNoLeidos > 99 ? "99+" : ticketsNoLeidos}
                 </span>
               )}
             </Link>
