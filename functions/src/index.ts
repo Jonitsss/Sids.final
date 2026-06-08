@@ -23,11 +23,13 @@ async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string
     return { sent: false, reason: "usuario_no_encontrado" };
   }
 
-  const fcmTokens: string[] = userSnap.data()?.fcmTokens || [];
-  if (fcmTokens.length === 0) {
+  const allTokens: string[] = userSnap.data()?.fcmTokens || [];
+  if (allTokens.length === 0) {
     logger.warn("sendPushToUser: usuario sin fcmTokens", { usuarioId });
     return { sent: false, reason: "sin_tokens" };
   }
+
+  const fcmTokens = [allTokens[allTokens.length - 1]];
 
   try {
     const response = await getMessaging().sendEachForMulticast({
