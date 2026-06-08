@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,10 +12,12 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, Trash2, Loader2, Pencil } from "lucide-react"
 import { Usuario, Rol, Notificacion } from "@/types"
-import { obtenerDocumentos, eliminarDocumento, crearDocumento, actualizarDocumento } from "@/lib/firestore"
+import { eliminarDocumento, crearDocumento, actualizarDocumento } from "@/lib/firestore"
 import { asignarRolUsuario, RolValido } from "@/lib/roles"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMinisterios } from "@/hooks/useMinisterios"
+import { db } from "@/lib/firebase"
+import { collection, onSnapshot } from "firebase/firestore"
 import { toast } from "sonner"
 
 export default function UsuariosPage() {
@@ -24,7 +26,6 @@ export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
-  const [refreshKey, setRefreshKey] = useState(0)
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -41,21 +42,18 @@ export default function UsuariosPage() {
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
 
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const data = await obtenerDocumentos<Usuario>("usuarios")
-        if (mounted) setUsuarios(data)
-      } catch (error) {
-        if (mounted) console.error("Error fetching usuarios:", error)
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    })()
-    return () => { mounted = false }
-  }, [refreshKey])
-
-  const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
+    if (!db) { setLoading(false); return }
+    const unsub = onSnapshot(
+      collection(db, "usuarios"),
+      (snap) => {
+        const data = snap.docs.map((d) => ({ ...d.data(), id: d.id })) as Usuario[]
+        setUsuarios(data)
+        setLoading(false)
+      },
+      () => setLoading(false),
+    )
+    return unsub
+  }, [])
 
   const filtered = usuarios.filter(
     (u) =>
@@ -86,7 +84,6 @@ export default function UsuariosPage() {
       toast.success("Perfil creado. La persona debe registrarse con ese email.")
       setOpen(false)
       setForm({ nombre: "", apellido: "", email: "", telefono: "", rol: "colaborador", ministerioIds: [], notificaciones: true })
-      refetch()
     } catch {
       toast.error("Error al crear usuario")
     }
@@ -148,7 +145,6 @@ export default function UsuariosPage() {
       toast.success("Usuario actualizado")
       setEditOpen(false)
       setEditId(null)
-      refetch()
     } catch {
       toast.error("Error al actualizar usuario")
     }
@@ -162,7 +158,6 @@ export default function UsuariosPage() {
       toast.success("Usuario eliminado")
     } catch {
       toast.error("Error al eliminar usuario")
-      refetch()
     }
   }
 
