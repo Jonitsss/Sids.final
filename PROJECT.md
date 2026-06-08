@@ -157,9 +157,10 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-fix: líderes/colaboradores no veían tickets + notificaciones no llegaban en iOS
-chore: bump 1.4.4 → 1.5.0 + script test-push
-fix: enviarNotificacionPush HTTP function para push sincrónico
+44db013 fix: enviarNotificacionPush HTTP function + testPush.ts + docs
+d9ce378 chore: bump 1.4.4 → 1.5.0 + script para testear push notifications
+ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones no llegaban en iOS
+244d826 fix: notificaciones push no llegaban si el usuario fue creado por admin (doc ID != auth UID)
 ```
 
 Cambios de esta sesión (v1.5.0):
@@ -200,8 +201,59 @@ Hecho en esta sesión:
 - ~~Script testPush.ts~~ — npm run test-push para probar notificaciones
 - ~~Logging en CF~~ — logger.warn en puntos de retorno silencioso
 
-Pendiente:
-1. **Migrar de `next lint` a ESLint CLI**
+Pendiente (URGENTE — notificaciones push no llegan al celular):
+1. **Verificar si las notificaciones se crean en Firestore**
+   - Enviar un ticket desde la web y revisar en Firebase Console:
+     - ¿Aparece un documento en `notificaciones`? Si no, el frontend no lo crea (Firestore rules o error cliente).
+     - ¿Aparece en `tickets`? Si no, el ticket tampoco se crea.
+   - Firebase Console → Firestore Database → colección `notificaciones` → ordenar por `createdAt` descendente.
+
+2. **Verificar logs de Cloud Functions**
+   - `cd functions && firebase functions:log` o Firebase Console → Functions → Logs.
+   - Buscar `onNotificacionCreated` o `enviarNotificacionPush`:
+     - `"usuario no encontrado"` → el `usuarioId` del notification no coincide con ningún doc en `usuarios`.
+     - `"usuario sin fcmTokens"` → el usuario existe pero no tiene tokens FCM guardados.
+     - `"push enviado"` → el push se envió correctamente.
+
+3. **Forzar guardado de FCM token desde el teléfono**
+   - Abrir la app en el celular, ir a la página de tickets, tocar **Habilitar** cuando aparezca el cartel.
+   - Si el cartel no aparece, abrir `https://sids-final.vercel.app/perfil` y verificar que `notificaciones` esté habilitado.
+   - Después de Habilitar, esperar 10 segundos y correr: `cd functions && npm run test-push "Test" "Verificar token" "../serviceAccountKey.json"`.
+   - Si antes mostraba 2 tokens y después muestra 3+, el teléfono registró el token correctamente.
+
+4. **Probar enviarNotificacionPush directo** (sin pasar por el frontend):
+   ```bash
+   cd functions && npx ts-node -e "
+   import {initializeApp, getApps} from 'firebase-admin/app';
+   import {getFirestore} from 'firebase-admin/firestore';
+   process.env.GOOGLE_APPLICATION_CREDENTIALS = '../serviceAccountKey.json';
+   if (getApps().length === 0) initializeApp();
+   const db = getFirestore();
+   async function main() {
+     const userSnap = await db.collection('usuarios').where('rol', '==', 'pastor').limit(1).get();
+     if (userSnap.empty) { console.log('Pastor no encontrado'); return; }
+     const pastor = userSnap.docs[0];
+     const uid = pastor.data()?.authUid || pastor.id;
+     console.log('Pastor UID:', uid, '- nombre:', pastor.data()?.nombre);
+     const tokens = pastor.data()?.fcmTokens || [];
+     console.log('Tokens:', tokens.length);
+     // Llamar a la CF directamente via fetch
+     const {getAuth} = await import('firebase-admin/auth');
+     const auth = getAuth();
+     const customToken = await auth.createCustomToken(uid);
+     const res = await fetch('https://southamerica-east1-sids-eb607.cloudfunctions.net/enviarNotificacionPush', {
+       method: 'POST',
+       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + customToken},
+       body: JSON.stringify({usuarioId: uid, titulo: 'Test directo CF', mensaje: 'Este push se envio directo desde la funcion HTTP'})
+     });
+     const data = await res.json();
+     console.log('Respuesta CF:', JSON.stringify(data, null, 2));
+   }
+   main().catch(e => console.error(e));
+   "
+   ```
+
+5. **Migrar de `next lint` a ESLint CLI**
    - `next lint` se depreca en Next 16. Usar `npx @next/codemod@canary
      next-lint-to-eslint-cli .`.
 
@@ -248,3 +300,42 @@ Pegar este prompt (o equivalente) al abrir opencode:
 > `README.md` (cara pública). Revisá `git status` y `git log --oneline -10`
 > para ver el estado, y consultá la sección 'Pendiente' de PROJECT.md para
 > saber por dónde seguir."
+
+## 11. Checklist para continuar en casa
+
+### Qué está deployado
+
+| Componente | URL | Estado |
+|---|---|---|
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.5.0 |
+| Cloud Functions | Firebase `southamerica-east1` | ✅ 4 funciones deployadas |
+| Código fuente | GitHub `main` | ✅ Actualizado |
+
+### Qué necesitás en tu PC de casa
+
+1. **Git** — clonar el repo: `git clone https://github.com/Jonitsss/Sids.final.git`
+2. **Node.js 20+** — [nodejs.org](https://nodejs.org/)
+3. **Firebase CLI** — `npm install -g firebase-tools`
+4. **Vercel CLI** — `npm install -g vercel` (ya instalado en esta PC)
+5. **Service account key** — el archivo `serviceAccountKey.json` de Firebase. Está en la raíz del proyecto local. **No está en GitHub**. Tenés que descargarlo de Firebase Console → Project Settings → Service Accounts → Generate new private key.
+6. **Variables de entorno** — `.env.local` con las credenciales de Firebase (copiar de `.env.local.example`).
+
+### Primeros pasos al llegar a casa
+
+```bash
+git clone https://github.com/Jonitsss/Sids.final.git
+cd Sids.final
+npm install
+cd functions && npm install && cd ..
+# Copiar serviceAccountKey.json a la raíz
+# Copiar .env.local.example a .env.local y completar creds
+```
+
+### Para debuggear las notificaciones (pendiente #1)
+
+Ver la sección **Pendiente** (punto 1 a 4) más arriba. El flujo recomendado:
+
+1. Abrir Firebase Console → Firestore → ver si hay docs en `notificaciones` después de enviar un ticket
+2. Revisar logs de Cloud Functions: `cd functions && firebase functions:log`
+3. Correr `npm run test-push` desde `functions/` para confirmar que los tokens FCM funcionan
+4. Si todo falla, probar la llamada directa a `enviarNotificacionPush` (comando en sección Pendiente punto 4)
