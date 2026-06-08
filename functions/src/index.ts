@@ -5,6 +5,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { getMessaging } from "firebase-admin/messaging";
 import { logger, setGlobalOptions } from "firebase-functions/v2";
+import { randomUUID } from "crypto";
 
 setGlobalOptions({ region: "southamerica-east1", maxInstances: 10 });
 
@@ -30,10 +31,14 @@ async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string
   }
 
   const fcmTokens = [allTokens[allTokens.length - 1]];
+  const notificationId = randomUUID();
+
+  logger.info("sendPushToUser: enviando push", { usuarioId, tokenCount: fcmTokens.length, notificationId });
 
   try {
     const response = await getMessaging().sendEachForMulticast({
       notification: { title: titulo, body: mensaje },
+      data: { notificationId },
       tokens: fcmTokens,
     });
 
@@ -64,7 +69,7 @@ async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string
       }
     }
 
-    logger.info("push enviado", { usuarioId, success: response.successCount, failure: response.failureCount });
+    logger.info("push enviado", { usuarioId, notificationId, success: response.successCount, failure: response.failureCount });
     return { sent: true, success: response.successCount, failure: response.failureCount };
   } catch (err: any) {
     logger.error("Error enviando push", { error: err?.message });
