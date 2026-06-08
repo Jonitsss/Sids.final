@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { cn, rolLabel } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotificaciones } from "@/hooks/useNotificaciones"
 import { Button } from "@/components/ui/button"
@@ -135,7 +135,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="truncate font-medium">{userData?.nombre} {userData?.apellido}</p>
-              <p className="text-xs capitalize">{userData?.rol}</p>
+              <p className="text-xs">{rolLabel(userData?.rol)}</p>
             </div>
           </Link>
           <div className="flex gap-1">

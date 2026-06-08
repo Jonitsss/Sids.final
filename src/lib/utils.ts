@@ -13,3 +13,14 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
 }
+
+const ROL_LABELS: Record<string, string> = {
+  pastor: "Pastor",
+  administrador: "Administrador",
+  lider: "Líder de área",
+  colaborador: "Colaborador",
+}
+
+export function rolLabel(rol?: string): string {
+  return ROL_LABELS[rol || ""] || rol || ""
+}

@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { rolLabel } from "@/lib/utils"
 
 export default function MinisterioDetailPage() {
   const params = useParams()
@@ -180,7 +181,7 @@ export default function MinisterioDetailPage() {
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{u.nombre} {u.apellido}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{u.rol}</p>
+                            <p className="text-xs text-muted-foreground">{rolLabel(u.rol)}</p>
                           </div>
                           <Button
                             size="sm"
@@ -238,7 +239,7 @@ export default function MinisterioDetailPage() {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-medium">{miembro.nombre} {miembro.apellido}</p>
-                      <p className="text-sm text-muted-foreground capitalize">{miembro.rol}</p>
+                      <p className="text-sm text-muted-foreground">{rolLabel(miembro.rol)}</p>
                     </div>
                     <Badge variant="secondary">Miembro</Badge>
                   </CardContent>

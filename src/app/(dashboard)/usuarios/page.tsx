@@ -19,6 +19,7 @@ import { useMinisterios } from "@/hooks/useMinisterios"
 import { db } from "@/lib/firebase"
 import { collection, onSnapshot } from "firebase/firestore"
 import { toast } from "sonner"
+import { rolLabel } from "@/lib/utils"
 
 export default function UsuariosPage() {
   const { userData } = useAuth()
@@ -176,13 +177,6 @@ export default function UsuariosPage() {
     colaborador: "outline",
   }
 
-  const rolLabel: Record<string, string> = {
-    pastor: "Pastor",
-    administrador: "Administrador",
-    lider: "Líder de área",
-    colaborador: "Colaborador",
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -316,7 +310,7 @@ export default function UsuariosPage() {
                     <p className="text-sm text-muted-foreground truncate">{u.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={rolBadge[u.rol]}>{rolLabel[u.rol] || u.rol}</Badge>
+                    <Badge variant={rolBadge[u.rol]}>{rolLabel(u.rol)}</Badge>
                     {u.ministerioIds?.map((mid) => {
                       const min = ministerios.find((m) => m.id === mid)
                       return min ? (

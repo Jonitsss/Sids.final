@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Camera, Save, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { rolLabel } from "@/lib/utils"
 
 export default function PerfilPage() {
   const { user, userData, updateUserData } = useAuth()
@@ -122,7 +123,7 @@ export default function PerfilPage() {
           </div>
           <div className="mt-4">
             <CardTitle>{userData?.nombre} {userData?.apellido}</CardTitle>
-            <Badge variant="secondary" className="mt-1 capitalize">{userData?.rol}</Badge>
+            <Badge variant="secondary" className="mt-1">{rolLabel(userData?.rol)}</Badge>
           </div>
         </CardHeader>
       </Card>
@@ -165,7 +166,7 @@ export default function PerfilPage() {
           <Separator />
           <div className="space-y-2">
             <Label>Rol</Label>
-            <Input value={userData?.rol || ""} disabled className="capitalize" />
+            <Input value={rolLabel(userData?.rol)} disabled />
           </div>
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
