@@ -1,0 +1,122 @@
+rules_version = '2';
+
+// =============================================================================
+// Firestore Security Rules · SIDS
+// =============================================================================
+// Reemplaza la regla de "30 días" que vence el 1 de julio 2026.
+// Bloquea acceso público y exige autenticación. Las operaciones destructivas
+// se pueden afinar con custom claims (request.auth.token.rol) en una segunda
+// iteración — ver TODO al final.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // ---------------------------------------------------------------------
+    // usuarios: cualquier autenticado lee; solo autenticado puede actualizar
+    //           su propio documento (matching por authUid)
+    // ---------------------------------------------------------------------
+    match /usuarios/{userId} {
+      allow read: if isSignedIn();
+      // Crear/eliminar usuarios: solo desde un contexto confiable.
+      // (Por ahora, cualquier autenticado puede crear — revisar con custom
+      // claims en el TODO de abajo.)
+      allow create: if isSignedIn();
+      // Actualizar: el dueño del documento (su authUid coincide con su uid)
+      allow update: if isSignedIn()
+        && (resource.data.authUid == request.auth.uid
+            || request.auth.uid == userId);
+      allow delete: if false;  // nadie borra desde el cliente
+    }
+
+    // ---------------------------------------------------------------------
+    // ministerios: lectura para autenticados
+    // ---------------------------------------------------------------------
+    match /ministerios/{ministerioId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;  // solo Cloud Function
+    }
+
+    // ---------------------------------------------------------------------
+    // eventos
+    // ---------------------------------------------------------------------
+    match /eventos/{eventoId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // cronogramas (grillas de servicio)
+    // ---------------------------------------------------------------------
+    match /cronogramas/{cronogramaId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // tareas
+    // ---------------------------------------------------------------------
+    match /tareas/{tareaId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // notificaciones: SOLO el destinatario (por usuarioId) puede leer/actualizar/borrar
+    // ---------------------------------------------------------------------
+    match /notificaciones/{notifId} {
+      allow read: if isSignedIn() && resource.data.usuarioId == request.auth.uid;
+      allow create: if false;  // solo desde Cloud Function
+      allow update: if isSignedIn() && resource.data.usuarioId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.usuarioId == request.auth.uid;
+    }
+
+    // ---------------------------------------------------------------------
+    // asistencias (plural, igual que el código)
+    // ---------------------------------------------------------------------
+    match /asistencias/{asistenciaId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // miembros_ministerio (si existe)
+    // ---------------------------------------------------------------------
+    match /miembros_ministerio/{miembroId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // Deny everything else by default (fail-safe)
+    // ---------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// =============================================================================
+// TODO: endurecer con custom claims (próxima iteración)
+// =============================================================================
+// 1. En Cloud Function, al crear/modificar un usuario en Firestore, hacer
+//    `admin.auth().setCustomUserClaims(uid, { rol: 'pastor' })`.
+// 2. Reemplazar `allow create, update: if isSignedIn()` por:
+//      allow create, update: if request.auth.token.rol == 'pastor';
+//    para ministerios/eventos/etc. según corresponda.
+// 3. Eso evita que un colaborador autenticado borre o modifique datos
+//    sensibles.
+// =============================================================================

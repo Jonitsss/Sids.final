@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { siteConfig } from "@/data/content";
-import "@/styles/global.css";
+import { Providers } from "./providers";
+import "./globals.css";
 
 const fullTitle = `${siteConfig.name} · ${siteConfig.shortName}`;
 const ogImage = `${siteConfig.url}/assets/logo.png`;
@@ -72,6 +73,8 @@ export const viewport: Viewport = {
   themeColor: "#144137",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -90,7 +93,11 @@ export default function RootLayout({
         />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@200;350;400;500;550;700&family=Playfair+Display:ital,wght@0,400;1,300;1,400&family=Space+Mono:wght@400;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@200;350;400;500;550;700&family=Playfair+Display:ital,wght@0,400;1,300;1,400&family=Space+Mono:wght@400;700&family=Public+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
         />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <script
@@ -98,8 +105,15 @@ export default function RootLayout({
             __html: `if("scrollRestoration" in history){history.scrollRestoration="manual";}window.scrollTo(0,0);`,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
       </head>
-      <body className="loading">{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
