@@ -112,4 +112,14 @@ export async function eliminarDocumento(
   await callFunction("borrarDocumento", { coleccion, id })
 }
 
+export async function enviarNotificacion(params: {
+  usuarioId: string
+  titulo: string
+  mensaje: string
+  tipo?: string
+  referenciaId?: string
+}): Promise<{ ok: boolean; notifId?: string; push?: any }> {
+  return callFunction("enviarNotificacionPush", params)
+}
+
 export { where, orderBy, limit, query, Timestamp }

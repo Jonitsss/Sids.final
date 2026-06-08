@@ -53,7 +53,8 @@ La aplicación es instalable como PWA en Android e iOS:
   - `public/firebase-messaging-sw.js` — notificaciones en background
   - `src/lib/messaging.ts` — helpers para `getToken()` y `onMessage()`
   - `src/hooks/usePushNotifications.ts` — hook de registro y foreground messages
-  - Cloud Function `onNotificacionCreated` — trigger Firestore que envía push al crear una notificación
+   - Cloud Function `onNotificacionCreated` — trigger Firestore que envía push al crear una notificación (fallback)
+   - Cloud Function `enviarNotificacionPush` — HTTP function que crea la notificación y envía el push sincrónicamente (principal)
 
 Para activar notificaciones push:
 1. Generar VAPID key en Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
@@ -78,9 +79,10 @@ sids-next/
 │   └── sitemap-0.xml            # generado por next-sitemap
 ├── functions/                   # Cloud Functions (TypeScript)
 │   ├── src/
-│   │   ├── index.ts             # borrarDocumento, setRolUsuario, onNotificacionCreated
+│   │   ├── index.ts             # borrarDocumento, setRolUsuario, onNotificacionCreated, enviarNotificacionPush
 │   │   └── scripts/
-│   │       └── setInitialRol.ts # bootstrap del primer pastor/admin
+│   │       ├── setInitialRol.ts # bootstrap del primer pastor/admin
+│   │       └── testPush.ts      # enviar push de prueba a todos los tokens FCM
 │   ├── package.json
 │   └── tsconfig.json
 ├── src/
@@ -200,7 +202,10 @@ El sistema envía notificaciones in-app (Firestore) y push (FCM) con formato con
   - `tarea` — nueva tarea asignada
   - `ministerio` — incorporación a ministerio
 - **Rechazo**: requiere justificación obligatoria, notifica a Pastor/Administrador/Líder del ministerio
-- **Push**: Cloud Function `onNotificacionCreated` envía FCM al crear documento en `notificaciones`
+- **Push dual**: 
+  - `enviarNotificacionPush` (HTTP, llamado desde el cliente) — crea el documento y envía el push sincrónicamente
+  - `onNotificacionCreated` (trigger Firestore) — fallback que reenvía si el documento se creó por otra vía
+- **Test local**: `cd functions && npm run test-push "Título" "Mensaje"` envía a todos los tokens FCM registrados
 
 ## Comandos
 
@@ -222,6 +227,7 @@ cd functions
 npm run build        # Compila TypeScript -> lib/
 npm run deploy       # Despliega a Firebase (firebase deploy --only functions)
 npm run logs         # Ver logs en producción
+npm run test-push    # Envía notificación push de prueba a todos los tokens FCM registrados
 ```
 
 Región: `southamerica-east1` (São Paulo) por cercanía a Argentina.

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTickets } from "@/hooks/useTickets"
-import { crearDocumento, actualizarDocumento, eliminarDocumento, obtenerDocumentos, where } from "@/lib/firestore"
+import { crearDocumento, actualizarDocumento, eliminarDocumento, obtenerDocumentos, enviarNotificacion, where } from "@/lib/firestore"
 import { Ticket, Usuario } from "@/types"
 import { Plus, MessageSquare, Loader2, Send, X, CheckCircle, Clock, AlertCircle, Trash2 } from "lucide-react"
 import { format } from "date-fns"
@@ -110,11 +110,10 @@ export default function TicketsPage() {
         leidoPorRemitente: true,
       })
 
-      await crearDocumento<any>("notificaciones", {
+      await enviarNotificacion({
         usuarioId: destUid,
         titulo: `Nuevo ticket: ${form.asunto}`,
         mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} te envió un ticket de tipo ${TIPO_LABELS[form.tipo]}`,
-        leido: false,
         tipo: "tarea",
         referenciaId: `ticket:${ticketId}`,
       })
@@ -142,11 +141,10 @@ export default function TicketsPage() {
         leidoPorRemitente: false,
       })
 
-      await crearDocumento<any>("notificaciones", {
+      await enviarNotificacion({
         usuarioId: selectedTicket.de,
         titulo: `Respuesta a tu ticket: ${selectedTicket.asunto}`,
         mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} respondió tu ticket`,
-        leido: false,
         tipo: "tarea",
         referenciaId: `ticket:${selectedTicket.id}`,
       })

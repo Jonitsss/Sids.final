@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Loader2, Trash2, Save, Check, X as XIcon } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { GrillaServicio, Evento, Usuario, Asignacion, Notificacion } from "@/types"
-import { obtenerDocumento, actualizarDocumento, crearDocumento } from "@/lib/firestore"
+import { GrillaServicio, Evento, Usuario, Asignacion } from "@/types"
+import { obtenerDocumento, actualizarDocumento, crearDocumento, enviarNotificacion } from "@/lib/firestore"
 import { useMinisterios } from "@/hooks/useMinisterios"
 import { useAuth } from "@/contexts/AuthContext"
 import { obtenerDocumentos } from "@/lib/firestore"
@@ -170,11 +170,10 @@ export default function CronogramaDetailPage() {
 
       for (const dest of destinatarios) {
         const destId = dest.authUid || dest.id
-        await crearDocumento<Notificacion>("notificaciones", {
+        await enviarNotificacion({
           usuarioId: destId,
           titulo: "Asignación rechazada",
           mensaje: `${userData?.nombre} ${userData?.apellido} rechazó la función de "${rol}" en el ministerio ${minNombre} para "${eventoTitulo}" del ${fechaStr}${horaStr}. Motivo: ${justificacion.trim()}`,
-          leido: false,
           tipo: "confirmacion",
           referenciaId: `rechazo:${id}:${ministerioId}:${rol}`,
         })
@@ -215,11 +214,10 @@ export default function CronogramaDetailPage() {
         const destId = userDoc?.authUid || a.usuarioId
         const fechaStr = grilla ? format(new Date(grilla.fecha), "dd/MM/yyyy", { locale: es }) : ""
         const horaStr = evento?.horaInicio ? ` a las ${evento.horaInicio} hs` : ""
-        await crearDocumento<Notificacion>("notificaciones", {
+        await enviarNotificacion({
           usuarioId: destId,
           titulo: "Nueva asignación",
           mensaje: `Te asignaron la función de "${a.rol}"${min ? ` en el ministerio ${min.nombre}` : ""}${evento ? ` para "${evento.titulo}"` : ""}${fechaStr ? ` el ${fechaStr}` : ""}${horaStr}.`,
-          leido: false,
           tipo: "asignacion",
           referenciaId: `asignacion:${id}:${a.ministerioId}:${a.rol}`,
         })

@@ -76,8 +76,10 @@ salta, continuando con los fallbacks de `authUid` y `email`.
 sids-next/
 ├── functions/                          # Cloud Functions (TypeScript)
 │   ├── src/
-│   │   ├── index.ts                    # borrarDocumento, setRolUsuario, onNotificacionCreated
-│   │   └── scripts/setInitialRol.ts    # bootstrap del primer admin
+│   │   ├── index.ts                    # borrarDocumento, setRolUsuario, onNotificacionCreated, enviarNotificacionPush
+│   │   └── scripts/
+│   │       ├── setInitialRol.ts         # bootstrap del primer admin
+│   │       └── testPush.ts             # enviar push de prueba a todos los tokens FCM
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── .gitignore
@@ -155,29 +157,29 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-chore: bump 1.4.2 → 1.4.3 + docs tickets
+fix: líderes/colaboradores no veían tickets + notificaciones no llegaban en iOS
+chore: bump 1.4.4 → 1.5.0 + script test-push
+fix: enviarNotificacionPush HTTP function para push sincrónico
 ```
 
-Cambios de esta sesión:
-- **Colaboradores pueden crear tickets**: antes solo líderes, ahora cualquier no-pastor/admin puede enviar tickets.
-- **Tabs Recibidos/Enviados**: pastor/admin puede alternar entre tickets que recibió y tickets que envió.
-- **Eliminar tickets**: pastor/admin puede eliminar tickets (botón en lista y detalle). Agregado `"tickets"` a allowlist de `borrarDocumento` en Cloud Functions.
-- **Fix notificaciones mobile**: `onNotificacionCreated` ahora busca usuario por `authUid` campo además de doc ID, porque las notificaciones de tickets usan `authUid` como `usuarioId`.
-- **Fix tickets auth UID**: el campo `de` usa `user?.uid` (Firebase Auth UID) para coincidir con `request.auth.uid` en Firestore rules.
+Cambios de esta sesión (v1.5.0):
+- **Fix tickets líder/colaborador**: el hook `useTickets` ahora hace dos queries en paralelo (`where("de")` + `where("a")`) sin `orderBy` para evitar el índice compuesto faltante. Ordena del lado del cliente. Los líderes ahora también ven la pestaña **Recibidos**.
+- **Fix notificaciones push iOS**: se agregó botón **"Habilitar"** en `PushPrompt` que llama `requestPermission()` con gesto del usuario (requisito de iOS Safari para mostrar el diálogo de permiso).
+- **Fix FCM token con doc ID ≠ authUid**: `messaging.ts` ahora busca por campo `authUid` si el documento no existe en la ruta `doc(uid)`. Esto cubre usuarios cuyo perfil fue pre-creado por admin (ID auto-generado).
+- **Nueva función `enviarNotificacionPush`** (HTTP): crea el documento en `notificaciones` y envía el push FCM sincrónicamente. El cliente la llama directamente en vez de crear el documento raw. La Cloud Function trigger `onNotificacionCreated` queda como fallback.
+- **Logging en CF**: se agregaron `logger.warn()` en todos los puntos de retorno silencioso de `onNotificacionCreated` para poder debuggear.
+- **Actualizadas todas las creaciones de notificaciones** (tickets, tareas, cronogramas, usuarios, notificaciones) para usar `enviarNotificacion` en vez de `crearDocumento` directo.
+- **Sidebar** ahora usa `user?.uid` consistente con tickets page en vez de `userData?.id`.
+- **Tabs** Recibidos/Enviados visibles para todos los roles (antes solo pastor/admin).
+- **Script `testPush.ts`**: envía notificación push de prueba a todos los tokens FCM registrados. `npm run test-push` en `functions/`.
 
-Cambios previos de esta versión:
-- **Sistema de tickets**: nuevo flujo de comunicación entre Líder de Área y Pastor/Administrador.
-  - Colección `tickets` en Firestore con reglas: create por remitente, update por remitente/destinatario/pastor/admin.
-  - Tipos: `sugerencia`, `tema`, `consulta`, `urgente`. Estados: `pendiente`, `respondido`, `cerrado`.
-  - Hook `useTickets` para obtener tickets entrantes/salientes y contar no leídos.
-  - Página `/tickets` con vista adaptativa según rol:
-    - **Líder**: crea tickets (tipo + destinatario + asunto + mensaje), ve historial de enviados.
-    - **Pastor/Admin**: ve tickets recibidos, responde, cierra. Badge de no leídos en sidebar.
-  - Notificaciones push integradas: al crear ticket o responder se genera notificación para el destinatario.
-  - Firestore rules actualizadas para la colección `tickets`.
-- **Barra de estado iOS**: fix para que en dark mode la status bar no quede blanca. Se agregó `html { background-color }` en `globals.css`, script inline en `layout.tsx` que setea background y `theme-color` dinámicamente al cargar, y `ThemeContext` sincroniza ambos al alternar tema.
-- **Calendario compacto**: grilla de eventos en `eventos/page.tsx` con celdas `aspect-square` (cuadradas, no estiradas), nombres de días abreviados (`Do`, `Lu`, `Ma`...), tamaños de texto reducidos en mobile, y overflow hidden para eventos que desbordan la celda.
-- **Textos de notificaciones unificados**: todas siguen estructura consistente (qué pasó → quién → función/ministerio → evento → fecha/hora)
+Cambios de sesiones anteriores:
+- **Colaboradores pueden crear tickets**: antes solo líderes, ahora cualquier no-pastor/admin puede enviar tickets.
+- **Eliminar tickets**: pastor/admin puede eliminar tickets. Agregado `"tickets"` a allowlist de `borrarDocumento`.
+- **Sistema de tickets**: flujo de comunicación entre Líder de Área y Pastor/Administrador.
+  - Colección `tickets` en Firestore. Tipos: `sugerencia`, `tema`, `consulta`, `urgente`. Estados: `pendiente`, `respondido`, `cerrado`.
+  - Notificaciones push integradas.
+- **iOS status bar fix**, **Calendario compacto**, **Textos de notificaciones unificados**.
 
 ## 8. Pendiente para próximas sesiones
 
@@ -189,15 +191,14 @@ Hecho en sesiones anteriores:
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Hecho en esta sesión:
-- ~~iOS status bar fix~~ — html background + theme-color dinámico para dark mode
-- ~~Calendario compacto~~ — grilla cuadrada, días abreviados, mobile-friendly
-- ~~Sistema de tickets~~ — líder envía propuestas/sugerencias a pastor/admin, con respuesta y notificaciones
-- ~~Fix tickets auth UID~~ — usar `user?.uid` en vez de `userData.id` para coincidir con Firestore rules
-- ~~Deploy Firestore rules~~ — rules de `tickets` subidas a producción
-- ~~Colaboradores crean tickets~~ — cualquier no-pastor/admin puede enviar
-- ~~Tabs recibidos/enviados~~ — pastor/admin ve ambas vistas
-- ~~Eliminar tickets~~ — pastor/admin puede borrar tickets
-- ~~Fix notificaciones mobile~~ — `onNotificacionCreated` busca por authUid
+- ~~Fix tickets líder/colaborador~~ — useTickets con queries paralelas, sin índice compuesto
+- ~~Fix FCM token doc ID ≠ authUid~~ — messaging.ts busca por authUid
+- ~~Fix notificaciones iOS~~ — PushPrompt con botón Habilitar (user gesture)
+- ~~Función enviarNotificacionPush~~ — HTTP function sincrónica para push confiable
+- ~~Tabs recibidos/enviados para todos~~ — ya no solo pastor/admin
+- ~~Sidebar consistente~~ — user.uid en vez de userData.id
+- ~~Script testPush.ts~~ — npm run test-push para probar notificaciones
+- ~~Logging en CF~~ — logger.warn en puntos de retorno silencioso
 
 Pendiente:
 1. **Migrar de `next lint` a ESLint CLI**

@@ -10,8 +10,8 @@ import { ListSkeleton } from "@/components/skeletons"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotificaciones } from "@/hooks/useNotificaciones"
 import { useMinisterios } from "@/hooks/useMinisterios"
-import { actualizarDocumento, obtenerDocumento, crearDocumento, obtenerDocumentos, eliminarDocumento, where } from "@/lib/firestore"
-import { GrillaServicio, Usuario, Notificacion, Evento } from "@/types"
+import { actualizarDocumento, obtenerDocumento, crearDocumento, obtenerDocumentos, eliminarDocumento, where, enviarNotificacion } from "@/lib/firestore"
+import { GrillaServicio, Usuario, Evento } from "@/types"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -114,14 +114,13 @@ export default function NotificacionesPage() {
         if (destId === user?.uid) continue
         const nombre = userData?.nombre || "Alguien"
         const apellido = userData?.apellido || ""
-        await crearDocumento("notificaciones", {
+        await enviarNotificacion({
           usuarioId: destId,
           titulo: accion === "confirmado" ? "Asignación confirmada" : "Asignación rechazada",
           mensaje: `${nombre} ${apellido} ${accion === "confirmado" ? "confirmó" : "rechazó"} la función de "${rol}" en el ministerio ${ministerioNombre} para "${eventoTitulo}" del ${fechaStr}${horaStr}.`,
-          leido: false,
           tipo: "confirmacion",
           referenciaId: notif.referenciaId,
-        } as Partial<Notificacion>)
+        })
       }
 
       toast.success(accion === "confirmado" ? "Asistencia confirmada" : "Asignación rechazada")

@@ -12,6 +12,61 @@ initializeApp();
 const db = getFirestore();
 const auth = getAuth();
 
+async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string) {
+  let userSnap = await db.collection("usuarios").doc(usuarioId).get();
+  if (!userSnap.exists) {
+    const q = await db.collection("usuarios").where("authUid", "==", usuarioId).limit(1).get();
+    if (!q.empty) userSnap = q.docs[0];
+  }
+  if (!userSnap || !userSnap.exists) {
+    logger.warn("sendPushToUser: usuario no encontrado", { usuarioId });
+    return { sent: false, reason: "usuario_no_encontrado" };
+  }
+
+  const fcmTokens: string[] = userSnap.data()?.fcmTokens || [];
+  if (fcmTokens.length === 0) {
+    logger.warn("sendPushToUser: usuario sin fcmTokens", { usuarioId });
+    return { sent: false, reason: "sin_tokens" };
+  }
+
+  try {
+    const response = await getMessaging().sendEachForMulticast({
+      notification: { title: titulo, body: mensaje },
+      webpush: {
+        notification: {
+          icon: "/icon-192.png",
+          badge: "/icon-192.png",
+        },
+      },
+      tokens: fcmTokens,
+    });
+
+    if (response.failureCount > 0) {
+      const invalidTokens: string[] = [];
+      response.responses.forEach((resp, idx) => {
+        if (
+          !resp.success &&
+          (resp.error?.code === "messaging/registration-token-not-registered" ||
+            resp.error?.code === "messaging/invalid-registration-token")
+        ) {
+          invalidTokens.push(fcmTokens[idx]);
+        }
+      });
+      if (invalidTokens.length > 0) {
+        await userSnap.ref.update({
+          fcmTokens: FieldValue.arrayRemove(...invalidTokens),
+        });
+      }
+    }
+
+    logger.info("push enviado", { usuarioId, success: response.successCount, failure: response.failureCount });
+    return { sent: true, success: response.successCount, failure: response.failureCount };
+  } catch (err: any) {
+    logger.error("Error enviando push", { error: err?.message });
+    return { sent: false, reason: "error", error: err?.message };
+  }
+}
+
 const ROLES_DESTRUCTIVOS = new Set(["pastor", "administrador"]);
 
 const ROLES_VALIDOS = new Set([
@@ -255,6 +310,58 @@ export const setRolUsuario = onRequest(async (req, res) => {
   }
 });
 
+export const enviarNotificacionPush = onRequest(async (req, res) => {
+  setCors(res, req);
+  if (req.method === "OPTIONS") {
+    res.status(200).send();
+    return;
+  }
+  if (req.method !== "POST") {
+    res.status(405).send({ error: "Method not allowed" });
+    return;
+  }
+
+  try {
+    await verifyAuth(req);
+
+    const { usuarioId, titulo, mensaje, tipo, referenciaId } = req.body || {};
+
+    if (typeof usuarioId !== "string" || !usuarioId) {
+      res.status(400).send({ error: "usuarioId requerido" });
+      return;
+    }
+    if (!isValidId(usuarioId)) {
+      res.status(400).send({ error: "usuarioId inválido" });
+      return;
+    }
+
+    const notifRef = await db.collection("notificaciones").add({
+      usuarioId,
+      titulo: typeof titulo === "string" ? titulo : "Nueva notificación",
+      mensaje: typeof mensaje === "string" ? mensaje : "",
+      leido: false,
+      tipo: typeof tipo === "string" ? tipo : "tarea",
+      referenciaId: typeof referenciaId === "string" ? referenciaId : "",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    const result = await sendPushToUser(
+      usuarioId,
+      typeof titulo === "string" ? titulo : "Nueva notificación",
+      typeof mensaje === "string" ? mensaje : ""
+    );
+
+    logger.info("notificación creada", { notifId: notifRef.id, usuarioId, pushResult: result });
+
+    res.status(200).send({ ok: true, notifId: notifRef.id, push: result });
+  } catch (err: any) {
+    logger.error("enviarNotificacionPush error", { error: err?.message });
+    const status = err?.status || 500;
+    res.status(status).send({ error: err?.message || "Error al enviar notificación." });
+  }
+});
+
 export const onNotificacionCreated = onDocumentCreated(
   "notificaciones/{notifId}",
   async (event) => {
@@ -270,58 +377,9 @@ export const onNotificacionCreated = onDocumentCreated(
       return;
     }
 
-    let userSnap = await db.collection("usuarios").doc(usuarioId).get();
-    if (!userSnap.exists) {
-      const q = await db.collection("usuarios").where("authUid", "==", usuarioId).limit(1).get();
-      if (!q.empty) userSnap = q.docs[0];
-    }
-    if (!userSnap || !userSnap.exists) {
-      logger.warn("onNotificacionCreated: usuario no encontrado", { usuarioId });
-      return;
-    }
-
-    const fcmTokens: string[] = userSnap.data()?.fcmTokens || [];
-    if (fcmTokens.length === 0) {
-      logger.warn("onNotificacionCreated: usuario sin fcmTokens", { usuarioId });
-      return;
-    }
-
     const titulo = typeof notif.titulo === "string" ? notif.titulo : "Nueva notificación";
     const mensaje = typeof notif.mensaje === "string" ? notif.mensaje : "";
 
-    try {
-      const response = await getMessaging().sendEachForMulticast({
-        notification: { title: titulo, body: mensaje },
-        webpush: {
-          notification: {
-            icon: "/icon-192.png",
-            badge: "/icon-192.png",
-          },
-        },
-        tokens: fcmTokens,
-      });
-
-      if (response.failureCount > 0) {
-        const invalidTokens: string[] = [];
-        response.responses.forEach((resp, idx) => {
-          if (
-            !resp.success &&
-            (resp.error?.code === "messaging/registration-token-not-registered" ||
-              resp.error?.code === "messaging/invalid-registration-token")
-          ) {
-            invalidTokens.push(fcmTokens[idx]);
-          }
-        });
-        if (invalidTokens.length > 0) {
-          await userSnap.ref.update({
-            fcmTokens: FieldValue.arrayRemove(...invalidTokens),
-          });
-        }
-      }
-
-      logger.info("push enviado", { usuarioId, success: response.successCount, failure: response.failureCount });
-    } catch (err: any) {
-      logger.error("Error enviando push", { error: err?.message });
-    }
+    await sendPushToUser(usuarioId, titulo, mensaje);
   }
 );

@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, Trash2, Loader2, Pencil } from "lucide-react"
-import { Usuario, Rol, Notificacion } from "@/types"
-import { eliminarDocumento, crearDocumento, actualizarDocumento } from "@/lib/firestore"
+import { Usuario, Rol } from "@/types"
+import { eliminarDocumento, crearDocumento, actualizarDocumento, enviarNotificacion } from "@/lib/firestore"
 import { asignarRolUsuario, RolValido } from "@/lib/roles"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMinisterios } from "@/hooks/useMinisterios"
@@ -132,11 +132,10 @@ export default function UsuariosPage() {
       for (const mid of newIds) {
         const min = ministerios.find((m) => m.id === mid)
         if (min) {
-          await crearDocumento<Notificacion>("notificaciones", {
+          await enviarNotificacion({
             usuarioId: (oldUser as any)?.authUid || editId,
             titulo: "Nuevo ministerio",
             mensaje: `Has sido incorporado al ministerio "${min.nombre}".`,
-            leido: false,
             tipo: "ministerio",
             referenciaId: mid,
           })

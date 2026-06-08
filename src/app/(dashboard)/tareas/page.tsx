@@ -15,9 +15,9 @@ import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTareas } from "@/hooks/useTareas"
 import { useMinisterios } from "@/hooks/useMinisterios"
-import { crearDocumento, eliminarDocumento, actualizarDocumento } from "@/lib/firestore"
+import { crearDocumento, eliminarDocumento, actualizarDocumento, enviarNotificacion } from "@/lib/firestore"
 import { obtenerDocumentos } from "@/lib/firestore"
-import { Tarea, Usuario, Notificacion, EstadoTarea } from "@/types"
+import { Tarea, Usuario, EstadoTarea } from "@/types"
 
 export default function TareasPage() {
   const { userData } = useAuth()
@@ -73,11 +73,10 @@ export default function TareasPage() {
         if (userDoc?.notificaciones !== false) {
           const min = ministerios.find((m) => m.id === form.ministerioId)
           const destId = userDoc?.authUid || form.responsableId
-          await crearDocumento<Notificacion>("notificaciones", {
+          await enviarNotificacion({
             usuarioId: destId,
             titulo: "Nueva tarea asignada",
             mensaje: `Te asignaron la tarea "${form.titulo}"${min ? ` en el ministerio ${min.nombre}` : ""}.`,
-            leido: false,
             tipo: "tarea",
             referenciaId: "",
           })
