@@ -347,27 +347,27 @@ export default function MinisterioDetailPage() {
                         <span>{rol}</span>
                       )}
                       {esPastor && (
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         {editingRolIdx !== idx && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-8 w-8"
                           onClick={() => {
                             setEditingRolIdx(idx)
                             setEditingRolValue(rol)
                           }}
                         >
-                          <Pencil className="h-3 w-3" />
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive hover:text-destructive/80 hover:bg-transparent h-7 w-7"
+                          className="text-destructive hover:text-destructive/80 hover:bg-transparent h-8 w-8"
                           onClick={() => handleRemoveRol(rol)}
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                       )}
@@ -423,7 +423,7 @@ export default function MinisterioDetailPage() {
                   <select
                     value={configLiderId}
                     onChange={(e) => setConfigLiderId(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     <option value="">Sin asignar</option>
                     {usuarios.map((u) => (
