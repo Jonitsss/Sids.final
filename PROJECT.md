@@ -163,7 +163,20 @@ ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones 
 244d826 fix: notificaciones push no llegaban si el usuario fue creado por admin (doc ID != auth UID)
 ```
 
-Cambios de esta sesión (v1.6.0):
+Cambios de esta sesión (v1.8.0):
+- **UI instantánea en tickets**: enviar, responder, cerrar y eliminar cierran el dialog inmediatamente y ejecutan en background
+- **Botón "Marcar todas como leídas"** en notificaciones (solo pastor/admin)
+- **Botón "Eliminar todos los tickets"** en tickets (solo pastor/admin)
+- **Badge auto-clean**: al entrar a /notificaciones o /tickets se marcan automáticamente como leídas las entrantes
+- **Script clean-orphans**: limpia notificaciones huérfanas (ticket:* sin ticket)
+
+Cambios de sesiones anteriores (v1.7.x):
+- **Fix notificaciones dobles iOS**: service worker con Firebase SDK, sin onBackgroundMessage, payload con notification field
+- **Optimistic token update**: siempre llama getToken al cargar la app (fix token mismatch PWA/Safari)
+- **Cascade delete tickets**: borrarDocumento elimina notificaciones asociadas al borrar ticket
+- **notificationId UUID**: payload incluye UUID para tracking de notificaciones
+
+Cambios de sesiones anteriores (v1.6.x):
 - **Sistema de aprobación de cuentas**: usuarios nuevos se registran con `activo: false` y no pueden acceder hasta que un Pastor/Admin los apruebe.
 - **Pantalla "Cuenta pendiente"**: componente `PendingApproval.tsx` que se muestra cuando el usuario no está activo.
 - **Login con estado pendiente**: si el usuario está logueado pero `activo: false`, muestra mensaje de pendiente en vez de redirigir.
@@ -189,10 +202,11 @@ Hecho en sesiones anteriores:
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Hecho en esta sesión:
-- ~~Sistema de aprobación de cuentas~~ — usuarios nuevos con activo:false, pantalla pendiente, botón aprobar
-- ~~Fix notificaciones dobles~~ — eliminado onNotificacionCreated trigger
-- ~~Cleanup tokens inválidos~~ — mejorado manejo de errores FCM
-- ~~Versión visible~~ — login, register, pantalla de carga
+- ~~UI instantánea en tickets~~ — enviar, responder, cerrar, eliminar con optimistic UI
+- ~~Botón "Marcar todas como leídas"~~ — notificaciones (pastor/admin)
+- ~~Botón "Eliminar todos los tickets"~~ — tickets (pastor/admin)
+- ~~Badge auto-clean~~ — al entrar a /notificaciones y /tickets se marcan como leídas
+- ~~Script clean-orphans~~ — cleanup de notificaciones huérfanas
 - ~~Fix tickets líder/colaborador~~ — useTickets con queries paralelas, sin índice compuesto
 
 Pendiente (notificaciones push):
@@ -302,7 +316,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.7.3 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.8.0 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 

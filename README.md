@@ -217,7 +217,21 @@ El sistema envía notificaciones in-app (Firestore) y push (FCM) con formato con
 - **Rechazo**: requiere justificación obligatoria, notifica a Pastor/Administrador/Líder del ministerio
 - **Push**: 
   - `enviarNotificacionPush` (HTTP, llamado desde el cliente) — crea el documento y envía el push sincrónicamente
+  - Service worker con Firebase SDK para push subscription en iOS PWA
+- **Marcar todas leídas**: botón disponible para pastor/admin en /notificaciones
+- **Badge**: contador en sidebar, se auto-limpia al entrar a la página
 - **Test local**: `cd functions && npm run test-push "Título" "Mensaje"` envía a todos los tokens FCM registrados
+
+### Tickets
+
+Sistema de tickets entre líderes/colaboradores y pastores/administradores:
+
+- **Enviar**: líderes y colaboradores envían tickets a pastores/admin
+- **Responder**: pastores/admin pueden responder y cerrar tickets
+- **UI instantánea**: enviar, responder, cerrar y eliminar se ejecutan en background sin bloquear la interfaz
+- **Eliminar todos**: botón para pastor/admin que elimina todos los tickets y sus notificaciones asociadas
+- **Badge**: contador de tickets no leídos en sidebar, se auto-limpia al entrar a /tickets
+- **Huérfanas**: script `clean-orphans` limpia notificaciones de tickets eliminados
 
 ## Comandos
 
