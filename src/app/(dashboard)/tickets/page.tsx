@@ -46,8 +46,8 @@ const TIPO_VARIANTS: Record<string, "default" | "secondary" | "outline" | "warni
 }
 
 export default function TicketsPage() {
-  const { userData } = useAuth()
-  const { tickets, loading, refetch, ticketsEntrantes, ticketsSalientes, noLeidos } = useTickets(userData?.id, userData?.rol)
+  const { user, userData } = useAuth()
+  const { tickets, loading, refetch, ticketsEntrantes, ticketsSalientes, noLeidos } = useTickets(user?.uid, userData?.rol)
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const esLider = userData?.rol === "lider"
 
@@ -87,16 +87,18 @@ export default function TicketsPage() {
   }
 
   const handleCreate = async () => {
-    if (!form.asunto || !form.mensaje || !form.a) return
+    if (!form.asunto || !form.mensaje || !form.a || !user?.uid) return
     const destinatario = usuarios.find((u) => u.id === form.a)
     if (!destinatario) return
+
+    const destUid = destinatario.authUid || destinatario.id
 
     setSending(true)
     try {
       const ticketId = await crearDocumento<Ticket>("tickets", {
-        de: userData!.id,
-        deNombre: `${userData!.nombre} ${userData!.apellido}`,
-        a: destinatario.id,
+        de: user.uid,
+        deNombre: `${userData?.nombre || ""} ${userData?.apellido || ""}`.trim(),
+        a: destUid,
         aNombre: `${destinatario.nombre} ${destinatario.apellido}`,
         asunto: form.asunto,
         mensaje: form.mensaje,
@@ -108,9 +110,9 @@ export default function TicketsPage() {
       })
 
       await crearDocumento<any>("notificaciones", {
-        usuarioId: destinatario.id,
+        usuarioId: destUid,
         titulo: `Nuevo ticket: ${form.asunto}`,
-        mensaje: `${userData!.nombre} ${userData!.apellido} te envió un ticket de tipo ${TIPO_LABELS[form.tipo]}`,
+        mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} te envió un ticket de tipo ${TIPO_LABELS[form.tipo]}`,
         leido: false,
         tipo: "tarea",
         referenciaId: `ticket:${ticketId}`,
@@ -120,7 +122,8 @@ export default function TicketsPage() {
       setOpen(false)
       setForm({ tipo: "sugerencia", a: "", asunto: "", mensaje: "" })
       refetch()
-    } catch {
+    } catch (err) {
+      console.error("Error al enviar ticket:", err)
       toast.error("Error al enviar ticket")
     } finally {
       setSending(false)
@@ -141,7 +144,7 @@ export default function TicketsPage() {
       await crearDocumento<any>("notificaciones", {
         usuarioId: selectedTicket.de,
         titulo: `Respuesta a tu ticket: ${selectedTicket.asunto}`,
-        mensaje: `${userData!.nombre} ${userData!.apellido} respondió tu ticket`,
+        mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} respondió tu ticket`,
         leido: false,
         tipo: "tarea",
         referenciaId: `ticket:${selectedTicket.id}`,
@@ -151,7 +154,8 @@ export default function TicketsPage() {
       setSelectedTicket(null)
       setRespuesta("")
       refetch()
-    } catch {
+    } catch (err) {
+      console.error("Error al responder:", err)
       toast.error("Error al responder")
     } finally {
       setSending(false)
