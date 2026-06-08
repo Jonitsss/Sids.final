@@ -181,6 +181,13 @@ export default function UsuariosPage() {
     colaborador: "outline",
   }
 
+  const rolLabel: Record<string, string> = {
+    pastor: "Pastor",
+    administrador: "Administrador",
+    lider: "Líder de área",
+    colaborador: "Colaborador",
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -226,7 +233,7 @@ export default function UsuariosPage() {
                     <SelectContent>
                       <SelectItem value="pastor">Pastor</SelectItem>
                       <SelectItem value="administrador">Administrador</SelectItem>
-                      <SelectItem value="lider">Líder</SelectItem>
+                      <SelectItem value="lider">Líder de área</SelectItem>
                       <SelectItem value="colaborador">Colaborador</SelectItem>
                     </SelectContent>
                   </Select>
@@ -314,7 +321,7 @@ export default function UsuariosPage() {
                     <p className="text-sm text-muted-foreground truncate">{u.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={rolBadge[u.rol]} className="capitalize">{u.rol}</Badge>
+                    <Badge variant={rolBadge[u.rol]}>{rolLabel[u.rol] || u.rol}</Badge>
                     {u.ministerioIds?.map((mid) => {
                       const min = ministerios.find((m) => m.id === mid)
                       return min ? (
@@ -381,7 +388,7 @@ export default function UsuariosPage() {
                   <SelectContent>
                     <SelectItem value="pastor">Pastor</SelectItem>
                     <SelectItem value="administrador">Administrador</SelectItem>
-                    <SelectItem value="lider">Líder</SelectItem>
+                    <SelectItem value="lider">Líder de área</SelectItem>
                     <SelectItem value="colaborador">Colaborador</SelectItem>
                   </SelectContent>
               </Select>
