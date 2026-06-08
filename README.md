@@ -53,8 +53,7 @@ La aplicación es instalable como PWA en Android e iOS:
   - `public/firebase-messaging-sw.js` — notificaciones en background
   - `src/lib/messaging.ts` — helpers para `getToken()` y `onMessage()`
   - `src/hooks/usePushNotifications.ts` — hook de registro y foreground messages
-   - Cloud Function `onNotificacionCreated` — trigger Firestore que envía push al crear una notificación (fallback)
-   - Cloud Function `enviarNotificacionPush` — HTTP function que crea la notificación y envía el push sincrónicamente (principal)
+  - Cloud Function `enviarNotificacionPush` — HTTP function que crea la notificación y envía el push sincrónicamente
 
 Para activar notificaciones push:
 1. Generar VAPID key en Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
@@ -79,7 +78,7 @@ sids-next/
 │   └── sitemap-0.xml            # generado por next-sitemap
 ├── functions/                   # Cloud Functions (TypeScript)
 │   ├── src/
-│   │   ├── index.ts             # borrarDocumento, setRolUsuario, onNotificacionCreated, enviarNotificacionPush
+│   │   ├── index.ts             # borrarDocumento, setRolUsuario, enviarNotificacionPush
 │   │   └── scripts/
 │   │       ├── setInitialRol.ts # bootstrap del primer pastor/admin
 │   │       └── testPush.ts      # enviar push de prueba a todos los tokens FCM
@@ -202,9 +201,8 @@ El sistema envía notificaciones in-app (Firestore) y push (FCM) con formato con
   - `tarea` — nueva tarea asignada
   - `ministerio` — incorporación a ministerio
 - **Rechazo**: requiere justificación obligatoria, notifica a Pastor/Administrador/Líder del ministerio
-- **Push dual**: 
+- **Push**: 
   - `enviarNotificacionPush` (HTTP, llamado desde el cliente) — crea el documento y envía el push sincrónicamente
-  - `onNotificacionCreated` (trigger Firestore) — fallback que reenvía si el documento se creó por otra vía
 - **Test local**: `cd functions && npm run test-push "Título" "Mensaje"` envía a todos los tokens FCM registrados
 
 ## Comandos

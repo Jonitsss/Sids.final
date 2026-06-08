@@ -63,12 +63,16 @@ async function main() {
   if (response.failureCount > 0) {
     const invalidTokens: string[] = [];
     response.responses.forEach((resp, idx) => {
-      if (
-        !resp.success &&
-        (resp.error?.code === "messaging/registration-token-not-registered" ||
-          resp.error?.code === "messaging/invalid-registration-token")
-      ) {
-        invalidTokens.push(allTokens[idx]);
+      if (!resp.success) {
+        console.log(`  Token[${idx}] FALLÓ: ${resp.error?.code} — ${resp.error?.message}`);
+        if (
+          resp.error?.code === "messaging/registration-token-not-registered" ||
+          resp.error?.code === "messaging/invalid-registration-token" ||
+          resp.error?.code === "messaging/third-party-auth-error" ||
+          resp.error?.message?.includes("Provider returned error")
+        ) {
+          invalidTokens.push(allTokens[idx]);
+        }
       }
     });
     if (invalidTokens.length > 0) {

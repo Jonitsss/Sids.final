@@ -76,7 +76,7 @@ salta, continuando con los fallbacks de `authUid` y `email`.
 sids-next/
 ├── functions/                          # Cloud Functions (TypeScript)
 │   ├── src/
-│   │   ├── index.ts                    # borrarDocumento, setRolUsuario, onNotificacionCreated, enviarNotificacionPush
+│   │   ├── index.ts                    # borrarDocumento, setRolUsuario, enviarNotificacionPush
 │   │   └── scripts/
 │   │       ├── setInitialRol.ts         # bootstrap del primer admin
 │   │       └── testPush.ts             # enviar push de prueba a todos los tokens FCM
@@ -167,8 +167,7 @@ Cambios de esta sesión (v1.5.0):
 - **Fix tickets líder/colaborador**: el hook `useTickets` ahora hace dos queries en paralelo (`where("de")` + `where("a")`) sin `orderBy` para evitar el índice compuesto faltante. Ordena del lado del cliente. Los líderes ahora también ven la pestaña **Recibidos**.
 - **Fix notificaciones push iOS**: se agregó botón **"Habilitar"** en `PushPrompt` que llama `requestPermission()` con gesto del usuario (requisito de iOS Safari para mostrar el diálogo de permiso).
 - **Fix FCM token con doc ID ≠ authUid**: `messaging.ts` ahora busca por campo `authUid` si el documento no existe en la ruta `doc(uid)`. Esto cubre usuarios cuyo perfil fue pre-creado por admin (ID auto-generado).
-- **Nueva función `enviarNotificacionPush`** (HTTP): crea el documento en `notificaciones` y envía el push FCM sincrónicamente. El cliente la llama directamente en vez de crear el documento raw. La Cloud Function trigger `onNotificacionCreated` queda como fallback.
-- **Logging en CF**: se agregaron `logger.warn()` en todos los puntos de retorno silencioso de `onNotificacionCreated` para poder debuggear.
+- **Nueva función `enviarNotificacionPush`** (HTTP): crea el documento en `notificaciones` y envía el push FCM sincrónicamente. El cliente la llama directamente en vez de crear el documento raw.
 - **Actualizadas todas las creaciones de notificaciones** (tickets, tareas, cronogramas, usuarios, notificaciones) para usar `enviarNotificacion` en vez de `crearDocumento` directo.
 - **Sidebar** ahora usa `user?.uid` consistente con tickets page en vez de `userData?.id`.
 - **Tabs** Recibidos/Enviados visibles para todos los roles (antes solo pastor/admin).
@@ -201,8 +200,9 @@ Hecho en esta sesión:
 - ~~Script testPush.ts~~ — npm run test-push para probar notificaciones
 - ~~Logging en CF~~ — logger.warn en puntos de retorno silencioso
 
-Pendiente (URGENTE — notificaciones push no llegan al celular):
-1. **Verificar si las notificaciones se crean en Firestore**
+Pendiente (notificaciones push):
+- ~~Notificaciones dobles~~ — eliminado `onNotificacionCreated` trigger (causaba doble push). Deploy OK.
+1. **Verificar si las notificaciones llegan al celular ahora**
    - Enviar un ticket desde la web y revisar en Firebase Console:
      - ¿Aparece un documento en `notificaciones`? Si no, el frontend no lo crea (Firestore rules o error cliente).
      - ¿Aparece en `tickets`? Si no, el ticket tampoco se crea.
@@ -210,7 +210,7 @@ Pendiente (URGENTE — notificaciones push no llegan al celular):
 
 2. **Verificar logs de Cloud Functions**
    - `cd functions && firebase functions:log` o Firebase Console → Functions → Logs.
-   - Buscar `onNotificacionCreated` o `enviarNotificacionPush`:
+   - Buscar `enviarNotificacionPush`:
      - `"usuario no encontrado"` → el `usuarioId` del notification no coincide con ningún doc en `usuarios`.
      - `"usuario sin fcmTokens"` → el usuario existe pero no tiene tokens FCM guardados.
      - `"push enviado"` → el push se envió correctamente.
@@ -307,8 +307,8 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.5.0 |
-| Cloud Functions | Firebase `southamerica-east1` | ✅ 4 funciones deployadas |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.5.1 |
+| Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 
 ### Qué necesitás en tu PC de casa

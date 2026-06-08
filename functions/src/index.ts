@@ -1,5 +1,5 @@
 import { onRequest } from "firebase-functions/v2/https";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
@@ -44,18 +44,27 @@ async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string
     if (response.failureCount > 0) {
       const invalidTokens: string[] = [];
       response.responses.forEach((resp, idx) => {
-        if (
-          !resp.success &&
-          (resp.error?.code === "messaging/registration-token-not-registered" ||
-            resp.error?.code === "messaging/invalid-registration-token")
-        ) {
-          invalidTokens.push(fcmTokens[idx]);
+        if (!resp.success) {
+          logger.warn("push fallido para token", {
+            tokenIndex: idx,
+            errorCode: resp.error?.code,
+            errorMessage: resp.error?.message,
+          });
+          if (
+            resp.error?.code === "messaging/registration-token-not-registered" ||
+            resp.error?.code === "messaging/invalid-registration-token" ||
+            resp.error?.code === "messaging/third-party-auth-error" ||
+            resp.error?.message?.includes("Provider returned error")
+          ) {
+            invalidTokens.push(fcmTokens[idx]);
+          }
         }
       });
       if (invalidTokens.length > 0) {
         await userSnap.ref.update({
           fcmTokens: FieldValue.arrayRemove(...invalidTokens),
         });
+        logger.info("tokens inválidos eliminados", { count: invalidTokens.length, usuarioId });
       }
     }
 
@@ -362,24 +371,4 @@ export const enviarNotificacionPush = onRequest(async (req, res) => {
   }
 });
 
-export const onNotificacionCreated = onDocumentCreated(
-  "notificaciones/{notifId}",
-  async (event) => {
-    const notif = event.data?.data();
-    if (!notif) {
-      logger.warn("onNotificacionCreated: notif vacía");
-      return;
-    }
 
-    const usuarioId = notif.usuarioId;
-    if (typeof usuarioId !== "string") {
-      logger.warn("onNotificacionCreated: usuarioId no es string", { usuarioId });
-      return;
-    }
-
-    const titulo = typeof notif.titulo === "string" ? notif.titulo : "Nueva notificación";
-    const mensaje = typeof notif.mensaje === "string" ? notif.mensaje : "";
-
-    await sendPushToUser(usuarioId, titulo, mensaje);
-  }
-);
