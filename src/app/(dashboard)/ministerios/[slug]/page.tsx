@@ -13,7 +13,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check, Pencil } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
@@ -35,6 +36,12 @@ export default function MinisterioDetailPage() {
   const [loadingDisponibles, setLoadingDisponibles] = useState(false)
   const [buscador, setBuscador] = useState("")
   const [agregando, setAgregando] = useState<string | null>(null)
+  const [editingRolIdx, setEditingRolIdx] = useState<number | null>(null)
+  const [editingRolValue, setEditingRolValue] = useState("")
+  const [configColor, setConfigColor] = useState("")
+  const [configLiderId, setConfigLiderId] = useState("")
+  const [savingConfig, setSavingConfig] = useState(false)
+  const [usuarios, setUsuarios] = useState<Usuario[]>([])
 
   const handleOpenDialog = async () => {
     setDialogOpen(true)
@@ -82,11 +89,15 @@ export default function MinisterioDetailPage() {
         setMinisterio(m)
         if (m) {
           setRoles(m.roles || [])
+          setConfigColor(m.color || "#000000")
+          setConfigLiderId(m.liderId || "")
           const usuarios = await obtenerDocumentos<Usuario>("usuarios", [
             where("ministerioIds", "array-contains", m.id),
             where("activo", "==", true),
           ])
           if (mounted) setMiembros(usuarios)
+          const todos = await obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)])
+          if (mounted) setUsuarios(todos)
         }
       } catch (error) {
         if (mounted) console.error(error)
@@ -108,6 +119,18 @@ export default function MinisterioDetailPage() {
     setRoles(roles.filter((r) => r !== rol))
   }
 
+  const handleRenameRol = (idx: number) => {
+    const nuevo = editingRolValue.trim()
+    if (!nuevo || (nuevo !== roles[idx] && roles.includes(nuevo))) {
+      setEditingRolIdx(null)
+      return
+    }
+    const updated = [...roles]
+    updated[idx] = nuevo
+    setRoles(updated)
+    setEditingRolIdx(null)
+  }
+
   const handleSaveRoles = async () => {
     if (!ministerio) return
     setSavingRoles(true)
@@ -122,8 +145,27 @@ export default function MinisterioDetailPage() {
     }
   }
 
+  const handleSaveConfig = async () => {
+    if (!ministerio) return
+    setSavingConfig(true)
+    try {
+      await actualizarDocumento("ministerios", ministerio.id, {
+        color: configColor,
+        liderId: configLiderId,
+      })
+      setMinisterio((prev) => prev ? { ...prev, color: configColor, liderId: configLiderId } : prev)
+      toast.success("Configuración guardada")
+    } catch {
+      toast.error("Error al guardar configuración")
+    } finally {
+      setSavingConfig(false)
+    }
+  }
+
   if (loading) return <MinisterioDetailSkeleton />
   if (!ministerio) return <div className="p-8 text-center text-muted-foreground">Ministerio no encontrado</div>
+
+  const liderUsuario = usuarios.find((u) => u.id === configLiderId)
 
   return (
     <div className="space-y-6">
@@ -287,18 +329,47 @@ export default function MinisterioDetailPage() {
                     No hay roles. Agregá el primero arriba.
                   </p>
                 ) : (
-                  roles.map((rol) => (
+                  roles.map((rol, idx) => (
                     <div key={rol} className="flex items-center justify-between p-3 rounded-lg border group">
-                      <span>{rol}</span>
+                      {editingRolIdx === idx ? (
+                        <Input
+                          autoFocus
+                          value={editingRolValue}
+                          onChange={(e) => setEditingRolValue(e.target.value)}
+                          onBlur={() => handleRenameRol(idx)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleRenameRol(idx)
+                            if (e.key === "Escape") setEditingRolIdx(null)
+                          }}
+                          className="h-8 max-w-[200px]"
+                        />
+                      ) : (
+                        <span>{rol}</span>
+                      )}
                       {esPastor && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive/80 hover:bg-transparent h-7 w-7"
-                        onClick={() => handleRemoveRol(rol)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <div className="flex gap-1">
+                        {editingRolIdx !== idx && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setEditingRolIdx(idx)
+                            setEditingRolValue(rol)
+                          }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive/80 hover:bg-transparent h-7 w-7"
+                          onClick={() => handleRemoveRol(rol)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                       )}
                     </div>
                   ))
@@ -311,20 +382,59 @@ export default function MinisterioDetailPage() {
         <TabsContent value="config">
           <Card>
             <CardHeader>
-              <CardTitle>Configuración del Ministerio</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Configuración del Ministerio</CardTitle>
+                {esPastor && (
+                <Button size="sm" onClick={handleSaveConfig} disabled={savingConfig}>
+                  {savingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Guardar
+                </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-medium">Color</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="w-6 h-6 rounded-full" style={{ backgroundColor: ministerio.color }} />
-                  <span className="text-sm text-muted-foreground">{ministerio.color}</span>
-                </div>
+              <div className="space-y-2">
+                <Label>Color</Label>
+                {esPastor ? (
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={configColor}
+                      onChange={(e) => setConfigColor(e.target.value)}
+                      className="h-8 w-8 rounded cursor-pointer border-0"
+                    />
+                    <Input
+                      value={configColor}
+                      onChange={(e) => setConfigColor(e.target.value)}
+                      className="max-w-[120px] h-8"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full" style={{ backgroundColor: ministerio.color }} />
+                    <span className="text-sm text-muted-foreground">{ministerio.color}</span>
+                  </div>
+                )}
               </div>
               <Separator />
-              <div>
-                <p className="text-sm font-medium">ID del Líder</p>
-                <p className="text-sm text-muted-foreground">{ministerio.liderId || "Sin asignar"}</p>
+              <div className="space-y-2">
+                <Label>Líder del Ministerio</Label>
+                {esPastor ? (
+                  <select
+                    value={configLiderId}
+                    onChange={(e) => setConfigLiderId(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="">Sin asignar</option>
+                    {usuarios.map((u) => (
+                      <option key={u.id} value={u.id}>{u.nombre} {u.apellido}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {liderUsuario ? `${liderUsuario.nombre} ${liderUsuario.apellido}` : "Sin asignar"}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
