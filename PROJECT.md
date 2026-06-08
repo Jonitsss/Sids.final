@@ -155,7 +155,7 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-feat(pwa): convertir app a PWA con notificaciones push
+fix(security): restringir cronogramas y endurecer Firestore rules
 ```
 
 Cambios de esta sesión:
@@ -166,24 +166,26 @@ Cambios de esta sesión:
   - `src/hooks/usePushNotifications.ts` para registro y foreground
   - Cloud Function `onNotificacionCreated` (trigger Firestore → FCM multicast)
   - Limpieza automática de tokens inválidos
-- **Icono actualizado**: `logo.jpeg` reemplaza `logo.png` en web y PWA
+- **Icono actualizado**: `logo_sin_fondo.png` en web y PWA
 - **Prompt de permiso**: banner no intrusivo en dashboard layout
+- **Seguridad cronogramas**: colaborador solo ve cronogramas donde tiene asignación, no puede editar ni ver la grilla completa
+- **Firestore rules endurecidas**:
+  - `ministerios`, `tareas`, `asistencias`, `miembros_ministerio`: solo pastor/admin pueden crear/editar
+  - `eventos`, `cronogramas`: pastor/admin/líder pueden crear/editar
+  - `usuarios` (create): solo pastor/admin
+  - Helpers `esLider()` y `puedeCrearEventosOCronogramas()` agregados
 
 ## 8. Pendiente para próximas sesiones
 
 Hecho en esta sesión:
 - ~~PWA instalable~~ — manifest, service worker, icons, meta tags
 - ~~Push notifications~~ — FCM completo (cliente + servidor + trigger)
-- ~~Icono actualizado~~ — logo.jpeg en web, PWA y OG image
+- ~~Icono actualizado~~ — logo_sin_fondo.png en web, PWA y OG image
+- ~~Endurecer Firestore rules~~ — restringir create/update por rol con custom claims
+- ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Pendiente:
-1. **Endurecer `create/update` por colección con custom claims**
-   - En `firestore.rules`, restringir `allow create, update: if ...` a
-     `request.auth.token.rol in {pastor, administrador}` para colecciones
-     sensibles. El `firestore.rules` ya tiene un comentario TODO al final
-     marcando esto.
-
-2. **Migrar de `next lint` a ESLint CLI**
+1. **Migrar de `next lint` a ESLint CLI**
    - `next lint` se depreca en Next 16. Usar `npx @next/codemod@canary
      next-lint-to-eslint-cli .`.
 

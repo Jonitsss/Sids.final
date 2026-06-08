@@ -155,6 +155,10 @@ Firebase Authentication (sincronizado con el campo `usuarios.rol`):
   custom claim `rol in {pastor, administrador}` y aplica una allowlist de
   colecciones. Los usuarios con otros roles solo pueden borrar **sus propias
   notificaciones** (mismo criterio que las reglas originales).
+- **Creación/edición**: las reglas de Firestore restringen `create/update` por colección:
+  - `ministerios`, `tareas`, `asistencias`, `miembros_ministerio`: solo pastor/administrador
+  - `eventos`, `cronogramas`: pastor/administrador/líder
+  - `usuarios` (crear): solo pastor/administrador
 - **Custom claims**: se asignan con la Cloud Function `setRolUsuario` (solo
   pastor/administrador). Sincroniza el campo `rol` en `usuarios/{uid}`.
 
