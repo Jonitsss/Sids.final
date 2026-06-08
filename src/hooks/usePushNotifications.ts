@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { requestPermission, onForegroundMessage } from "@/lib/messaging"
-import { toast } from "sonner"
+import { requestPermission } from "@/lib/messaging"
 
 export function usePushNotifications() {
   const { user, userData } = useAuth()
@@ -27,16 +26,6 @@ export function usePushNotifications() {
       if (token) setPermission("granted")
     })
   }, [user, userData, permission])
-
-  useEffect(() => {
-    const unsubscribe = onForegroundMessage((payload) => {
-      const { title, body } = payload.notification || {}
-      if (title) {
-        toast(title, { description: body || "" })
-      }
-    })
-    return unsubscribe
-  }, [])
 
   const dismissPrompt = () => {
     localStorage.setItem("push-dismissed", "true")

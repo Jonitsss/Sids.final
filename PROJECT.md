@@ -302,7 +302,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.6.0 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.6.1 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 

@@ -12,7 +12,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "set-initial-rol": "ts-node src/scripts/setInitialRol.ts",
-    "test-push": "ts-node src/scripts/testPush.ts"
+    "test-push": "ts-node src/scripts/testPush.ts",
+    "clean-duplicates": "ts-node src/scripts/cleanDuplicateNotifs.ts"
   },
   "engines": {
     "node": "22"

@@ -232,6 +232,17 @@ export const borrarDocumento = onRequest(async (req, res) => {
 
       batch.delete(ref);
       await batch.commit();
+    } else if (coleccion === "tickets" && esDestructivo) {
+      const batch = db.batch();
+
+      const notifSnap = await db
+        .collection("notificaciones")
+        .where("referenciaId", "==", `ticket:${id}`)
+        .get();
+      notifSnap.docs.forEach((doc) => batch.delete(doc.ref));
+
+      batch.delete(ref);
+      await batch.commit();
     } else {
       await ref.delete();
     }
