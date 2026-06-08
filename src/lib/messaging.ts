@@ -1,6 +1,6 @@
 import { messaging, db } from "@/lib/firebase"
 import { getToken, onMessage, MessagePayload } from "firebase/messaging"
-import { doc, getDoc, setDoc, arrayUnion } from "firebase/firestore"
+import { doc, getDoc, setDoc, arrayUnion, query, collection, where, getDocs } from "firebase/firestore"
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || ""
 
@@ -15,8 +15,17 @@ export async function requestPermission(uid: string): Promise<string | null> {
     const token = await getToken(messaging, { vapidKey: VAPID_KEY })
     if (!token) return null
 
-    const userRef = doc(db, "usuarios", uid)
-    const snap = await getDoc(userRef)
+    let userRef = doc(db, "usuarios", uid)
+    let snap = await getDoc(userRef)
+
+    if (!snap.exists()) {
+      const q = await getDocs(query(collection(db, "usuarios"), where("authUid", "==", uid)))
+      if (!q.empty) {
+        userRef = q.docs[0].ref
+        snap = q.docs[0]
+      }
+    }
+
     if (snap.exists()) {
       await setDoc(userRef, { fcmTokens: arrayUnion(token) }, { merge: true })
     }
