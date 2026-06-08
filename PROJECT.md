@@ -155,10 +155,15 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
-feat: sistema de tickets (líder → pastor/admin)
+fix(tickets): usar auth UID en vez de Firestore doc ID
 ```
 
 Cambios de esta sesión:
+- **Fix tickets**: el campo `de` ahora usa `user?.uid` (Firebase Auth UID) para coincidir con `request.auth.uid` en Firestore rules. Antes usaba `userData.id` (Firestore doc ID) que para usuarios antiguos era diferente, causando permiso denegado al crear tickets.
+- **Notificaciones de tickets**: notificación push al crear ticket y al responder, usando `authUid` del destinatario para que pueda leerla.
+- **Firestore rules deployadas**: colección `tickets` con reglas de seguridad en producción.
+
+Cambios previos de esta versión:
 - **Sistema de tickets**: nuevo flujo de comunicación entre Líder de Área y Pastor/Administrador.
   - Colección `tickets` en Firestore con reglas: create por remitente, update por remitente/destinatario/pastor/admin.
   - Tipos: `sugerencia`, `tema`, `consulta`, `urgente`. Estados: `pendiente`, `respondido`, `cerrado`.
@@ -185,6 +190,8 @@ Hecho en esta sesión:
 - ~~iOS status bar fix~~ — html background + theme-color dinámico para dark mode
 - ~~Calendario compacto~~ — grilla cuadrada, días abreviados, mobile-friendly
 - ~~Sistema de tickets~~ — líder envía propuestas/sugerencias a pastor/admin, con respuesta y notificaciones
+- ~~Fix tickets auth UID~~ — usar `user?.uid` en vez de `userData.id` para coincidir con Firestore rules
+- ~~Deploy Firestore rules~~ — rules de `tickets` subidas a producción
 
 Pendiente:
 1. **Migrar de `next lint` a ESLint CLI**
