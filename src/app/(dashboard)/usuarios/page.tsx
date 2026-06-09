@@ -133,6 +133,14 @@ export default function UsuariosPage() {
         } catch {
           // Custom claims may fail if caller lacks permissions
         }
+
+        await enviarNotificacion({
+          usuarioId: (oldUser as any)?.authUid || editId,
+          titulo: "Tu rol ha sido actualizado",
+          mensaje: `Tu rol cambió de "${rolLabel(oldUser?.rol)}" a "${rolLabel(form.rol)}". Cierra sesión y vuelve a ingresar para que los cambios tomen efecto.`,
+          tipo: "rol",
+          referenciaId: editId,
+        })
       }
 
       for (const mid of newIds) {
