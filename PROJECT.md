@@ -262,9 +262,8 @@ Pendiente (notificaciones push):
    "
    ```
 
-5. **Migrar de `next lint` a ESLint CLI**
-   - `next lint` se depreca en Next 16. Usar `npx @next/codemod@canary
-     next-lint-to-eslint-cli .`.
+~~5. **Migrar de `next lint` a ESLint CLI**~~
+   - ~~`next lint` se depreca en Next 16. Migrado a ESLint CLI con flat config (`eslint.config.mjs`).~~
 
 ## 9. Convenciones y reglas de la casa
 
