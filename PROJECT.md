@@ -163,6 +163,14 @@ ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones 
 244d826 fix: notificaciones push no llegaban si el usuario fue creado por admin (doc ID != auth UID)
 ```
 
+Cambios de esta sesión (v1.10.0):
+- **Feature Células** — sub-colección de ministerios con tipo, día/hora, dirección, líder/colíder/anfitrión
+- **Rutas nuevas** — `/ministerios/celulas` (lista) y `/ministerios/celulas/[id]` (detalle)
+- **Permisos** — pastor/admin: CRUD total, líder: ve solo sus células, colaborador: solo lectura de las suyas
+- **Cascade delete** — al borrar un ministerio, se eliminan sus células asociadas
+- **Filtros** — por tipo y ministerio en la lista
+- **UI optimista** — crear/eliminar con feedback inmediato
+
 Cambios de esta sesión (v1.8.0):
 - **UI instantánea en consultas**: enviar, responder, cerrar y eliminar cierran el dialog inmediatamente y ejecutan en background
 - **Botón "Marcar todas como leídas"** en notificaciones (solo pastor/admin)
@@ -208,6 +216,8 @@ Hecho en esta sesión:
 - ~~Badge auto-clean~~ — al entrar a /notificaciones y /consultas se marcan como leídas
 - ~~Script clean-orphans~~ — cleanup de notificaciones huérfanas
 - ~~Fix tickets líder/colaborador~~ — useTickets con queries paralelas, sin índice compuesto
+- ~~Feature Células~~ — CRUD completo con tipo, líder/colíder/anfitrión, dirección y horarios
+- ~~Cascade delete células~~ — al borrar ministerio se eliminan sus células
 
 Pendiente (notificaciones push):
 - ~~Notificaciones dobles~~ — eliminado `onNotificacionCreated` trigger (causaba doble push). Deploy OK.

@@ -61,6 +61,16 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
+    // celulas (sub-colección de ministerios): lideres/celulas pueden
+    // gestionar su célula, pastor/admin pueden ver/crear/editar todas
+    // ---------------------------------------------------------------------
+    match /celulas/{celulaId} {
+      allow read: if isSignedIn();
+      allow create, update: if esPastorOAdmin();
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
     // eventos
     // ---------------------------------------------------------------------
     match /eventos/{eventoId} {

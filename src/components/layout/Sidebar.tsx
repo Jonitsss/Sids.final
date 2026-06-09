@@ -23,6 +23,7 @@ import {
   X,
   Bell,
   MessageSquare,
+  Network,
 } from "lucide-react"
 import { APP_VERSION } from "@/lib/version"
 import { useTheme } from "@/contexts/ThemeContext"
@@ -36,6 +37,7 @@ const menuItems = {
   pastor: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Ministerios" },
+    { href: "/ministerios/celulas", icon: Network, label: "Células" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
@@ -48,6 +50,7 @@ const menuItems = {
   administrador: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Ministerios" },
+    { href: "/ministerios/celulas", icon: Network, label: "Células" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
@@ -60,6 +63,7 @@ const menuItems = {
   lider: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
+    { href: "/ministerios/celulas", icon: Network, label: "Células" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },

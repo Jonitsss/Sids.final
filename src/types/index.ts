@@ -121,6 +121,28 @@ export interface MiembroMinisterio {
   activo: boolean
 }
 
+export type TipoCelula =
+  | "mujeres"
+  | "hombres"
+  | "adolescentes_varones"
+  | "adolescentes_mujeres"
+  | "matrimonios"
+
+export interface Celula {
+  id: string
+  nombre: string
+  tipo: TipoCelula
+  direccion: string
+  liderId: string
+  coliderId: string
+  anfitrionId: string
+  dia: string
+  hora: string
+  ministerioId: string
+  activo: boolean
+  createdAt: Date
+}
+
 export interface Consulta {
   id: string
   de: string
