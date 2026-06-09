@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, MapPin, Users, Clock, Trash2, Loader2, Calendar } from "lucide-react"
 import { crearDocumento, eliminarDocumento, actualizarDocumento, obtenerDocumentos, where } from "@/lib/firestore"
@@ -166,6 +166,7 @@ export default function CelulasPage() {
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Crear Célula</DialogTitle>
+                <DialogDescription>Crear una nueva célula del Ministerio Celular</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -241,12 +242,12 @@ export default function CelulasPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>Colíder (opcional)</Label>
-                      <Select value={form.coliderId} onValueChange={(v) => setForm({ ...form, coliderId: v })}>
+                      <Select value={form.coliderId || "__none__"} onValueChange={(v) => setForm({ ...form, coliderId: v === "__none__" ? "" : v })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar colíder" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sin colíder</SelectItem>
+                          <SelectItem value="__none__">Sin colíder</SelectItem>
                           {usuarios.filter((u) => u.id !== form.liderId).map((u) => (
                             <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                           ))}
@@ -255,12 +256,12 @@ export default function CelulasPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>Anfitrión (opcional)</Label>
-                      <Select value={form.anfitrionId} onValueChange={(v) => setForm({ ...form, anfitrionId: v })}>
+                      <Select value={form.anfitrionId || "__none__"} onValueChange={(v) => setForm({ ...form, anfitrionId: v === "__none__" ? "" : v })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar anfitrión" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sin anfitrión</SelectItem>
+                          <SelectItem value="__none__">Sin anfitrión</SelectItem>
                           {usuarios.map((u) => (
                             <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                           ))}

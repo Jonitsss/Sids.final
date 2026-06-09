@@ -236,12 +236,12 @@ export default function CelulaDetailPage() {
             <Separator />
             <div className="space-y-2">
               <Label>Líder</Label>
-              <Select value={form.liderId} onValueChange={(v) => setForm({ ...form, liderId: v })}>
+              <Select value={form.liderId || "__none__"} onValueChange={(v) => setForm({ ...form, liderId: v === "__none__" ? "" : v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar líder" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin asignar</SelectItem>
+                  <SelectItem value="__none__">Sin asignar</SelectItem>
                   {usuarios.map((u) => (
                     <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                   ))}
@@ -250,12 +250,12 @@ export default function CelulaDetailPage() {
             </div>
             <div className="space-y-2">
               <Label>Colíder</Label>
-              <Select value={form.coliderId} onValueChange={(v) => setForm({ ...form, coliderId: v })}>
+              <Select value={form.coliderId || "__none__"} onValueChange={(v) => setForm({ ...form, coliderId: v === "__none__" ? "" : v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar colíder" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin colíder</SelectItem>
+                  <SelectItem value="__none__">Sin colíder</SelectItem>
                   {usuarios.filter((u) => u.id !== form.liderId).map((u) => (
                     <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                   ))}
@@ -264,12 +264,12 @@ export default function CelulaDetailPage() {
             </div>
             <div className="space-y-2">
               <Label>Anfitrión</Label>
-              <Select value={form.anfitrionId} onValueChange={(v) => setForm({ ...form, anfitrionId: v })}>
+              <Select value={form.anfitrionId || "__none__"} onValueChange={(v) => setForm({ ...form, anfitrionId: v === "__none__" ? "" : v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar anfitrión" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin anfitrión</SelectItem>
+                  <SelectItem value="__none__">Sin anfitrión</SelectItem>
                   {usuarios.map((u) => (
                     <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                   ))}
