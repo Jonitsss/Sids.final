@@ -47,7 +47,7 @@ const TIPO_VARIANTS: Record<string, "default" | "secondary" | "outline" | "warni
 
 export default function TicketsPage() {
   const { user, userData } = useAuth()
-  const { tickets, loading, refetch, ticketsEntrantes, ticketsSalientes, noLeidos } = useTickets(user?.uid, userData?.rol)
+  const { tickets, loading, ticketsEntrantes, ticketsSalientes, noLeidos, setTickets } = useTickets(user?.uid, userData?.rol)
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const puedeCrear = !esPastorOAdmin
 
@@ -120,7 +120,6 @@ export default function TicketsPage() {
           referenciaId: `ticket:${ticketId}`,
         })
         toast.success("Ticket enviado exitosamente")
-        refetch()
       })
       .catch((err) => {
         console.error("Error al enviar ticket:", err)
@@ -153,7 +152,6 @@ export default function TicketsPage() {
       )
       .then(() => {
         toast.success("Respuesta enviada")
-        refetch()
       })
       .catch((err) => {
         console.error("Error al responder:", err)
@@ -171,7 +169,6 @@ export default function TicketsPage() {
     })
       .then(() => {
         toast.success("Ticket cerrado")
-        refetch()
       })
       .catch(() => toast.error("Error al cerrar ticket"))
   }
@@ -182,7 +179,6 @@ export default function TicketsPage() {
     toast.success("Ticket eliminado")
     eliminarDocumento("tickets", ticket.id)
       .catch(() => toast.error("Error al eliminar ticket"))
-      .finally(() => refetch())
   }
 
   const handleMarcarLeido = async (ticket: Ticket) => {
@@ -192,7 +188,6 @@ export default function TicketsPage() {
       } else if (tab === "enviados" && !ticket.leidoPorRemitente) {
         await actualizarDocumento<Ticket>("tickets", ticket.id, { leidoPorRemitente: true })
       }
-      refetch()
     } catch {
       // silent
     }
@@ -205,7 +200,6 @@ export default function TicketsPage() {
     try {
       await Promise.all(tickets.map(t => eliminarDocumento("tickets", t.id)))
       toast.success(`${tickets.length} tickets eliminados`)
-      refetch()
     } catch {
       toast.error("Error al eliminar todos los tickets")
     }

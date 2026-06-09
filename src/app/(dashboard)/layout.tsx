@@ -16,10 +16,8 @@ function PushPrompt() {
 
   const handleEnable = async () => {
     if (!user?.uid) return
-    const token = await requestPermission(user.uid)
-    if (token) {
-      window.location.reload()
-    }
+    await requestPermission(user.uid)
+    dismissPrompt()
   }
 
   return (

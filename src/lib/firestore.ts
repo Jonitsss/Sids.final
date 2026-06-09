@@ -12,6 +12,8 @@ import {
   serverTimestamp,
   Timestamp,
   DocumentData,
+  onSnapshot,
+  Unsubscribe,
 } from "firebase/firestore"
 import { db, auth, FUNCTIONS_REGION } from "./firebase"
 
@@ -123,3 +125,28 @@ export async function enviarNotificacion(params: {
 }
 
 export { where, orderBy, limit, query, Timestamp }
+
+function mapDoc<T>(doc: any): T {
+  const data = doc.data() as DocumentData
+  return {
+    ...data,
+    id: doc.id,
+    fecha: data.fecha?.toDate?.() || data.fecha,
+    fechaLimite: data.fechaLimite?.toDate?.() || data.fechaLimite,
+    fechaIngreso: data.fechaIngreso?.toDate?.() || data.fechaIngreso,
+    createdAt: data.createdAt?.toDate?.() || data.createdAt,
+    updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+  } as T
+}
+
+export function escucharDocumentos<T>(
+  coleccion: string,
+  constraints: any[] = [],
+  callback: (docs: T[]) => void
+): Unsubscribe {
+  const firestore = getDb()
+  const q = query(collection(firestore, coleccion), ...constraints)
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.docs.map(mapDoc<T>))
+  })
+}
