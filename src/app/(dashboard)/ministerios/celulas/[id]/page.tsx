@@ -242,9 +242,11 @@ export default function CelulaDetailPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">Sin asignar</SelectItem>
-                  {usuarios.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
-                  ))}
+                  {usuarios
+                    .filter((u) => u.rol === "lider")
+                    .map((u) => (
+                      <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -256,9 +258,11 @@ export default function CelulaDetailPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">Sin colíder</SelectItem>
-                  {usuarios.filter((u) => u.id !== form.liderId).map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
-                  ))}
+                  {usuarios
+                    .filter((u) => u.rol === "lider" && u.id !== form.liderId)
+                    .map((u) => (
+                      <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -270,9 +274,11 @@ export default function CelulaDetailPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">Sin anfitrión</SelectItem>
-                  {usuarios.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
-                  ))}
+                  {usuarios
+                    .filter((u) => u.rol === "colaborador")
+                    .map((u) => (
+                      <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
