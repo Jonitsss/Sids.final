@@ -90,7 +90,7 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Correo electrónico</Label>
-            <Input id="email" name="email" type="email" autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="text-base" required />
+            <Input id="email" name="email" type="email" autoComplete="username" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="text-base" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="telefono">Teléfono</Label>
