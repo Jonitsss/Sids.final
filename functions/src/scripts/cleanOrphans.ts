@@ -28,7 +28,7 @@ async function main() {
   let total = 0;
   let pageToken: QueryDocumentSnapshot<DocumentData> | undefined;
 
-  console.log("Buscando notificaciones huérfanas tipo ticket...");
+  console.log("Buscando notificaciones huérfanas tipo consulta...");
 
   do {
     let query = db.collection("notificaciones")
@@ -41,11 +41,11 @@ async function main() {
 
     for (const doc of snap.docs) {
       const refId = doc.data().referenciaId;
-      if (typeof refId !== "string" || !refId.startsWith("ticket:")) continue;
+      if (typeof refId !== "string" || !refId.startsWith("consulta:")) continue;
 
-      const ticketId = refId.replace("ticket:", "");
-      const ticketDoc = await db.collection("tickets").doc(ticketId).get();
-      if (!ticketDoc.exists) {
+      const consultaId = refId.replace("consulta:", "");
+      const consultaDoc = await db.collection("consultas").doc(consultaId).get();
+      if (!consultaDoc.exists) {
         batch.delete(doc.ref);
         batchCount++;
         total++;

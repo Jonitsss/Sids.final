@@ -164,10 +164,10 @@ ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones 
 ```
 
 Cambios de esta sesión (v1.8.0):
-- **UI instantánea en tickets**: enviar, responder, cerrar y eliminar cierran el dialog inmediatamente y ejecutan en background
+- **UI instantánea en consultas**: enviar, responder, cerrar y eliminar cierran el dialog inmediatamente y ejecutan en background
 - **Botón "Marcar todas como leídas"** en notificaciones (solo pastor/admin)
-- **Botón "Eliminar todos los tickets"** en tickets (solo pastor/admin)
-- **Badge auto-clean**: al entrar a /notificaciones o /tickets se marcan automáticamente como leídas las entrantes
+- **Botón "Eliminar todas las consultas"** en consultas (solo pastor/admin)
+- **Badge auto-clean**: al entrar a /notificaciones o /consultas se marcan automáticamente como leídas las entrantes
 - **Script clean-orphans**: limpia notificaciones huérfanas (ticket:* sin ticket)
 
 Cambios de sesiones anteriores (v1.7.x):
@@ -202,10 +202,10 @@ Hecho en sesiones anteriores:
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Hecho en esta sesión:
-- ~~UI instantánea en tickets~~ — enviar, responder, cerrar, eliminar con optimistic UI
+- ~~UI instantánea en consultas~~ — enviar, responder, cerrar, eliminar con optimistic UI
 - ~~Botón "Marcar todas como leídas"~~ — notificaciones (pastor/admin)
-- ~~Botón "Eliminar todos los tickets"~~ — tickets (pastor/admin)
-- ~~Badge auto-clean~~ — al entrar a /notificaciones y /tickets se marcan como leídas
+- ~~Botón "Eliminar todas las consultas"~~ — consultas (pastor/admin)
+- ~~Badge auto-clean~~ — al entrar a /notificaciones y /consultas se marcan como leídas
 - ~~Script clean-orphans~~ — cleanup de notificaciones huérfanas
 - ~~Fix tickets líder/colaborador~~ — useTickets con queries paralelas, sin índice compuesto
 
@@ -214,7 +214,7 @@ Pendiente (notificaciones push):
 1. **Verificar si las notificaciones llegan al celular ahora**
    - Enviar un ticket desde la web y revisar en Firebase Console:
      - ¿Aparece un documento en `notificaciones`? Si no, el frontend no lo crea (Firestore rules o error cliente).
-     - ¿Aparece en `tickets`? Si no, el ticket tampoco se crea.
+      - ¿Aparece en `consultas`? Si no, la consulta tampoco se crea.
    - Firebase Console → Firestore Database → colección `notificaciones` → ordenar por `createdAt` descendente.
 
 2. **Verificar logs de Cloud Functions**
@@ -225,7 +225,7 @@ Pendiente (notificaciones push):
      - `"push enviado"` → el push se envió correctamente.
 
 3. **Forzar guardado de FCM token desde el teléfono**
-   - Abrir la app en el celular, ir a la página de tickets, tocar **Habilitar** cuando aparezca el cartel.
+    - Abrir la app en el celular, ir a la página de consultas, tocar **Habilitar** cuando aparezca el cartel.
    - Si el cartel no aparece, abrir `https://sids-final.vercel.app/perfil` y verificar que `notificaciones` esté habilitado.
    - Después de Habilitar, esperar 10 segundos y correr: `cd functions && npm run test-push "Test" "Verificar token" "../serviceAccountKey.json"`.
    - Si antes mostraba 2 tokens y después muestra 3+, el teléfono registró el token correctamente.

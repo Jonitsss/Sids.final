@@ -94,7 +94,7 @@ const COLECCIONES_PERMITIDAS_PASTOR_ADMIN = new Set([
   "miembros_ministerio",
   "usuarios",
   "notificaciones",
-  "tickets",
+  "consultas",
 ]);
 
 function getRol(token: Record<string, unknown> | undefined): string | null {
@@ -232,12 +232,12 @@ export const borrarDocumento = onRequest(async (req, res) => {
 
       batch.delete(ref);
       await batch.commit();
-    } else if (coleccion === "tickets" && esDestructivo) {
+    } else if (coleccion === "consultas" && esDestructivo) {
       const batch = db.batch();
 
       const notifSnap = await db
         .collection("notificaciones")
-        .where("referenciaId", "==", `ticket:${id}`)
+        .where("referenciaId", "==", `consulta:${id}`)
         .get();
       notifSnap.docs.forEach((doc) => batch.delete(doc.ref));
 

@@ -23,7 +23,7 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/cronogramas` | Protegida | Grillas de servicio (con detalle `/cronogramas/[id]`) |
 | `/tareas` | Protegida | Gestión de tareas |
 | `/asistencia` | Protegida | Registro de asistencia (solo pastor) |
-| `/tickets` | Protegida | Sistema de tickets (líder → pastor/admin) |
+| `/consultas` | Protegida | Sistema de consultas (líder → pastor/admin) |
 | `/notificaciones` | Protegida | Bandeja de notificaciones |
 | `/perfil` | Protegida | Perfil de usuario editable |
 | `/reportes` | Protegida | Reportes ministeriales |
@@ -222,16 +222,16 @@ El sistema envía notificaciones in-app (Firestore) y push (FCM) con formato con
 - **Badge**: contador en sidebar, se auto-limpia al entrar a la página
 - **Test local**: `cd functions && npm run test-push "Título" "Mensaje"` envía a todos los tokens FCM registrados
 
-### Tickets
+### Consultas
 
-Sistema de tickets entre líderes/colaboradores y pastores/administradores:
+Sistema de consultas entre líderes/colaboradores y pastores/administradores:
 
-- **Enviar**: líderes y colaboradores envían tickets a pastores/admin
-- **Responder**: pastores/admin pueden responder y cerrar tickets
+- **Enviar**: líderes y colaboradores envían consultas a pastores/admin
+- **Responder**: pastores/admin pueden responder y cerrar consultas
 - **UI instantánea**: enviar, responder, cerrar y eliminar se ejecutan en background sin bloquear la interfaz
-- **Eliminar todos**: botón para pastor/admin que elimina todos los tickets y sus notificaciones asociadas
-- **Badge**: contador de tickets no leídos en sidebar, se auto-limpia al entrar a /tickets
-- **Huérfanas**: script `clean-orphans` limpia notificaciones de tickets eliminados
+- **Eliminar todas**: botón para pastor/admin que elimina todas las consultas y sus notificaciones asociadas
+- **Badge**: contador de consultas no leídas en sidebar, se auto-limpia al entrar a /consultas
+- **Huérfanas**: script `clean-orphans` limpia notificaciones de consultas eliminadas
 
 ## Comandos
 

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn, rolLabel } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotificaciones } from "@/hooks/useNotificaciones"
-import { useTickets } from "@/hooks/useTickets"
+import { useConsultas } from "@/hooks/useConsultas"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -39,7 +39,7 @@ const menuItems = {
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
-    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
+    { href: "/consultas", icon: MessageSquare, label: "Consultas" },
     { href: "/asistencia", icon: Users, label: "Asistencia" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
     { href: "/usuarios", icon: UserCircle, label: "Usuarios" },
@@ -51,7 +51,7 @@ const menuItems = {
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
-    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
+    { href: "/consultas", icon: MessageSquare, label: "Consultas" },
     { href: "/asistencia", icon: Users, label: "Asistencia" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
     { href: "/usuarios", icon: UserCircle, label: "Usuarios" },
@@ -63,7 +63,7 @@ const menuItems = {
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },
-    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
+    { href: "/consultas", icon: MessageSquare, label: "Consultas" },
     { href: "/asistencia", icon: Users, label: "Asistencia" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
   ],
@@ -72,7 +72,7 @@ const menuItems = {
     { href: "/cronogramas", icon: ClipboardList, label: "Mis Asignaciones" },
     { href: "/tareas", icon: CheckSquare, label: "Mis Tareas" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
-    { href: "/tickets", icon: MessageSquare, label: "Tickets" },
+    { href: "/consultas", icon: MessageSquare, label: "Consultas" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
   ],
 }
@@ -84,7 +84,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const role = userData?.rol || "colaborador"
   const items = menuItems[role] || menuItems.colaborador
   const { noLeidas } = useNotificaciones(user?.uid || userData?.id)
-  const { noLeidos: ticketsNoLeidos } = useTickets(user?.uid, userData?.rol)
+  const { noLeidas: consultasNoLeidas } = useConsultas(user?.uid, userData?.rol)
 
   return (
     <>
@@ -132,9 +132,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   {noLeidas > 99 ? "99+" : noLeidas}
                 </span>
               )}
-              {item.href === "/tickets" && ticketsNoLeidos > 0 && (
+              {item.href === "/consultas" && consultasNoLeidas > 0 && (
                 <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                  {ticketsNoLeidos > 99 ? "99+" : ticketsNoLeidos}
+                  {consultasNoLeidas > 99 ? "99+" : consultasNoLeidas}
                 </span>
               )}
             </Link>

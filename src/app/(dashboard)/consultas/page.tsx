@@ -10,9 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
-import { useTickets } from "@/hooks/useTickets"
+import { useConsultas } from "@/hooks/useConsultas"
 import { crearDocumento, actualizarDocumento, eliminarDocumento, obtenerDocumentos, enviarNotificacion, where } from "@/lib/firestore"
-import { Ticket, Usuario } from "@/types"
+import { Consulta, Usuario } from "@/types"
 import { Plus, MessageSquare, Loader2, Send, X, CheckCircle, Clock, AlertCircle, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -45,29 +45,29 @@ const TIPO_VARIANTS: Record<string, "default" | "secondary" | "outline" | "warni
   urgente: "destructive",
 }
 
-export default function TicketsPage() {
+export default function ConsultasPage() {
   const { user, userData } = useAuth()
-  const { tickets, loading, ticketsEntrantes, ticketsSalientes, noLeidos, setTickets } = useTickets(user?.uid, userData?.rol)
+  const { consultas, loading, consultasEntrantes, consultasSalientes, noLeidas, setConsultas } = useConsultas(user?.uid, userData?.rol)
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const puedeCrear = !esPastorOAdmin
 
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<"enviados" | "recibidos">("enviados")
   const [form, setForm] = useState({
-    tipo: "sugerencia" as Ticket["tipo"],
+    tipo: "sugerencia" as Consulta["tipo"],
     a: "",
     asunto: "",
     mensaje: "",
   })
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [usuariosLoading, setUsuariosLoading] = useState(false)
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+  const [selectedConsulta, setSelectedConsulta] = useState<Consulta | null>(null)
   const [respuesta, setRespuesta] = useState("")
   const [sending, setSending] = useState(false)
   const [filter, setFilter] = useState<"todos" | "pendiente" | "respondido" | "cerrado">("todos")
 
-  const activeList = tab === "recibidos" ? ticketsEntrantes : ticketsSalientes
-  const ticketsToShow = useMemo(() => {
+  const activeList = tab === "recibidos" ? consultasEntrantes : consultasSalientes
+  const consultasToShow = useMemo(() => {
     if (filter === "todos") return activeList
     return activeList.filter((t) => t.estado === filter)
   }, [activeList, filter])
@@ -98,7 +98,7 @@ export default function TicketsPage() {
     setForm({ tipo: "sugerencia", a: "", asunto: "", mensaje: "" })
     setSending(true)
 
-    crearDocumento<Ticket>("tickets", {
+    crearDocumento<Consulta>("consultas", {
       de: user.uid,
       deNombre: `${userData?.nombre || ""} ${userData?.apellido || ""}`.trim(),
       a: destUid,
@@ -111,31 +111,30 @@ export default function TicketsPage() {
       leidoPorDestinatario: false,
       leidoPorRemitente: true,
     })
-      .then((ticketId) => {
+      .then((consultaId) => {
         enviarNotificacion({
           usuarioId: destUid,
-          titulo: `Nuevo ticket: ${form.asunto}`,
-          mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} te envió un ticket de tipo ${TIPO_LABELS[form.tipo]}`,
+          titulo: `Nueva consulta: ${form.asunto}`,
+          mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} te envió una consulta de tipo ${TIPO_LABELS[form.tipo]}`,
           tipo: "tarea",
-          referenciaId: `ticket:${ticketId}`,
+          referenciaId: `consulta:${consultaId}`,
         })
-        toast.success("Ticket enviado exitosamente")
       })
       .catch((err) => {
-        console.error("Error al enviar ticket:", err)
-        toast.error("Error al enviar ticket")
+        console.error("Error al enviar consulta:", err)
+        toast.error("Error al enviar consulta")
       })
       .finally(() => setSending(false))
   }
 
   const handleResponder = async () => {
-    if (!selectedTicket || !respuesta.trim()) return
-    const ticket = selectedTicket
+    if (!selectedConsulta || !respuesta.trim()) return
+    const consulta = selectedConsulta
     setSending(true)
-    setSelectedTicket(null)
+    setSelectedConsulta(null)
     setRespuesta("")
 
-    actualizarDocumento<Ticket>("tickets", ticket.id, {
+    actualizarDocumento<Consulta>("consultas", consulta.id, {
       respuesta: respuesta.trim(),
       estado: "respondido",
       leidoPorDestinatario: true,
@@ -143,11 +142,11 @@ export default function TicketsPage() {
     })
       .then(() =>
         enviarNotificacion({
-          usuarioId: ticket.de,
-          titulo: `Respuesta a tu ticket: ${ticket.asunto}`,
-          mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} respondió tu ticket`,
+          usuarioId: consulta.de,
+          titulo: `Respuesta a tu consulta: ${consulta.asunto}`,
+          mensaje: `${userData?.nombre || ""} ${userData?.apellido || ""} respondió tu consulta`,
           tipo: "tarea",
-          referenciaId: `ticket:${ticket.id}`,
+          referenciaId: `consulta:${consulta.id}`,
         })
       )
       .then(() => {
@@ -160,33 +159,32 @@ export default function TicketsPage() {
       .finally(() => setSending(false))
   }
 
-  const handleCerrar = async (ticket: Ticket) => {
-    setSelectedTicket(null)
-    actualizarDocumento<Ticket>("tickets", ticket.id, {
+  const handleCerrar = async (consulta: Consulta) => {
+    setSelectedConsulta(null)
+    actualizarDocumento<Consulta>("consultas", consulta.id, {
       estado: "cerrado",
       leidoPorDestinatario: true,
       leidoPorRemitente: true,
     })
       .then(() => {
-        toast.success("Ticket cerrado")
+        toast.success("Consulta cerrada")
       })
-      .catch(() => toast.error("Error al cerrar ticket"))
+      .catch(() => toast.error("Error al cerrar consulta"))
   }
 
-  const handleDelete = async (ticket: Ticket) => {
-    if (!confirm(`¿Eliminar el ticket "${ticket.asunto}"?`)) return
-    setSelectedTicket(null)
-    toast.success("Ticket eliminado")
-    eliminarDocumento("tickets", ticket.id)
-      .catch(() => toast.error("Error al eliminar ticket"))
+  const handleDelete = async (consulta: Consulta) => {
+    if (!confirm(`¿Eliminar la consulta "${consulta.asunto}"?`)) return
+    setSelectedConsulta(null)
+    eliminarDocumento("consultas", consulta.id)
+      .catch(() => toast.error("Error al eliminar consulta"))
   }
 
-  const handleMarcarLeido = async (ticket: Ticket) => {
+  const handleMarcarLeido = async (consulta: Consulta) => {
     try {
-      if (tab === "recibidos" && !ticket.leidoPorDestinatario) {
-        await actualizarDocumento<Ticket>("tickets", ticket.id, { leidoPorDestinatario: true })
-      } else if (tab === "enviados" && !ticket.leidoPorRemitente) {
-        await actualizarDocumento<Ticket>("tickets", ticket.id, { leidoPorRemitente: true })
+      if (tab === "recibidos" && !consulta.leidoPorDestinatario) {
+        await actualizarDocumento<Consulta>("consultas", consulta.id, { leidoPorDestinatario: true })
+      } else if (tab === "enviados" && !consulta.leidoPorRemitente) {
+        await actualizarDocumento<Consulta>("consultas", consulta.id, { leidoPorRemitente: true })
       }
     } catch {
       // silent
@@ -194,42 +192,40 @@ export default function TicketsPage() {
   }
 
   const handleEliminarTodos = async () => {
-    if (tickets.length === 0) return
-    if (!confirm(`¿Eliminar TODOS los tickets (${tickets.length})? Esta acción no se puede deshacer.`)) return
-    toast.success("Eliminando tickets...")
+    if (consultas.length === 0) return
+    if (!confirm(`¿Eliminar TODAS las consultas (${consultas.length})? Esta acción no se puede deshacer.`)) return
     try {
-      await Promise.all(tickets.map(t => eliminarDocumento("tickets", t.id)))
-      toast.success(`${tickets.length} tickets eliminados`)
+      await Promise.all(consultas.map(t => eliminarDocumento("consultas", t.id)))
     } catch {
-      toast.error("Error al eliminar todos los tickets")
+      toast.error("Error al eliminar todas las consultas")
     }
   }
 
   useEffect(() => {
-    if (!user?.uid || ticketsEntrantes.length === 0 || loading) return
-    const ids = ticketsEntrantes.filter(t => !t.leidoPorDestinatario).map(t => t.id)
+    if (!user?.uid || consultasEntrantes.length === 0 || loading) return
+    const ids = consultasEntrantes.filter(t => !t.leidoPorDestinatario).map(t => t.id)
     if (ids.length === 0) return
-    Promise.all(ids.map(id => actualizarDocumento<Ticket>("tickets", id, { leidoPorDestinatario: true })))
+    Promise.all(ids.map(id => actualizarDocumento<Consulta>("consultas", id, { leidoPorDestinatario: true })))
   }, [user?.uid, loading])
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Tickets</h1>
+          <h1 className="text-2xl font-bold">Consultas</h1>
           <p className="text-muted-foreground">
-            {tab === "recibidos" && ticketsEntrantes.length > 0
-              ? `Tickets recibidos${noLeidos > 0 ? ` (${noLeidos} sin leer)` : ""}`
+            {tab === "recibidos" && consultasEntrantes.length > 0
+              ? `Consultas recibidas${noLeidas > 0 ? ` (${noLeidas} sin leer)` : ""}`
               : tab === "enviados"
-              ? "Tickets enviados"
-              : "Tickets"}
+              ? "Consultas enviadas"
+              : "Consultas"}
           </p>
         </div>
         <div className="flex gap-2">
           {esPastorOAdmin && (
             <Button variant="outline" size="sm" className="text-destructive hover:text-destructive/80" onClick={handleEliminarTodos}>
               <Trash2 className="h-4 w-4" />
-              Eliminar todos
+              Eliminar todas
             </Button>
           )}
           {puedeCrear && (
@@ -237,17 +233,17 @@ export default function TicketsPage() {
             <DialogTrigger asChild>
               <Button onClick={handleOpenCreate}>
                 <Plus className="h-4 w-4" />
-                Nuevo Ticket
+                Nueva Consulta
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Nuevo Ticket</DialogTitle>
+                <DialogTitle>Nueva Consulta</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Tipo</Label>
-                  <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v as Ticket["tipo"] })}>
+                  <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v as Consulta["tipo"] })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="sugerencia">Sugerencia</SelectItem>
@@ -282,7 +278,7 @@ export default function TicketsPage() {
                 </div>
                 <Button onClick={handleCreate} disabled={!form.asunto || !form.mensaje || !form.a || sending} className="w-full">
                   {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Enviar Ticket
+                  Enviar Consulta
                 </Button>
               </div>
             </DialogContent>
@@ -316,41 +312,41 @@ export default function TicketsPage() {
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
             </CardContent>
           </Card>
-        ) : ticketsToShow.length === 0 ? (
+        ) : consultasToShow.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-30" />
               <p>
                 {tab === "recibidos"
-                  ? "No tenés tickets recibidos"
-                  : "No enviaste tickets aún"}
+                  ? "No tenés consultas recibidas"
+                  : "No enviaste consultas aún"}
               </p>
             </CardContent>
           </Card>
         ) : (
-          ticketsToShow.map((ticket) => {
+          consultasToShow.map((consulta) => {
             const isUnread = tab === "recibidos"
-              ? !ticket.leidoPorDestinatario
-              : !ticket.leidoPorRemitente && ticket.estado !== "pendiente"
+              ? !consulta.leidoPorDestinatario
+              : !consulta.leidoPorRemitente && consulta.estado !== "pendiente"
             return (
               <Card
-                key={ticket.id}
+                key={consulta.id}
                 className={`cursor-pointer transition-colors hover:bg-accent/50 ${isUnread ? "border-primary/50 bg-primary/5" : ""}`}
-                onClick={() => { setSelectedTicket(ticket); handleMarcarLeido(ticket) }}
+                onClick={() => { setSelectedConsulta(consulta); handleMarcarLeido(consulta) }}
               >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <CardTitle className="text-base">{ticket.asunto}</CardTitle>
-                        <Badge variant={TIPO_VARIANTS[ticket.tipo]}>{TIPO_LABELS[ticket.tipo]}</Badge>
-                        <Badge variant={ESTADO_VARIANTS[ticket.estado]}>{ESTADO_LABELS[ticket.estado]}</Badge>
+                        <CardTitle className="text-base">{consulta.asunto}</CardTitle>
+                        <Badge variant={TIPO_VARIANTS[consulta.tipo]}>{TIPO_LABELS[consulta.tipo]}</Badge>
+                        <Badge variant={ESTADO_VARIANTS[consulta.estado]}>{ESTADO_LABELS[consulta.estado]}</Badge>
                         {isUnread && <span className="w-2 h-2 rounded-full bg-red-500" />}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         {tab === "recibidos"
-                          ? `De: ${ticket.deNombre} · ${format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
-                          : `Para: ${ticket.aNombre} · ${format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
+                          ? `De: ${consulta.deNombre} · ${format(new Date(consulta.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
+                          : `Para: ${consulta.aNombre} · ${format(new Date(consulta.createdAt), "d MMM yyyy, HH:mm", { locale: es })}`
                         }
                       </p>
                     </div>
@@ -359,7 +355,7 @@ export default function TicketsPage() {
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive/80 hover:bg-transparent shrink-0"
-                        onClick={(e) => { e.stopPropagation(); handleDelete(ticket) }}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(consulta) }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -367,7 +363,7 @@ export default function TicketsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{ticket.mensaje}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{consulta.mensaje}</p>
                 </CardContent>
               </Card>
             )
@@ -375,42 +371,42 @@ export default function TicketsPage() {
         )}
       </div>
 
-      {selectedTicket && (
-        <Dialog open={!!selectedTicket} onOpenChange={(v) => !v && setSelectedTicket(null)}>
+      {selectedConsulta && (
+        <Dialog open={!!selectedConsulta} onOpenChange={(v) => !v && setSelectedConsulta(null)}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{selectedTicket.asunto}</DialogTitle>
+              <DialogTitle>{selectedConsulta.asunto}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant={TIPO_VARIANTS[selectedTicket.tipo]}>{TIPO_LABELS[selectedTicket.tipo]}</Badge>
-                <Badge variant={ESTADO_VARIANTS[selectedTicket.estado]}>{ESTADO_LABELS[selectedTicket.estado]}</Badge>
+                <Badge variant={TIPO_VARIANTS[selectedConsulta.tipo]}>{TIPO_LABELS[selectedConsulta.tipo]}</Badge>
+                <Badge variant={ESTADO_VARIANTS[selectedConsulta.estado]}>{ESTADO_LABELS[selectedConsulta.estado]}</Badge>
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(selectedTicket.createdAt), "d MMM yyyy, HH:mm", { locale: es })}
+                  {format(new Date(selectedConsulta.createdAt), "d MMM yyyy, HH:mm", { locale: es })}
                 </span>
               </div>
 
               <div className="text-sm">
-                <p className="font-medium">{esPastorOAdmin ? `De: ${selectedTicket.deNombre}` : `Para: ${selectedTicket.aNombre}`}</p>
+                <p className="font-medium">{esPastorOAdmin ? `De: ${selectedConsulta.deNombre}` : `Para: ${selectedConsulta.aNombre}`}</p>
               </div>
 
               <div className="p-3 rounded-lg border bg-card/50">
-                <p className="text-sm whitespace-pre-wrap">{selectedTicket.mensaje}</p>
+                <p className="text-sm whitespace-pre-wrap">{selectedConsulta.mensaje}</p>
               </div>
 
-              {selectedTicket.respuesta && (
+              {selectedConsulta.respuesta && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium flex items-center gap-1">
                     <CheckCircle className="h-3.5 w-3.5 text-primary" />
                     Respuesta
                   </p>
                   <div className="p-3 rounded-lg border bg-primary/5">
-                    <p className="text-sm whitespace-pre-wrap">{selectedTicket.respuesta}</p>
+                    <p className="text-sm whitespace-pre-wrap">{selectedConsulta.respuesta}</p>
                   </div>
                 </div>
               )}
 
-              {esPastorOAdmin && selectedTicket.estado !== "cerrado" && (
+              {esPastorOAdmin && selectedConsulta.estado !== "cerrado" && (
                 <div className="space-y-2">
                   <Label>Responder</Label>
                   <Textarea
@@ -424,7 +420,7 @@ export default function TicketsPage() {
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                       Responder
                     </Button>
-                    <Button variant="outline" onClick={() => handleCerrar(selectedTicket)} disabled={sending}>
+                    <Button variant="outline" onClick={() => handleCerrar(selectedConsulta)} disabled={sending}>
                       <X className="h-4 w-4" />
                       Cerrar
                     </Button>
@@ -436,15 +432,15 @@ export default function TicketsPage() {
                 <Button
                   variant="outline"
                   className="w-full text-destructive hover:text-destructive/80 hover:bg-transparent"
-                  onClick={() => handleDelete(selectedTicket)}
+                  onClick={() => handleDelete(selectedConsulta)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar ticket
+                  Eliminar consulta
                 </Button>
               )}
 
-              {!esPastorOAdmin && selectedTicket.estado === "respondido" && (
-                <Button variant="outline" onClick={() => handleCerrar(selectedTicket)} className="w-full">
+              {!esPastorOAdmin && selectedConsulta.estado === "respondido" && (
+                <Button variant="outline" onClick={() => handleCerrar(selectedConsulta)} className="w-full">
                   <CheckCircle className="h-4 w-4" />
                   Marcar como resuelto
                 </Button>
@@ -456,5 +452,3 @@ export default function TicketsPage() {
     </div>
   )
 }
-
-

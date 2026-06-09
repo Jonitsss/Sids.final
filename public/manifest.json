@@ -1,6 +1,5 @@
 {
   "name": "Santa Iglesia del Señor",
-  "short_name": "SIDS",
   "description": "Santa Iglesia del Señor · Árbol de Vida",
   "start_url": "/dashboard",
   "display": "standalone",

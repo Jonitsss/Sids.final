@@ -121,7 +121,7 @@ export interface MiembroMinisterio {
   activo: boolean
 }
 
-export interface Ticket {
+export interface Consulta {
   id: string
   de: string
   deNombre: string

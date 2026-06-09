@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { Ticket } from "@/types"
+import { useState, useEffect } from "react"
+import { Consulta } from "@/types"
 import { escucharDocumentos, where, orderBy } from "@/lib/firestore"
 
-export function useTickets(usuarioId?: string, rol?: string) {
-  const [tickets, setTickets] = useState<Ticket[]>([])
+export function useConsultas(usuarioId?: string, rol?: string) {
+  const [consultas, setConsultas] = useState<Consulta[]>([])
   const [loading, setLoading] = useState(true)
 
   const esPastorOAdmin = rol === "pastor" || rol === "administrador"
@@ -18,11 +18,11 @@ export function useTickets(usuarioId?: string, rol?: string) {
     setLoading(true)
 
     if (esPastorOAdmin) {
-      const unsub = escucharDocumentos<Ticket>(
-        "tickets",
+      const unsub = escucharDocumentos<Consulta>(
+        "consultas",
         [orderBy("createdAt", "desc")],
         (data) => {
-          setTickets(data)
+          setConsultas(data)
           setLoading(false)
         }
       )
@@ -32,30 +32,30 @@ export function useTickets(usuarioId?: string, rol?: string) {
     let mounted = true
     let unsubs: (() => void)[] = []
 
-    const sentUnsub = escucharDocumentos<Ticket>(
-      "tickets",
+    const sentUnsub = escucharDocumentos<Consulta>(
+      "consultas",
       [where("de", "==", usuarioId)],
       (sent) => {
         if (!mounted) return
-        const received = tickets.filter((t) => t.a === usuarioId)
+        const received = consultas.filter((t) => t.a === usuarioId)
         const combined = [...sent, ...received].sort(
           (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
         )
-        setTickets(combined)
+        setConsultas(combined)
         setLoading(false)
       }
     )
 
-    const receivedUnsub = escucharDocumentos<Ticket>(
-      "tickets",
+    const receivedUnsub = escucharDocumentos<Consulta>(
+      "consultas",
       [where("a", "==", usuarioId)],
       (received) => {
         if (!mounted) return
-        const sent = tickets.filter((t) => t.de === usuarioId)
+        const sent = consultas.filter((t) => t.de === usuarioId)
         const combined = [...sent, ...received].sort(
           (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
         )
-        setTickets(combined)
+        setConsultas(combined)
         setLoading(false)
       }
     )
@@ -68,9 +68,9 @@ export function useTickets(usuarioId?: string, rol?: string) {
     }
   }, [usuarioId, rol])
 
-  const ticketsEntrantes = tickets.filter((t) => t.a === usuarioId)
-  const ticketsSalientes = tickets.filter((t) => t.de === usuarioId)
-  const noLeidos = ticketsEntrantes.filter((t) => !t.leidoPorDestinatario).length
+  const consultasEntrantes = consultas.filter((t) => t.a === usuarioId)
+  const consultasSalientes = consultas.filter((t) => t.de === usuarioId)
+  const noLeidas = consultasEntrantes.filter((t) => !t.leidoPorDestinatario).length
 
-  return { tickets, loading, ticketsEntrantes, ticketsSalientes, noLeidos, setTickets }
+  return { consultas, loading, consultasEntrantes, consultasSalientes, noLeidas, setConsultas }
 }
