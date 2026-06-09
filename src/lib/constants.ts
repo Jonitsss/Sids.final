@@ -9,6 +9,13 @@ import {
 
 export const MINISTERIOS_PREDETERMINADOS = [
   {
+    nombre: "Celular",
+    descripcion: "Coordinación de células y grupos pequeños",
+    roles: ["Líder", "Colíder", "Anfitrión"],
+    color: "#73A243",
+    icono: "Users",
+  },
+  {
     nombre: "Diáconos",
     descripcion: "Limpieza del templo, orden, recepción y apoyo logístico",
     roles: ["Recepción", "Limpieza", "Apoyo Logístico"],

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Celula, Ministerio, TipoCelula, Usuario } from "@/types"
+import { Celula, TipoCelula, Usuario } from "@/types"
 import { obtenerDocumentos, where, actualizarDocumento } from "@/lib/firestore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -36,7 +36,6 @@ export default function CelulaDetailPage() {
   const esLiderCelula = esPastorOAdmin || esLider
 
   const [celula, setCelula] = useState<Celula | null>(null)
-  const [ministerio, setMinisterio] = useState<Ministerio | null>(null)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -73,11 +72,6 @@ export default function CelulaDetailPage() {
             coliderId: c.coliderId || "",
             anfitrionId: c.anfitrionId || "",
           })
-
-          const ministerios = await obtenerDocumentos<Ministerio>("ministerios", [
-            where("__name__", "==", c.ministerioId),
-          ])
-          if (mounted && ministerios[0]) setMinisterio(ministerios[0])
 
           const todos = await obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)])
           if (mounted) setUsuarios(todos)
@@ -176,9 +170,7 @@ export default function CelulaDetailPage() {
           )}
           <div className="flex items-center gap-2 mt-1">
             <Badge variant="secondary">{TIPO_LABELS[celula.tipo]}</Badge>
-            {ministerio && (
-              <Badge variant="outline">{ministerio.nombre}</Badge>
-            )}
+            <Badge variant="outline">Celular</Badge>
           </div>
         </div>
         {editing && (
@@ -371,21 +363,15 @@ export default function CelulaDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {ministerio ? (
-                <div className="space-y-2">
-                  <p className="font-medium">{ministerio.nombre}</p>
-                  {ministerio.descripcion && (
-                    <p className="text-sm text-muted-foreground">{ministerio.descripcion}</p>
-                  )}
-                  <Link href={`/ministerios/${ministerio.slug}`}>
-                    <Button variant="outline" size="sm" className="w-full mt-2">
-                      Ver ministerio
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Sin asignar</p>
-              )}
+              <div className="space-y-2">
+                <p className="font-medium">Celular</p>
+                <p className="text-sm text-muted-foreground">Coordinación de células y grupos pequeños</p>
+                <Link href="/ministerios">
+                  <Button variant="outline" size="sm" className="w-full mt-2">
+                    Ver ministerios
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>

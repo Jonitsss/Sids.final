@@ -53,15 +53,10 @@ export default function CelulasPage() {
   })
 
   const [filtroTipo, setFiltroTipo] = useState<"todos" | TipoCelula>("todos")
-  const [filtroMinisterio, setFiltroMinisterio] = useState<string>("todos")
-
   const celulasFiltradas = useMemo(() => {
-    return celulas.filter((c) => {
-      if (filtroTipo !== "todos" && c.tipo !== filtroTipo) return false
-      if (filtroMinisterio !== "todos" && c.ministerioId !== filtroMinisterio) return false
-      return true
-    })
-  }, [celulas, filtroTipo, filtroMinisterio])
+    if (filtroTipo === "todos") return celulas
+    return celulas.filter((c) => c.tipo === filtroTipo)
+  }, [celulas, filtroTipo])
 
   const handleOpenDialog = async () => {
     setOpen(true)
@@ -77,13 +72,18 @@ export default function CelulasPage() {
   }
 
   const handleCreate = async () => {
-    if (!form.nombre || !form.tipo || !form.ministerioId || !form.liderId || creating) return
+    if (!form.nombre || !form.tipo || !form.liderId || creating) return
     setCreating(true)
 
+    const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
+    if (!ministerioCelular) {
+      toast.error("No se encontró el ministerio Celular")
+      setCreating(false)
+      return
+    }
+    const ministerioId = ministerioCelular.id
+
     const tempId = `temp_${Date.now()}`
-    const lider = usuarios.find((u) => u.id === form.liderId)
-    const colider = usuarios.find((u) => u.id === form.coliderId)
-    const anfitrion = usuarios.find((u) => u.id === form.anfitrionId)
 
     const optimistic: Celula = {
       id: tempId,
@@ -95,7 +95,7 @@ export default function CelulasPage() {
       anfitrionId: form.anfitrionId,
       dia: form.dia,
       hora: form.hora,
-      ministerioId: form.ministerioId,
+      ministerioId,
       activo: true,
       createdAt: new Date(),
     }
@@ -123,7 +123,7 @@ export default function CelulasPage() {
         anfitrionId: form.anfitrionId,
         dia: form.dia,
         hora: form.hora,
-        ministerioId: form.ministerioId,
+        ministerioId,
         activo: true,
       })
       toast.success("Célula creada exitosamente")
@@ -153,7 +153,7 @@ export default function CelulasPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Células</h1>
-          <p className="text-muted-foreground">Gestiona las células de los ministerios</p>
+          <p className="text-muted-foreground">Gestiona las células del Ministerio Celular</p>
         </div>
         {puedeCrear && (
           <Dialog open={open} onOpenChange={setOpen}>
@@ -175,19 +175,6 @@ export default function CelulasPage() {
                     onChange={(e) => setForm({ ...form, nombre: e.target.value })}
                     placeholder="Ej: Célula Mujeres Centro"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ministerio</Label>
-                  <Select value={form.ministerioId} onValueChange={(v) => setForm({ ...form, ministerioId: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar ministerio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ministerios.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.nombre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Tipo</Label>
@@ -307,20 +294,6 @@ export default function CelulasPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Ministerio</Label>
-          <Select value={filtroMinisterio} onValueChange={setFiltroMinisterio}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos los ministerios</SelectItem>
-              {ministerios.map((m) => (
-                <SelectItem key={m.id} value={m.id}>{m.nombre}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       {loading ? (
@@ -337,9 +310,7 @@ export default function CelulasPage() {
         </Card>
       ) : (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {celulasFiltradas.map((c) => {
-            const ministerio = ministerios.find((m) => m.id === c.ministerioId)
-            return (
+          {celulasFiltradas.map((c) => (
               <Card
                 key={c.id}
                 className="hover:shadow-md transition-shadow group cursor-pointer"
@@ -368,9 +339,6 @@ export default function CelulasPage() {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {ministerio && (
-                    <Badge variant="secondary" className="text-xs">{ministerio.nombre}</Badge>
-                  )}
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>{c.dia} {c.hora}</span>
@@ -383,8 +351,8 @@ export default function CelulasPage() {
                   )}
                 </CardContent>
               </Card>
-            )
-          })}
+            ))
+          }
         </div>
       )}
     </div>
