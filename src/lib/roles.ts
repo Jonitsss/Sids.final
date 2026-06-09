@@ -1,6 +1,13 @@
 import { auth, FUNCTIONS_REGION } from "./firebase"
 
-export type RolValido = "pastor" | "administrador" | "lider" | "colaborador"
+export type RolValido =
+  | "pastor"
+  | "administrador"
+  | "lider"
+  | "lider_celula"
+  | "colider"
+  | "anfitrion"
+  | "colaborador"
 
 const FUNCTION_URL = `https://${FUNCTIONS_REGION}-sids-eb607.cloudfunctions.net`
 

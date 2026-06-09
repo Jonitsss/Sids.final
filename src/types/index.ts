@@ -1,4 +1,11 @@
-export type Rol = "pastor" | "administrador" | "lider" | "colaborador"
+export type Rol =
+  | "pastor"
+  | "administrador"
+  | "lider"
+  | "lider_celula"
+  | "colider"
+  | "anfitrion"
+  | "colaborador"
 
 export type EstadoAsignacion = "pendiente" | "confirmado" | "rechazado"
 

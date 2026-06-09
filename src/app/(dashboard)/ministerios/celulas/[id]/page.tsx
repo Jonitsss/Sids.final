@@ -32,8 +32,8 @@ export default function CelulaDetailPage() {
   const { userData } = useAuth()
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLider = userData?.rol === "lider"
-  const esLiderCelula = esPastorOAdmin || esLider
+  const esLiderCelula = userData?.rol === "lider_celula"
+  const puedeEditar = esPastorOAdmin || esLiderCelula
 
   const [celula, setCelula] = useState<Celula | null>(null)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
@@ -156,7 +156,7 @@ export default function CelulaDetailPage() {
           ) : (
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold truncate">{celula.nombre}</h1>
-              {esLiderCelula && (
+              {puedeEditar && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -243,7 +243,7 @@ export default function CelulaDetailPage() {
                 <SelectContent>
                   <SelectItem value="__none__">Sin asignar</SelectItem>
                   {usuarios
-                    .filter((u) => u.rol === "lider")
+                    .filter((u) => u.rol === "lider_celula")
                     .map((u) => (
                       <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                     ))}
@@ -259,7 +259,7 @@ export default function CelulaDetailPage() {
                 <SelectContent>
                   <SelectItem value="__none__">Sin colíder</SelectItem>
                   {usuarios
-                    .filter((u) => u.rol === "lider" && u.id !== form.liderId)
+                    .filter((u) => u.rol === "colider" && u.id !== form.liderId)
                     .map((u) => (
                       <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                     ))}
@@ -275,7 +275,7 @@ export default function CelulaDetailPage() {
                 <SelectContent>
                   <SelectItem value="__none__">Sin anfitrión</SelectItem>
                   {usuarios
-                    .filter((u) => u.rol === "colaborador")
+                    .filter((u) => u.rol === "anfitrion")
                     .map((u) => (
                       <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                     ))}

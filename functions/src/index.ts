@@ -82,6 +82,9 @@ const ROLES_VALIDOS = new Set([
   "pastor",
   "administrador",
   "lider",
+  "lider_celula",
+  "colider",
+  "anfitrion",
   "colaborador",
 ]);
 

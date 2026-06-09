@@ -71,6 +71,24 @@ const menuItems = {
     { href: "/asistencia", icon: Users, label: "Asistencia" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
   ],
+  lider_celula: [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/eventos", icon: Calendar, label: "Eventos" },
+    { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
+  ],
+  colider: [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/eventos", icon: Calendar, label: "Eventos" },
+    { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
+  ],
+  anfitrion: [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/eventos", icon: Calendar, label: "Eventos" },
+    { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
+  ],
   colaborador: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/cronogramas", icon: ClipboardList, label: "Mis Asignaciones" },

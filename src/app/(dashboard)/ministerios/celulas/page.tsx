@@ -33,8 +33,8 @@ export default function CelulasPage() {
   const { ministerios } = useMinisterios()
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLider = userData?.rol === "lider"
-  const puedeCrear = esPastorOAdmin || esLider
+  const esLiderCelula = userData?.rol === "lider_celula"
+  const puedeCrear = esPastorOAdmin || esLiderCelula
 
   const [open, setOpen] = useState(false)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
@@ -235,7 +235,7 @@ export default function CelulasPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {usuarios
-                            .filter((u) => u.rol === "lider")
+                            .filter((u) => u.rol === "lider_celula")
                             .map((u) => (
                               <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                             ))}
@@ -251,7 +251,7 @@ export default function CelulasPage() {
                         <SelectContent>
                           <SelectItem value="__none__">Sin colíder</SelectItem>
                           {usuarios
-                            .filter((u) => u.rol === "lider" && u.id !== form.liderId)
+                            .filter((u) => u.rol === "colider" && u.id !== form.liderId)
                             .map((u) => (
                               <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                             ))}
@@ -267,7 +267,7 @@ export default function CelulasPage() {
                         <SelectContent>
                           <SelectItem value="__none__">Sin anfitrión</SelectItem>
                           {usuarios
-                            .filter((u) => u.rol === "colaborador")
+                            .filter((u) => u.rol === "anfitrion")
                             .map((u) => (
                               <SelectItem key={u.id} value={u.id}>{u.nombre} {u.apellido}</SelectItem>
                             ))}

@@ -188,7 +188,11 @@ export default function UsuariosPage() {
 
   const rolBadge: Record<string, "default" | "secondary" | "outline"> = {
     pastor: "default",
+    administrador: "default",
     lider: "secondary",
+    lider_celula: "secondary",
+    colider: "secondary",
+    anfitrion: "outline",
     colaborador: "outline",
   }
 
@@ -238,6 +242,9 @@ export default function UsuariosPage() {
                       <SelectItem value="pastor">Pastor</SelectItem>
                       <SelectItem value="administrador">Administrador</SelectItem>
                       <SelectItem value="lider">Líder de área</SelectItem>
+                      <SelectItem value="lider_celula">Líder de célula</SelectItem>
+                      <SelectItem value="colider">Colíder</SelectItem>
+                      <SelectItem value="anfitrion">Anfitrión</SelectItem>
                       <SelectItem value="colaborador">Colaborador</SelectItem>
                     </SelectContent>
                   </Select>
@@ -422,6 +429,9 @@ export default function UsuariosPage() {
                     <SelectItem value="pastor">Pastor</SelectItem>
                     <SelectItem value="administrador">Administrador</SelectItem>
                     <SelectItem value="lider">Líder de área</SelectItem>
+                    <SelectItem value="lider_celula">Líder de célula</SelectItem>
+                    <SelectItem value="colider">Colíder</SelectItem>
+                    <SelectItem value="anfitrion">Anfitrión</SelectItem>
                     <SelectItem value="colaborador">Colaborador</SelectItem>
                   </SelectContent>
               </Select>
