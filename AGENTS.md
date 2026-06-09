@@ -1,19 +1,54 @@
 # AGENTS.md · SIDS · Reglas para agentes de IA
 
-> Lee primero `PROJECT.md` para entender la arquitectura, estado, pendientes y convenciones del proyecto. Luego leé `README.md` para la cara pública.
+## Flujo obligatorio al finalizar cualquier tarea
 
-## Reglas obligatorias
+1. Ejecutar `npm run build`.
+2. Revisar si corresponde actualizar la versión (SemVer).
+3. Si cambia la versión, sincronizar:
+   - `package.json` → campo `"version"`
+   - `src/lib/version.ts` → constante `APP_VERSION`
+4. Revisar si `README.md` necesita actualizarse.
+5. Revisar si `PROJECT.md` necesita actualizarse.
+6. Mostrar el diff propuesto al usuario.
+7. Generar mensaje de commit.
+8. Ejecutar commit.
+9. **NO ejecutar `git push` automáticamente** salvo que el usuario lo solicite explícitamente con frases como:
+   - "hacé push"
+   - "subí los cambios"
+   - "dejalo en producción"
+10. Después de hacer push, **informar la versión actual de la app** (leer de `src/lib/version.ts` o `package.json`).
 
-- **Antes de commitear, verificar si `README.md` o `PROJECT.md` necesitan actualizarse con los cambios realizados. Si hay cambios significativos (nueva funcionalidad, nuevas rutas, cambios de roles, nuevos comandos, cambios de seguridad), actualizar ambos archivos.**
-- Usar siempre **TypeScript estricto** en raíz y en `functions/`.
-- Componentes con `"use client"` cuando usen hooks (`useState`, `useEffect`, `useAuth`, etc.) o interactividad.
-- Preferir **shadcn/ui** components sobre HTML nativo. Si no existe, crearlo con Radix primitives.
-- Tailwind v4 para dashboard/auth, vanilla CSS (`src/styles/landing.css`) para la landing (`/`). No mezclar.
-- Los estilos van en `globals.css` (Tailwind tokens), usar Tailwind classes en componentes.
-- No agregar comentarios en el código a menos que sea estrictamente necesario (regla del system prompt).
-- Sin `console.log` con datos personales (emails, UIDs, tokens) — usar solo `console.error` para errores sin exponer PII.
+Por defecto:
+- hacer `git add`
+- generar commit
+- mostrar el comando `git push` sugerido
 
-## Seguridad (CRÍTICO)
+## Checklist antes de finalizar
+
+El agente debe responder este checklist al finalizar cualquier tarea que modifique código:
+
+- [ ] `npm run build` exitoso
+- [ ] versión revisada (SemVer)
+- [ ] `README.md` revisado
+- [ ] `PROJECT.md` revisado
+- [ ] sin `console.log` con PII
+- [ ] TypeScript sin errores
+- [ ] commit generado
+
+## Decisiones del proyecto (NO cuestionar)
+
+- Firebase Storage **NO se utiliza**.
+- Eliminaciones siempre mediante Cloud Functions (`borrarDocumento`).
+- Roles únicamente mediante custom claims (`setRolUsuario`).
+- Dashboard oculto del sitemap (`robots noindex`).
+- Tailwind solo en dashboard/auth.
+- Landing con CSS vanilla (`src/styles/landing.css`).
+- Cliente nunca llama `deleteDoc()` directo.
+- Cloud Functions en región `southamerica-east1` (São Paulo).
+- No agregar comentarios en el código a menos que sea estrictamente necesario.
+- Sin `console.log` con datos personales (emails, UIDs, tokens).
+
+## Reglas de seguridad (CRÍTICO)
 
 - El cliente **nunca** llama `deleteDoc()` directo. Usar `eliminarDocumento(coleccion, id)` en `src/lib/firestore.ts` que invoca la Cloud Function `borrarDocumento`.
 - Si necesitás borrar algo nuevo, agregá el caso en la Cloud Function y en su allowlist.
@@ -21,22 +56,28 @@
 - Firestore rules restringen `delete: if false;` en todas las colecciones operativas.
 - CORS en Cloud Functions restringido a allowlist (no wildcard `*`).
 
-## Comandos
+## Reglas anti-"inventar"
 
-```bash
-npm run dev          # Desarrollo → localhost:3000
-npm run build        # Producción (verificar antes de commits)
-npm run lint         # ESLint (deprecado en Next 16, migrar a CLI próximamente)
-```
+Si no existe evidencia en el código fuente, no asumir implementaciones.
 
-Cloud Functions:
-```bash
-cd functions
-npm run build        # tsc -> lib/
-npm run deploy       # firebase deploy --only functions
-```
+Antes de:
+- crear nuevas rutas,
+- agregar nuevas colecciones,
+- modificar Cloud Functions,
+- cambiar reglas de Firestore,
 
-## Contexto de la Landing Page (`/`)
+**buscar primero implementaciones existentes y reutilizar los patrones del proyecto.**
+
+## Reglas de código
+
+- Usar siempre **TypeScript estricto** en raíz y en `functions/`.
+- Componentes con `"use client"` cuando usen hooks (`useState`, `useEffect`, `useAuth`, etc.) o interactividad.
+- Preferir **shadcn/ui** components sobre HTML nativo. Si no existe, crearlo con Radix primitives.
+- Los estilos van en `globals.css` (Tailwind tokens), usar Tailwind classes en componentes.
+
+## Arquitectura
+
+### Landing Page (`/`)
 
 - Fondo oscuro `#0a0a0a` con radial-gradients verdes (`#73A243`, `#2A6A47`, `#DAE953`) en ambos modos
 - Day mode con switch (ThemeContext), letra oscura en light mode
@@ -49,7 +90,7 @@ npm run deploy       # firebase deploy --only functions
 - Animaciones: framer-motion (fade-in-up al hacer scroll)
 - La sección de horarios es full-width (edge-to-edge), el resto tiene `max-w-5xl`
 
-## Dashboard protegido (`/dashboard/*`)
+### Dashboard protegido (`/dashboard/*`)
 
 - Layout interno con meta `robots noindex` (no aparece en sitemap)
 - Sidebar con `bg-card/90 backdrop-blur-xl`
@@ -57,30 +98,60 @@ npm run deploy       # firebase deploy --only functions
 - Firebase solo se inicializa en cliente (`typeof window !== "undefined"` en `src/lib/firebase.ts`)
 - Roles: `pastor`, `administrador`, `lider`, `colaborador` (custom claims)
 - Helper `rolLabel()` en `utils.ts` para mostrar nombres legibles
-- Cloud Functions en región `southamerica-east1` (São Paulo)
 
-## PWA y Mobile
+### PWA y Mobile
 
 - `manifest.json`, Service Worker (`sw.js`), meta tags Apple
 - iOS: `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent`
 - Theme color dinámico según dark/light mode (ver `layout.tsx` script inline)
 - Push notifications: Firebase Cloud Messaging (`firebase-messaging-sw.js`)
 
-## Versionado (SemVer) — Regla obligatoria
-
-- **Antes de commitear cualquier cambio de código, verificar si hay que actualizar la versión.**
-- La versión se define en **dos lugares** que deben mantenerse sincronizados:
-  - `package.json` → campo `"version"`
-  - `src/lib/version.ts` → constante `APP_VERSION` (se muestra en el sidebar)
-- **Siempre actualizar ambos archivos al mismo tiempo.** Nunca solo uno.
+## Versionado (SemVer)
 
 **Cuándo bump:**
 - **Patch** (1.4.0 → 1.4.1): bug fixes, correcciones menores, ajustes de CSS, docs
 - **Minor** (1.4.0 → 1.5.0): features nuevas, nuevas páginas, hooks, mejoras funcionales
 - **Major** (1.4.0 → 2.0.0): breaking changes, reestructuración significativa, migraciones
 
+## Comandos
+
+```bash
+npm run dev          # Desarrollo → localhost:3000
+npm run build        # Producción (verificar antes de commits)
+npm run lint         # ESLint CLI (flat config)
+```
+
+Cloud Functions:
+```bash
+cd functions
+npm run build        # tsc -> lib/
+npm run deploy       # firebase deploy --only functions
+```
+
+## Estado actual
+
+Ver `PROJECT.md` para:
+- Estado actual del proyecto
+- Pendientes y checklist
+- Contexto técnico detallado
+- Variables de entorno
+
 ## Para empezar una nueva sesión
 
 ```
-Estoy retomando el proyecto SIDS. Leé AGENTS.md primero, luego PROJECT.md (contexto técnico) y README.md (cara pública). Revisá git status y git log --oneline -10 para ver el estado actual, y consultá la sección 'Pendiente' de PROJECT.md para saber por dónde seguir.
+Estoy retomando el proyecto SIDS.
+
+Leé AGENTS.md primero.
+
+Luego:
+- PROJECT.md
+- README.md
+
+Después ejecutá:
+git status
+git log --oneline -10
+
+y revisá la sección "Pendientes" de PROJECT.md.
+
+No implementes cambios hasta resumir el estado actual del proyecto y confirmar el siguiente paso.
 ```
