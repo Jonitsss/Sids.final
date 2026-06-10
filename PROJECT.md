@@ -163,6 +163,10 @@ ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones 
 244d826 fix: notificaciones push no llegaban si el usuario fue creado por admin (doc ID != auth UID)
 ```
 
+Cambios de esta sesión (v1.12.1):
+- **Fix eliminación de usuarios** — Cloud Function `borrarDocumento` ahora elimina la cuenta de Firebase Authentication (`auth.deleteUser`) al borrar un documento de `usuarios`. También elimina notificaciones asociadas (cascade delete).
+- **Protección estado fantasma** — `AuthContext` detecta usuarios autenticados sin datos en Firestore (`user` existe pero `userData` es `null`) y fuerza `logout` + redirección a `/login`.
+
 Cambios de esta sesión (v1.10.0):
 - **Feature Células** — sub-colección de ministerios con tipo, día/hora, dirección, líder/colíder/anfitrión
 - **Rutas nuevas** — `/ministerios/celulas` (lista) y `/ministerios/celulas/[id]` (detalle)
@@ -325,7 +329,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.8.0 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.12.1 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 

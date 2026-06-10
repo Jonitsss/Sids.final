@@ -213,7 +213,27 @@ export const borrarDocumento = onRequest(async (req, res) => {
       }
     }
 
-    if (coleccion === "ministerios" && esDestructivo) {
+    if (coleccion === "usuarios" && esDestructivo) {
+      const authUid = docData.authUid;
+      if (authUid) {
+        try {
+          await auth.deleteUser(authUid);
+          logger.info("usuario auth eliminado", { authUid, por: uid });
+        } catch (err: any) {
+          logger.warn("no se pudo eliminar usuario auth", { authUid, error: err?.message });
+        }
+      }
+
+      const batch = db.batch();
+      const notifSnap = await db.collection("notificaciones").where("usuarioId", "==", id).get();
+      notifSnap.docs.forEach((doc) => batch.delete(doc.ref));
+      if (authUid && authUid !== id) {
+        const notifSnap2 = await db.collection("notificaciones").where("usuarioId", "==", authUid).get();
+        notifSnap2.docs.forEach((doc) => batch.delete(doc.ref));
+      }
+      batch.delete(ref);
+      await batch.commit();
+    } else if (coleccion === "ministerios" && esDestructivo) {
       const batch = db.batch();
 
       const notifSnap = await db
