@@ -143,21 +143,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try { await asignarRolUsuario(uid, preRol as RolValido) } catch {}
       }
     } else {
-      await setDoc(doc(db, "usuarios", uid), {
-        id: uid,
-        email: emailLower,
-        nombre: data.nombre || "",
-        apellido: data.apellido || "",
-        telefono: data.telefono || "",
-        rol: (data.rol as Rol) || "colaborador",
-        ministerioIds: data.ministerioIds || [],
-        fotoURL: data.fotoURL || "",
-        authUid: uid,
-        notificaciones: true,
-        activo: false,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      })
+      try {
+        await setDoc(doc(db, "usuarios", uid), {
+          id: uid,
+          email: emailLower,
+          nombre: data.nombre || "",
+          apellido: data.apellido || "",
+          telefono: data.telefono || "",
+          rol: (data.rol as Rol) || "colaborador",
+          ministerioIds: data.ministerioIds || [],
+          fotoURL: data.fotoURL || "",
+          authUid: uid,
+          notificaciones: true,
+          activo: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        })
+      } catch {
+        // Cloud Function afterSignup will create the document server-side
+      }
     }
   }
 

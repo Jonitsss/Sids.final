@@ -1,4 +1,5 @@
 import { onRequest } from "firebase-functions/v2/https";
+import { beforeUserCreated } from "firebase-functions/v2/identity";
 
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
@@ -410,6 +411,56 @@ export const enviarNotificacionPush = onRequest(async (req, res) => {
     const status = err?.status || 500;
     res.status(status).send({ error: err?.message || "Error al enviar notificación." });
   }
+});
+
+export const afterSignup = beforeUserCreated(async (event) => {
+  const uid = event.data?.uid;
+  const email = event.data?.email;
+  const displayName = event.data?.displayName;
+
+  if (!uid) {
+    logger.warn("afterSignup: uid missing from event");
+    return;
+  }
+
+  const emailLower = email?.toLowerCase() || "";
+
+  const existingDoc = await db.collection("usuarios").doc(uid).get();
+  if (existingDoc.exists) {
+    logger.info("afterSignup: documento ya existe (pre-profile linking)", { uid });
+    return;
+  }
+
+  const emailQ = await db.collection("usuarios").where("email", "==", emailLower).limit(1).get();
+  if (!emailQ.empty) {
+    const doc = emailQ.docs[0];
+    await doc.ref.set(
+      { authUid: uid, updatedAt: FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+    logger.info("afterSignup: pre-profile vinculado por email", { uid, email: emailLower, docId: doc.id });
+    return;
+  }
+
+  const nombreParts = (displayName || "").trim().split(/\s+/);
+
+  await db.collection("usuarios").doc(uid).set({
+    id: uid,
+    email: emailLower,
+    nombre: nombreParts[0] || "",
+    apellido: nombreParts.slice(1).join(" ") || "",
+    telefono: "",
+    rol: "colaborador",
+    ministerioIds: [],
+    fotoURL: "",
+    authUid: uid,
+    notificaciones: true,
+    activo: false,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  logger.info("afterSignup: documento creado con activo=false", { uid, email: emailLower });
 });
 
 
