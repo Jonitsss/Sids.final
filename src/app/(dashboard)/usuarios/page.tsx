@@ -17,7 +17,7 @@ import { asignarRolUsuario, RolValido } from "@/lib/roles"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMinisterios } from "@/hooks/useMinisterios"
 import { db } from "@/lib/firebase"
-import { collection, onSnapshot } from "firebase/firestore"
+import { collection, onSnapshot, query, limit } from "firebase/firestore"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
 
@@ -45,7 +45,7 @@ export default function UsuariosPage() {
   useEffect(() => {
     if (!db) { setLoading(false); return }
     const unsub = onSnapshot(
-      collection(db, "usuarios"),
+      query(collection(db, "usuarios"), limit(100)),
       (snap) => {
         const data = snap.docs.map((d) => ({ ...d.data(), id: d.id })) as Usuario[]
         setUsuarios(data)

@@ -54,26 +54,19 @@ export function useReportes() {
     let mounted = true
     ;(async () => {
       try {
-        const [usuarios, eventos, asistencias, ministerios] = await Promise.all([
-          obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)]),
-          obtenerDocumentos<Evento>("eventos", []),
-          obtenerDocumentos<Asistencia>("asistencias", []),
-          obtenerDocumentos<Ministerio>("ministerios", [where("activo", "==", true)]),
-        ])
-
         const ahora = new Date()
         const inicioMes = startOfMonth(ahora)
         const finMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0)
 
-        const eventosDelMes = eventos.filter((e) => {
-          const f = new Date(e.fecha)
-          return f >= inicioMes && f <= finMes
-        })
+        const [usuarios, eventos, asistencias, ministerios] = await Promise.all([
+          obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)]),
+          obtenerDocumentos<Evento>("eventos", [where("fecha", ">=", inicioMes), where("fecha", "<=", finMes)]),
+          obtenerDocumentos<Asistencia>("asistencias", [where("fecha", ">=", inicioMes), where("fecha", "<=", finMes)]),
+          obtenerDocumentos<Ministerio>("ministerios", [where("activo", "==", true)]),
+        ])
 
-        const asistenciasDelMes = asistencias.filter((a) => {
-          const f = new Date(a.fecha)
-          return f >= inicioMes && f <= finMes
-        })
+        const eventosDelMes = eventos
+        const asistenciasDelMes = asistencias
 
         const totalAsistencias = asistenciasDelMes.length
         const presentes = asistenciasDelMes.filter((a) => a.estado === "presente").length

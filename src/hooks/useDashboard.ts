@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Evento, Tarea, Usuario, Ministerio, Asignacion } from "@/types"
-import { obtenerDocumentos, where, orderBy } from "@/lib/firestore"
+import { obtenerDocumentos, where, orderBy, limit } from "@/lib/firestore"
 
 export interface DashboardData {
   stats: {
@@ -29,7 +29,7 @@ export function useDashboard() {
       try {
         const [eventos, tareas, usuarios, ministerios] = await Promise.all([
           obtenerDocumentos<Evento>("eventos", [orderBy("fecha", "asc")]),
-          obtenerDocumentos<Tarea>("tareas", []),
+          obtenerDocumentos<Tarea>("tareas", [limit(50)]),
           obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)]),
           obtenerDocumentos<Ministerio>("ministerios", [where("activo", "==", true)]),
         ])

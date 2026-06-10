@@ -122,10 +122,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const credencial = await createUserWithEmailAndPassword(auth, emailLower, password)
     const uid = credencial.user.uid
 
-    const snap = await getDocs(collection(db, "usuarios"))
-    const preProfile = snap.docs.find(
-      (d) => !d.data().authUid && d.data().email?.toLowerCase() === emailLower
-    )
+    const q = query(collection(db, "usuarios"), where("email", "==", emailLower))
+    const snap = await getDocs(q)
+    const preProfile = snap.docs.find((d) => !d.data().authUid)
 
     if (preProfile) {
       await setDoc(doc(db, "usuarios", preProfile.id), {
