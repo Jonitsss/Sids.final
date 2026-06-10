@@ -107,35 +107,43 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-* {
+*:not(aside) {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
 
-*:hover {
+*:not(aside):hover {
   scrollbar-color: var(--color-muted-foreground) transparent;
 }
 
-*::-webkit-scrollbar {
+*:not(aside)::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-*::-webkit-scrollbar-track {
+*:not(aside)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-*::-webkit-scrollbar-thumb {
+*:not(aside)::-webkit-scrollbar-thumb {
   background-color: transparent;
   border-radius: 3px;
 }
 
-*:hover::-webkit-scrollbar-thumb {
+*:not(aside):hover::-webkit-scrollbar-thumb {
   background-color: var(--color-muted-foreground);
   opacity: 0.4;
 }
 
-*::-webkit-scrollbar-thumb:hover {
+*:not(aside)::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-foreground);
   opacity: 0.6;
+}
+
+aside {
+  scrollbar-width: none;
+}
+
+aside::-webkit-scrollbar {
+  display: none;
 }
