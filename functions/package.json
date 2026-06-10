@@ -15,7 +15,8 @@
     "test-push": "ts-node src/scripts/testPush.ts",
     "clean-duplicates": "ts-node src/scripts/cleanDuplicateNotifs.ts",
     "clean-tokens": "ts-node src/scripts/cleanDuplicateTokens.ts",
-    "clean-orphans": "ts-node src/scripts/cleanOrphans.ts"
+    "clean-orphans": "ts-node src/scripts/cleanOrphans.ts",
+    "delete-events": "ts-node src/scripts/deleteAllEvents.ts"
   },
   "engines": {
     "node": "22"

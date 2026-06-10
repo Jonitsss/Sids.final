@@ -11,12 +11,12 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEventos } from "@/hooks/useEventos"
-import { Plus, ChevronLeft, ChevronRight, Trash2, CalendarDays, Loader2, CalendarPlus } from "lucide-react"
+import { Plus, ChevronLeft, ChevronRight, Trash2, CalendarDays } from "lucide-react"
 import { CalendarSkeleton, SidebarListSkeleton } from "@/components/skeletons"
 import { crearDocumento, eliminarDocumento } from "@/lib/firestore"
 import { Evento } from "@/types"
 import { toast } from "sonner"
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay, getDay } from "date-fns"
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay } from "date-fns"
 import { es } from "date-fns/locale"
 
 const DIAS_CORTOS = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"]
@@ -39,7 +39,6 @@ export default function EventosPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("month")
   const [open, setOpen] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [generating, setGenerating] = useState(false)
   const [form, setForm] = useState({
     titulo: "",
     fecha: new Date(),
@@ -83,55 +82,6 @@ export default function EventosPage() {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
-
-  const handleGenerateYear = async () => {
-    if (!confirm("¿Generar todas las reuniones de Jueves (20hs) y Domingos (18hs) para el año actual?")) return
-    setGenerating(true)
-    try {
-      const year = new Date().getFullYear()
-      const startDate = new Date(year, 0, 1)
-      const endDate = new Date(year, 11, 31)
-      let current = startDate
-      let created = 0
-      let skipped = 0
-
-      while (current <= endDate) {
-        const dayOfWeek = getDay(current)
-        if (dayOfWeek === 4 || dayOfWeek === 0) {
-          const titulo = dayOfWeek === 4 ? "Reunión General Jueves" : "Reunión General Domingo"
-          const hora = dayOfWeek === 4 ? "20:00" : "18:00"
-          const fecha = new Date(current)
-
-          const exists = eventos.some((e) => isSameDay(e.fecha, fecha) && e.titulo === titulo)
-          if (exists) {
-            skipped++
-          } else {
-            await crearDocumento<Evento>("eventos", {
-              titulo,
-              fecha,
-              horaInicio: hora,
-              tipo: "reunion_general",
-              recurrencia: "unico",
-              esRecurrente: false,
-              suspendido: false,
-              ubicacion: "",
-              ministerioIds: [],
-              creadoPor: "",
-            })
-            created++
-          }
-        }
-        current = addDays(current, 1)
-      }
-
-      toast.success(`Creados ${created} eventos. ${skipped} ya existían.`)
-      refetch()
-    } catch {
-      toast.error("Error al generar reuniones del año")
-    } finally {
-      setGenerating(false)
-    }
-  }
 
   const handleCreate = async () => {
     if (!form.titulo) return
@@ -194,12 +144,6 @@ export default function EventosPage() {
               <SelectItem value="list">Lista</SelectItem>
             </SelectContent>
           </Select>
-          {puedeCrear && (
-            <Button variant="outline" onClick={handleGenerateYear} disabled={generating}>
-              {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarPlus className="h-4 w-4" />}
-              Generar Año
-            </Button>
-          )}
           {puedeCrear && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
