@@ -37,8 +37,13 @@ export default function DashboardPage() {
   const { data, loading } = useDashboard()
 
   if (loading) return <DashboardSkeleton />
+  if (!data) return (
+    <div className="text-center py-8 text-muted-foreground">
+      <p>Error al cargar datos del dashboard</p>
+    </div>
+  )
 
-  const { stats, proximosEventos, tareasRecientes, estadoMinisterios } = data!
+  const { stats, proximosEventos, tareasRecientes, estadoMinisterios } = data
 
   return (
     <div className="space-y-6">

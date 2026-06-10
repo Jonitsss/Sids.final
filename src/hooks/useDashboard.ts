@@ -36,7 +36,6 @@ export function useDashboard() {
             limit(5),
           ]),
           obtenerDocumentos<Tarea>("tareas", [
-            where("estado", "!=", "completada"),
             orderBy("fechaLimite", "asc"),
             limit(5),
           ]),
@@ -45,7 +44,7 @@ export function useDashboard() {
         ])
 
         const proximosEventos = eventos
-        const tareasRecientes = tareas
+        const tareasRecientes = tareas.filter((t) => t.estado !== "completada").slice(0, 5)
 
         const miembroCount: Record<string, number> = {}
         for (const u of usuarios) {
