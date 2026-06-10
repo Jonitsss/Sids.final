@@ -11,10 +11,11 @@ import Footer from "@/components/Footer";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import SmoothScroll from "@/components/SmoothScroll";
 import { marqueeLightItems, marqueeDarkItems } from "@/data/content";
-import { getChurchSchema } from "@/lib/seo";
+import { getChurchSchema, getOrganizationSchema } from "@/lib/seo";
 
 export default function Home() {
   const churchSchema = getChurchSchema();
+  const orgSchema = getOrganizationSchema();
 
   return (
     <>
@@ -37,6 +38,10 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(churchSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
       />
     </>
   );

@@ -1,21 +1,28 @@
 {
-  "name": "Santa Iglesia del Señor",
-  "description": "Santa Iglesia del Señor · Árbol de Vida",
-  "start_url": "/dashboard",
+  "name": "Santa Iglesia del Señor (SIDS)",
+  "short_name": "SIDS",
+  "description": "Iglesia cristiana evangélica en Ingeniero Allan",
+  "lang": "es-AR",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#144137",
   "orientation": "portrait-primary",
+  "background_color": "#0a0a0a",
+  "theme_color": "#144137",
+  "categories": ["lifestyle", "community", "education"],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-maskable.png",

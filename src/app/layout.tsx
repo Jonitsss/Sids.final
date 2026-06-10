@@ -4,7 +4,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 const fullTitle = `${siteConfig.name} · ${siteConfig.shortName}`;
-const ogImage = `${siteConfig.url}/assets/logo_sin_fondo.png`;
+const ogImage = `${siteConfig.url}/og-image.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -17,21 +17,31 @@ export const metadata: Metadata = {
   authors: [{ name: siteConfig.name }],
   generator: "Next.js",
   keywords: [
-    "SIDS",
     "Santa Iglesia del Señor",
-    "Iglesia",
+    "SIDS",
+    "Iglesia cristiana",
+    "Iglesia evangélica",
     "Ingeniero Allan",
-    "Arbol de Vida",
+    "Árbol de Vida",
     "Evangelio",
     "Fe",
+    "Comunidad cristiana",
+    "Reuniones",
+    "Buenos Aires",
   ],
   alternates: {
     canonical: "/",
+    languages: {
+      "es-AR": "/",
+    },
   },
   openGraph: {
     type: "website",
     siteName: fullTitle,
-    title: fullTitle,
+    title: {
+      default: fullTitle,
+      template: `%s · ${siteConfig.shortName}`,
+    },
     description: siteConfig.description,
     url: siteConfig.url,
     locale: "es_AR",
@@ -40,7 +50,8 @@ export const metadata: Metadata = {
         url: ogImage,
         width: 1200,
         height: 630,
-        alt: fullTitle,
+        alt: "Santa Iglesia del Señor · Árbol de Vida",
+        type: "image/png",
       },
     ],
   },
@@ -57,15 +68,24 @@ export const metadata: Metadata = {
       index: true,
       follow: true,
       "max-image-preview": "large",
+      "max-video-preview": -1,
+      "max-snippet": -1,
     },
   },
   icons: {
     icon: "/assets/logo_sin_fondo.png",
     apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
   },
   other: {
     "geo.region": "AR-B",
     "geo.placename": siteConfig.address.locality,
+    "geo.position": "-34.8575;-58.3333",
+    "ICBM": "-34.8575, -58.3333",
+    "language": "Spanish",
+    "revisit-after": "7 days",
+    "distribution": "global",
+    "rating": "general",
   },
 };
 

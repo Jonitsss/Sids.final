@@ -13,6 +13,7 @@ const protectedPaths = [
   "/tareas",
   "/asistencia",
   "/notificaciones",
+  "/consultas",
   "/perfil",
   "/reportes",
   "/usuarios",
