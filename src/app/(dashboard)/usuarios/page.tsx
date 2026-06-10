@@ -23,6 +23,8 @@ export default function UsuariosPage() {
   const { userData } = useAuth()
   const { ministerios, usuarios, usuariosLoading, setUsuarios } = useDashboardStore()
   const [search, setSearch] = useState("")
+  const [filtro, setFiltro] = useState<"todos" | "activos" | "inactivos">("todos")
+  const [pagina, setPagina] = useState(1)
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -38,17 +40,44 @@ export default function UsuariosPage() {
 
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
 
+  const ITEMS_PER_PAGE = 10
+
+  const counts = {
+    todos: usuarios.length,
+    activos: usuarios.filter((u) => u.activo !== false).length,
+    inactivos: usuarios.filter((u) => u.activo === false).length,
+  }
+
   const filtered = usuarios
-    .filter(
-      (u) =>
-        `${u.nombre} ${u.apellido}`.toLowerCase().includes(search.toLowerCase()) ||
-        u.email?.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter((u) => {
+      if (filtro === "activos" && u.activo === false) return false
+      if (filtro === "inactivos" && u.activo !== false) return false
+      if (search) {
+        const s = search.toLowerCase()
+        const nombre = `${u.nombre || ""} ${u.apellido || ""}`.toLowerCase()
+        const email = u.email?.toLowerCase() || ""
+        return nombre.includes(s) || email.includes(s)
+      }
+      return true
+    })
     .sort((a, b) => {
       if (a.activo === false && b.activo !== false) return -1
       if (a.activo !== false && b.activo === false) return 1
       return 0
     })
+
+  const visible = filtered.slice(0, pagina * ITEMS_PER_PAGE)
+  const hasMore = visible.length < filtered.length
+
+  const handleFiltroChange = (value: string) => {
+    setFiltro(value as "todos" | "activos" | "inactivos")
+    setPagina(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPagina(1)
+  }
 
   const handleCreate = async () => {
     if (!form.nombre || !form.email) return
@@ -292,14 +321,26 @@ export default function UsuariosPage() {
         )}
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar usuarios..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar usuarios..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={filtro} onValueChange={handleFiltroChange}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos ({counts.todos})</SelectItem>
+            <SelectItem value="activos">Activos ({counts.activos})</SelectItem>
+            <SelectItem value="inactivos">Inactivos ({counts.inactivos})</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {usuariosLoading ? (
@@ -316,11 +357,19 @@ export default function UsuariosPage() {
             <p className="text-sm">Los usuarios registrados aparecerán aquí</p>
           </CardContent>
         </Card>
+      ) : filtered.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center text-muted-foreground">
+            <Search className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p className="text-lg font-medium mb-1">Sin resultados</p>
+            <p className="text-sm">No se encontraron usuarios con este filtro</p>
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardContent className="p-0">
             <div className="divide-y">
-              {filtered.map((u) => (
+              {visible.map((u) => (
                 <div key={u.id} className="flex items-start gap-3 p-4 group">
                   <Avatar className="shrink-0 mt-0.5">
                     <AvatarImage src={u.fotoURL} alt="Foto" className="object-cover" />
@@ -396,6 +445,14 @@ export default function UsuariosPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={() => setPagina((p) => p + 1)}>
+            Cargar más ({filtered.length - visible.length} restantes)
+          </Button>
+        </div>
       )}
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

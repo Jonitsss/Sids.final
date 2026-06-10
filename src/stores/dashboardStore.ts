@@ -59,7 +59,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   initUsuarios: () => {
     if (!db || unsubUsuarios) return
-    const q = query(collection(db, "usuarios"), where("activo", "==", true))
+    const q = query(collection(db, "usuarios"))
     unsubUsuarios = onSnapshot(
       q,
       (snap) => {
