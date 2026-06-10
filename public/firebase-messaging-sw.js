@@ -12,6 +12,16 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+messaging.onMessage((payload) => {
+  const { title, body } = payload.data || {};
+  if (title) {
+    self.registration.showNotification(title, {
+      body: body || "",
+      icon: "/icon-192.png",
+    });
+  }
+});
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = "/notificaciones";

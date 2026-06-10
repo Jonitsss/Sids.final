@@ -37,7 +37,7 @@ async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string
 
   try {
     const response = await getMessaging().sendEachForMulticast({
-      notification: { title: titulo, body: mensaje },
+      data: { title: titulo, body: mensaje },
       tokens: fcmTokens,
     });
 
