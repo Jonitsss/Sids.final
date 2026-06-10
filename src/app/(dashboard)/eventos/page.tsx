@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,15 +11,20 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEventos } from "@/hooks/useEventos"
-import { Plus, ChevronLeft, ChevronRight, Trash2, CalendarDays, Loader2 } from "lucide-react"
+import { Plus, ChevronLeft, ChevronRight, Trash2, CalendarDays, Loader2, CalendarPlus } from "lucide-react"
 import { CalendarSkeleton, SidebarListSkeleton } from "@/components/skeletons"
 import { crearDocumento, eliminarDocumento } from "@/lib/firestore"
 import { Evento } from "@/types"
 import { toast } from "sonner"
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay } from "date-fns"
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay, getDay } from "date-fns"
 import { es } from "date-fns/locale"
 
 const DIAS_CORTOS = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"]
+
+const SUGERENCIAS_REUNION = [
+  { titulo: "Reunión General Jueves", hora: "20:00" },
+  { titulo: "Reunión General Domingo", hora: "18:00" },
+]
 
 
 type ViewMode = "month" | "list"
@@ -33,12 +38,15 @@ export default function EventosPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<ViewMode>("month")
   const [open, setOpen] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [form, setForm] = useState({
     titulo: "",
     fecha: new Date(),
     horaInicio: "20:00",
     tipo: "reunion_general" as Evento["tipo"],
   })
+  const suggestionsRef = useRef<HTMLDivElement>(null)
 
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
@@ -56,6 +64,74 @@ export default function EventosPage() {
 
   const prevMonth = () => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
   const nextMonth = () => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
+
+  const sugerenciasFiltradas = form.titulo.length >= 3
+    ? SUGERENCIAS_REUNION.filter((s) => s.titulo.toLowerCase().includes(form.titulo.toLowerCase()))
+    : []
+
+  const handleSelectSugerencia = (sugerencia: typeof SUGERENCIAS_REUNION[0]) => {
+    setForm({ ...form, titulo: sugerencia.titulo, horaInicio: sugerencia.hora })
+    setShowSuggestions(false)
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const handleGenerateYear = async () => {
+    if (!confirm("¿Generar todas las reuniones de Jueves (20hs) y Domingos (18hs) para el año actual?")) return
+    setGenerating(true)
+    try {
+      const year = new Date().getFullYear()
+      const startDate = new Date(year, 0, 1)
+      const endDate = new Date(year, 11, 31)
+      let current = startDate
+      let created = 0
+      let skipped = 0
+
+      while (current <= endDate) {
+        const dayOfWeek = getDay(current)
+        if (dayOfWeek === 4 || dayOfWeek === 0) {
+          const titulo = dayOfWeek === 4 ? "Reunión General Jueves" : "Reunión General Domingo"
+          const hora = dayOfWeek === 4 ? "20:00" : "18:00"
+          const fecha = new Date(current)
+
+          const exists = eventos.some((e) => isSameDay(e.fecha, fecha) && e.titulo === titulo)
+          if (exists) {
+            skipped++
+          } else {
+            await crearDocumento<Evento>("eventos", {
+              titulo,
+              fecha,
+              horaInicio: hora,
+              tipo: "reunion_general",
+              recurrencia: "unico",
+              esRecurrente: false,
+              suspendido: false,
+              ubicacion: "",
+              ministerioIds: [],
+              creadoPor: "",
+            })
+            created++
+          }
+        }
+        current = addDays(current, 1)
+      }
+
+      toast.success(`Creados ${created} eventos. ${skipped} ya existían.`)
+      refetch()
+    } catch {
+      toast.error("Error al generar reuniones del año")
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   const handleCreate = async () => {
     if (!form.titulo) return
@@ -93,6 +169,7 @@ export default function EventosPage() {
   const tipoBadge = (tipo: string) => {
     const variants: Record<string, "default" | "secondary" | "outline" | "warning"> = {
       reunion_general: "default",
+      reunion_coordinacion: "secondary",
       ensayo: "secondary",
       jovenes: "outline",
       evento_especial: "warning",
@@ -118,6 +195,12 @@ export default function EventosPage() {
             </SelectContent>
           </Select>
           {puedeCrear && (
+            <Button variant="outline" onClick={handleGenerateYear} disabled={generating}>
+              {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarPlus className="h-4 w-4" />}
+              Generar Año
+            </Button>
+          )}
+          {puedeCrear && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -132,7 +215,30 @@ export default function EventosPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Título</Label>
-                  <Input value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+                  <div className="relative" ref={suggestionsRef}>
+                    <Input
+                      value={form.titulo}
+                      onChange={(e) => {
+                        setForm({ ...form, titulo: e.target.value })
+                        setShowSuggestions(true)
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      placeholder="Ej: Reunión General..."
+                    />
+                    {showSuggestions && sugerenciasFiltradas.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md z-50">
+                        {sugerenciasFiltradas.map((s) => (
+                          <button
+                            key={s.titulo}
+                            onClick={() => handleSelectSugerencia(s)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                          >
+                            {s.titulo} <span className="text-muted-foreground">({s.hora})</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Fecha</Label>
@@ -153,6 +259,7 @@ export default function EventosPage() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="reunion_general">Reunión General</SelectItem>
+                      <SelectItem value="reunion_coordinacion">Reunión de Coordinación</SelectItem>
                       <SelectItem value="ensayo">Ensayo</SelectItem>
                       <SelectItem value="jovenes">Jóvenes</SelectItem>
                       <SelectItem value="escuela_biblica">Escuela Bíblica</SelectItem>
@@ -248,7 +355,7 @@ export default function EventosPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant={tipoBadge(e.tipo)}>
-                            {e.tipo === "reunion_general" ? "Reunión" : e.tipo === "ensayo" ? "Ensayo" : e.tipo === "jovenes" ? "Jóvenes" : "Especial"}
+                            {e.tipo === "reunion_general" ? "Reunión" : e.tipo === "reunion_coordinacion" ? "Coordinación" : e.tipo === "ensayo" ? "Ensayo" : e.tipo === "jovenes" ? "Jóvenes" : "Especial"}
                           </Badge>
                           {esPastor && (
                             <Button

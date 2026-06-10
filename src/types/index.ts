@@ -13,7 +13,7 @@ export type EstadoTarea = "pendiente" | "en_progreso" | "completada"
 
 export type EstadoAsistencia = "presente" | "ausente" | "justificado"
 
-export type TipoEvento = "reunion_general" | "ensayo" | "jovenes" | "escuela_biblica" | "evento_especial"
+export type TipoEvento = "reunion_general" | "reunion_coordinacion" | "ensayo" | "jovenes" | "escuela_biblica" | "evento_especial"
 
 export type TipoRecurrencia = "semanal" | "quincenal" | "mensual" | "unico"
 
