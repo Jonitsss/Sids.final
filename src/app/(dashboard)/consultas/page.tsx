@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
-import { useConsultas } from "@/hooks/useConsultas"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { crearDocumento, actualizarDocumento, eliminarDocumento, obtenerDocumentos, enviarNotificacion, where } from "@/lib/firestore"
 import { Consulta, Usuario } from "@/types"
 import { Plus, MessageSquare, Loader2, Send, X, CheckCircle, Clock, AlertCircle, Trash2 } from "lucide-react"
@@ -47,9 +47,12 @@ const TIPO_VARIANTS: Record<string, "default" | "secondary" | "outline" | "warni
 
 export default function ConsultasPage() {
   const { user, userData } = useAuth()
-  const { consultas, loading, consultasEntrantes, consultasSalientes, noLeidas, setConsultas } = useConsultas(user?.uid, userData?.rol)
+  const { consultas, consultasLoading, consultasNoLeidas, setConsultas } = useDashboardStore()
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const puedeCrear = !esPastorOAdmin
+
+  const consultasEntrantes = useMemo(() => consultas.filter((t) => t.a === user?.uid), [consultas, user?.uid])
+  const consultasSalientes = useMemo(() => consultas.filter((t) => t.de === user?.uid), [consultas, user?.uid])
 
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<"enviados" | "recibidos">("enviados")
@@ -201,12 +204,15 @@ export default function ConsultasPage() {
     }
   }
 
+  const markedAsReadRef = useRef(new Set<string>())
+
   useEffect(() => {
-    if (!user?.uid || consultasEntrantes.length === 0 || loading) return
-    const ids = consultasEntrantes.filter(t => !t.leidoPorDestinatario).map(t => t.id)
+    if (!user?.uid || consultasEntrantes.length === 0 || consultasLoading) return
+    const ids = consultasEntrantes.filter(t => !t.leidoPorDestinatario && !markedAsReadRef.current.has(t.id)).map(t => t.id)
     if (ids.length === 0) return
+    markedAsReadRef.current = new Set([...markedAsReadRef.current, ...ids])
     Promise.all(ids.map(id => actualizarDocumento<Consulta>("consultas", id, { leidoPorDestinatario: true })))
-  }, [user?.uid, loading])
+  }, [user?.uid, consultasLoading, consultasEntrantes])
 
   return (
     <div className="space-y-6">
@@ -215,7 +221,7 @@ export default function ConsultasPage() {
           <h1 className="text-2xl font-bold">Consultas</h1>
           <p className="text-muted-foreground">
             {tab === "recibidos" && consultasEntrantes.length > 0
-              ? `Consultas recibidas${noLeidas > 0 ? ` (${noLeidas} sin leer)` : ""}`
+              ? `Consultas recibidas${consultasNoLeidas > 0 ? ` (${consultasNoLeidas} sin leer)` : ""}`
               : tab === "enviados"
               ? "Consultas enviadas"
               : "Consultas"}
@@ -306,7 +312,7 @@ export default function ConsultasPage() {
       </div>
 
       <div className="grid gap-4">
-        {loading ? (
+        {consultasLoading ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />

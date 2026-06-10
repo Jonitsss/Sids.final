@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,18 +15,14 @@ import { Usuario, Rol } from "@/types"
 import { eliminarDocumento, crearDocumento, actualizarDocumento, enviarNotificacion } from "@/lib/firestore"
 import { asignarRolUsuario, RolValido } from "@/lib/roles"
 import { useAuth } from "@/contexts/AuthContext"
-import { useMinisterios } from "@/hooks/useMinisterios"
-import { db } from "@/lib/firebase"
-import { collection, onSnapshot, query, limit } from "firebase/firestore"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
 
 export default function UsuariosPage() {
   const { userData } = useAuth()
-  const { ministerios } = useMinisterios()
-  const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const { ministerios, usuarios, usuariosLoading, setUsuarios } = useDashboardStore()
   const [search, setSearch] = useState("")
-  const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -41,20 +37,6 @@ export default function UsuariosPage() {
   })
 
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
-
-  useEffect(() => {
-    if (!db) { setLoading(false); return }
-    const unsub = onSnapshot(
-      query(collection(db, "usuarios"), limit(100)),
-      (snap) => {
-        const data = snap.docs.map((d) => ({ ...d.data(), id: d.id })) as Usuario[]
-        setUsuarios(data)
-        setLoading(false)
-      },
-      () => setLoading(false),
-    )
-    return unsub
-  }, [])
 
   const filtered = usuarios
     .filter(
@@ -320,7 +302,7 @@ export default function UsuariosPage() {
         />
       </div>
 
-      {loading ? (
+      {usuariosLoading ? (
         <Card>
           <CardContent className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

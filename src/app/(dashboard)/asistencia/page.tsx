@@ -7,14 +7,11 @@ import { CalendarDays, CheckCircle2, XCircle, Clock, Users } from "lucide-react"
 import { AsistenciaSkeleton } from "@/components/skeletons"
 import { useCronogramas } from "@/hooks/useCronogramas"
 import { useEventos } from "@/hooks/useEventos"
-import { useMinisterios } from "@/hooks/useMinisterios"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { useAuth } from "@/contexts/AuthContext"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { isFuture } from "date-fns"
-import { useEffect, useState } from "react"
-import { obtenerDocumentos } from "@/lib/firestore"
-import { Usuario } from "@/types"
 
 const ESTADO_LABEL: Record<string, string> = {
   confirmado: "Confirmado",
@@ -26,30 +23,13 @@ export default function AsistenciaPage() {
   const { userData } = useAuth()
   const { cronogramas, loading: loadingCrono } = useCronogramas()
   const { eventos, loading: loadingEv } = useEventos()
-  const { ministerios } = useMinisterios()
-  const [usuarios, setUsuarios] = useState<Usuario[]>([])
-  const [loadingU, setLoadingU] = useState(true)
-
-  useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const data = await obtenerDocumentos<Usuario>("usuarios")
-        if (mounted) setUsuarios(data)
-      } catch {
-        // ignore
-      } finally {
-        if (mounted) setLoadingU(false)
-      }
-    })()
-    return () => { mounted = false }
-  }, [])
+  const { ministerios, usuarios, usuariosLoading } = useDashboardStore()
 
   const upcoming = cronogramas
     .filter((g) => isFuture(g.fecha) || g.asignaciones.length > 0)
     .sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
 
-  if (loadingCrono || loadingEv || loadingU) {
+  if (loadingCrono || loadingEv || usuariosLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">

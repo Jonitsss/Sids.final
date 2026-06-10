@@ -14,6 +14,7 @@ import {
   DocumentData,
   onSnapshot,
   Unsubscribe,
+  documentId,
 } from "firebase/firestore"
 import { db, auth, FUNCTIONS_REGION } from "./firebase"
 
@@ -124,9 +125,9 @@ export async function enviarNotificacion(params: {
   return callFunction("enviarNotificacionPush", params)
 }
 
-export { where, orderBy, limit, query, Timestamp }
+export { where, orderBy, limit, query, Timestamp, documentId }
 
-function mapDoc<T>(doc: any): T {
+export function mapDoc<T>(doc: any): T {
   const data = doc.data() as DocumentData
   return {
     ...data,

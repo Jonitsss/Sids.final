@@ -4,18 +4,7 @@ import { useState, useEffect } from "react"
 import { Ministerio } from "@/types"
 import { db } from "@/lib/firebase"
 import { collection, query, where, onSnapshot } from "firebase/firestore"
-
-function parseDoc(doc: any): Ministerio {
-  const data = doc.data()
-  return {
-    ...data,
-    id: doc.id,
-    fecha: data.fecha?.toDate?.() || data.fecha,
-    fechaLimite: data.fechaLimite?.toDate?.() || data.fechaLimite,
-    fechaIngreso: data.fechaIngreso?.toDate?.() || data.fechaIngreso,
-    createdAt: data.createdAt?.toDate?.() || data.createdAt,
-  } as Ministerio
-}
+import { mapDoc } from "@/lib/firestore"
 
 export function useMinisterios() {
   const [ministerios, setMinisterios] = useState<Ministerio[]>([])
@@ -28,7 +17,7 @@ export function useMinisterios() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        setMinisterios(snap.docs.map(parseDoc))
+        setMinisterios(snap.docs.map((doc) => mapDoc<Ministerio>(doc)))
         setLoading(false)
       },
       () => setLoading(false),

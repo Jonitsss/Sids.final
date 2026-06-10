@@ -12,7 +12,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { GrillaServicio, Evento, Usuario, Asignacion } from "@/types"
 import { obtenerDocumento, actualizarDocumento, crearDocumento, enviarNotificacion } from "@/lib/firestore"
-import { useMinisterios } from "@/hooks/useMinisterios"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { useAuth } from "@/contexts/AuthContext"
 import { obtenerDocumentos } from "@/lib/firestore"
 import { format } from "date-fns"
@@ -50,7 +50,7 @@ export default function CronogramaDetailPage() {
   const [modalRechazo, setModalRechazo] = useState<{ ministerioId: string; rol: string } | null>(null)
   const [justificacion, setJustificacion] = useState("")
 
-  const { ministerios } = useMinisterios()
+  const { ministerios } = useDashboardStore()
   const { userData } = useAuth()
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const esLider = userData?.rol === "lider"

@@ -4,17 +4,7 @@ import { useState, useEffect } from "react"
 import { GrillaServicio } from "@/types"
 import { db } from "@/lib/firebase"
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore"
-
-function parseDoc(doc: any): GrillaServicio {
-  const data = doc.data()
-  return {
-    ...data,
-    id: doc.id,
-    fecha: data.fecha?.toDate?.() || data.fecha,
-    createdAt: data.createdAt?.toDate?.() || data.createdAt,
-    updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
-  } as GrillaServicio
-}
+import { mapDoc } from "@/lib/firestore"
 
 export function useCronogramas() {
   const [cronogramas, setCronogramas] = useState<GrillaServicio[]>([])
@@ -27,7 +17,7 @@ export function useCronogramas() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        setCronogramas(snap.docs.map(parseDoc))
+        setCronogramas(snap.docs.map((doc) => mapDoc<GrillaServicio>(doc)))
         setLoading(false)
       },
       () => setLoading(false),

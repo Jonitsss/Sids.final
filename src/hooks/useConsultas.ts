@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Consulta } from "@/types"
 import { escucharDocumentos, where, orderBy } from "@/lib/firestore"
 
@@ -9,6 +9,8 @@ export function useConsultas(usuarioId?: string, rol?: string) {
   const [loading, setLoading] = useState(true)
 
   const esPastorOAdmin = rol === "pastor" || rol === "administrador"
+
+  const consultasRef = useRef<Consulta[]>([])
 
   useEffect(() => {
     if (!usuarioId) {
@@ -22,6 +24,7 @@ export function useConsultas(usuarioId?: string, rol?: string) {
         "consultas",
         [orderBy("createdAt", "desc")],
         (data) => {
+          consultasRef.current = data
           setConsultas(data)
           setLoading(false)
         }
@@ -37,10 +40,11 @@ export function useConsultas(usuarioId?: string, rol?: string) {
       [where("de", "==", usuarioId)],
       (sent) => {
         if (!mounted) return
-        const received = consultas.filter((t) => t.a === usuarioId)
+        const received = consultasRef.current.filter((t) => t.a === usuarioId)
         const combined = [...sent, ...received].sort(
           (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
         )
+        consultasRef.current = combined
         setConsultas(combined)
         setLoading(false)
       }
@@ -51,10 +55,11 @@ export function useConsultas(usuarioId?: string, rol?: string) {
       [where("a", "==", usuarioId)],
       (received) => {
         if (!mounted) return
-        const sent = consultas.filter((t) => t.de === usuarioId)
+        const sent = consultasRef.current.filter((t) => t.de === usuarioId)
         const combined = [...sent, ...received].sort(
           (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
         )
+        consultasRef.current = combined
         setConsultas(combined)
         setLoading(false)
       }
@@ -66,7 +71,7 @@ export function useConsultas(usuarioId?: string, rol?: string) {
       mounted = false
       unsubs.forEach((u) => u())
     }
-  }, [usuarioId, rol])
+  }, [usuarioId, rol, esPastorOAdmin])
 
   const consultasEntrantes = consultas.filter((t) => t.a === usuarioId)
   const consultasSalientes = consultas.filter((t) => t.de === usuarioId)

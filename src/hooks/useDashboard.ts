@@ -27,23 +27,25 @@ export function useDashboard() {
     let mounted = true
     ;(async () => {
       try {
+        const ahora = new Date()
+
         const [eventos, tareas, usuarios, ministerios] = await Promise.all([
-          obtenerDocumentos<Evento>("eventos", [orderBy("fecha", "asc")]),
-          obtenerDocumentos<Tarea>("tareas", [limit(50)]),
+          obtenerDocumentos<Evento>("eventos", [
+            where("fecha", ">=", ahora),
+            orderBy("fecha", "asc"),
+            limit(5),
+          ]),
+          obtenerDocumentos<Tarea>("tareas", [
+            where("estado", "!=", "completada"),
+            orderBy("fechaLimite", "asc"),
+            limit(5),
+          ]),
           obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)]),
           obtenerDocumentos<Ministerio>("ministerios", [where("activo", "==", true)]),
         ])
 
-        const ahora = new Date()
-
         const proximosEventos = eventos
-          .filter((e) => e.fecha >= ahora)
-          .slice(0, 5)
-
         const tareasRecientes = tareas
-          .filter((t) => t.estado !== "completada")
-          .sort((a, b) => new Date(a.fechaLimite).getTime() - new Date(b.fechaLimite).getTime())
-          .slice(0, 5)
 
         const miembroCount: Record<string, number> = {}
         for (const u of usuarios) {
@@ -61,7 +63,7 @@ export function useDashboard() {
           setData({
             stats: {
               proximasReuniones: proximosEventos.length,
-              tareasPendientes: tareas.filter((t) => t.estado !== "completada").length,
+              tareasPendientes: tareasRecientes.length,
               colaboradores: usuarios.length,
               confirmacionesPendientes: 0,
             },

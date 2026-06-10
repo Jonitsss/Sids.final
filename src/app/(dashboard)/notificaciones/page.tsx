@@ -8,9 +8,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Bell, Check, X, Loader2, Clock, Trash2 } from "lucide-react"
 import { ListSkeleton } from "@/components/skeletons"
 import { useAuth } from "@/contexts/AuthContext"
-import { useNotificaciones } from "@/hooks/useNotificaciones"
-import { useMinisterios } from "@/hooks/useMinisterios"
-import { actualizarDocumento, obtenerDocumento, crearDocumento, obtenerDocumentos, eliminarDocumento, where, enviarNotificacion } from "@/lib/firestore"
+import { useDashboardStore } from "@/stores/dashboardStore"
+import { actualizarDocumento, obtenerDocumento, crearDocumento, obtenerDocumentos, eliminarDocumento, where, enviarNotificacion, documentId } from "@/lib/firestore"
 import { GrillaServicio, Usuario, Evento } from "@/types"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -18,8 +17,7 @@ import { es } from "date-fns/locale"
 
 export default function NotificacionesPage() {
   const { user, userData } = useAuth()
-  const { notificaciones, noLeidas, loading, setNotificaciones } = useNotificaciones(user?.uid || userData?.id)
-  const { ministerios, loading: loadingMin } = useMinisterios()
+  const { notificaciones, noLeidas, notificacionesLoading, ministerios, ministeriosLoading, setNotificaciones } = useDashboardStore()
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const [respondiendo, setRespondiendo] = useState<string | null>(null)
   const [fechasGrilla, setFechasGrilla] = useState<Record<string, string>>({})
@@ -36,27 +34,37 @@ export default function NotificacionesPage() {
     })
     if (gridIds.size === 0) return
     ;(async () => {
+      const ids = [...gridIds]
+      const grillas = await obtenerDocumentos<GrillaServicio>("cronogramas", [
+        where(documentId(), "in", ids),
+      ])
       const fechas: Record<string, string> = {}
-      const eventos: Record<string, string> = {}
-      await Promise.all(
-        [...gridIds].map(async (id) => {
-          const grilla = await obtenerDocumento<GrillaServicio>("cronogramas", id)
-          if (grilla) {
-            if (grilla.fecha) fechas[id] = format(new Date(grilla.fecha), "d 'de' MMMM", { locale: es })
-            if (grilla.eventoId) {
-              const evento = await obtenerDocumento<Evento>("eventos", grilla.eventoId)
-              if (evento?.titulo) eventos[id] = evento.titulo
-            }
-          }
-        })
-      )
+      const eventoIds = new Set<string>()
+      const grillaByEventoId = new Map<string, string>()
+      for (const g of grillas) {
+        if (g.fecha) fechas[g.id] = format(new Date(g.fecha), "d 'de' MMMM", { locale: es })
+        if (g.eventoId) {
+          eventoIds.add(g.eventoId)
+          grillaByEventoId.set(g.eventoId, g.id)
+        }
+      }
+      const eventos = await obtenerDocumentos<Evento>("eventos", [
+        where(documentId(), "in", [...eventoIds]),
+      ])
+      const eventoTitulos: Record<string, string> = {}
+      for (const ev of eventos) {
+        if (ev.titulo) {
+          const grillaId = grillaByEventoId.get(ev.id)
+          if (grillaId) eventoTitulos[grillaId] = ev.titulo
+        }
+      }
       setFechasGrilla((prev) => ({ ...prev, ...fechas }))
-      setEventosGrilla((prev) => ({ ...prev, ...eventos }))
+      setEventosGrilla((prev) => ({ ...prev, ...eventoTitulos }))
     })()
   }, [notificaciones])
 
   useEffect(() => {
-    if (cleaned.current || loading || loadingMin) return
+    if (cleaned.current || notificacionesLoading || ministeriosLoading) return
     ;(async () => {
       cleaned.current = true
       const ids = new Set(ministerios.map((m) => m.id))
@@ -67,7 +75,7 @@ export default function NotificacionesPage() {
         }
       }
     })()
-  }, [loading, loadingMin, ministerios, notificaciones, setNotificaciones])
+  }, [notificacionesLoading, ministeriosLoading, ministerios, notificaciones, setNotificaciones])
 
   const handleResponder = async (notifId: string, accion: "confirmado" | "rechazado") => {
     const notif = notificaciones.find((n) => n.id === notifId)
@@ -181,13 +189,16 @@ export default function NotificacionesPage() {
     }
   }
 
+  const markedAsReadRef = useRef(new Set<string>())
+
   useEffect(() => {
-    if (notificaciones.length === 0 || loading) return
-    const ids = notificaciones.filter((n) => !n.leido).map((n) => n.id)
+    if (notificaciones.length === 0 || notificacionesLoading) return
+    const ids = notificaciones.filter((n) => !n.leido && !markedAsReadRef.current.has(n.id)).map((n) => n.id)
     if (ids.length === 0) return
-    setNotificaciones((prev) => prev.map((n) => ({ ...n, leido: true })))
+    markedAsReadRef.current = new Set([...markedAsReadRef.current, ...ids])
+    setNotificaciones((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, leido: true } : n)))
     Promise.all(ids.map((id) => actualizarDocumento("notificaciones", id, { leido: true })))
-  }, [notificaciones.length > 0, loading])
+  }, [notificaciones, notificacionesLoading, setNotificaciones])
 
   return (
     <div className="space-y-6">
@@ -216,7 +227,7 @@ export default function NotificacionesPage() {
         </div>
       </div>
 
-      {loading ? (
+      {notificacionesLoading ? (
         <ListSkeleton count={5} />
       ) : notificaciones.length === 0 ? (
         <Card>

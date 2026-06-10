@@ -273,6 +273,39 @@ export const borrarDocumento = onRequest(async (req, res) => {
 
       batch.delete(ref);
       await batch.commit();
+    } else if (coleccion === "eventos" && esDestructivo) {
+      const batch = db.batch();
+
+      const cronosSnap = await db
+        .collection("cronogramas")
+        .where("eventoId", "==", id)
+        .get();
+      for (const cronDoc of cronosSnap.docs) {
+        const prefix = `asignacion:${cronDoc.id}:`;
+        const notifSnap = await db
+          .collection("notificaciones")
+          .where("referenciaId", ">=", prefix)
+          .where("referenciaId", "<", prefix + "\uf8ff")
+          .get();
+        notifSnap.docs.forEach((d) => batch.delete(d.ref));
+        batch.delete(cronDoc.ref);
+      }
+
+      batch.delete(ref);
+      await batch.commit();
+    } else if (coleccion === "cronogramas" && esDestructivo) {
+      const batch = db.batch();
+
+      const prefix = `asignacion:${id}:`;
+      const notifSnap = await db
+        .collection("notificaciones")
+        .where("referenciaId", ">=", prefix)
+        .where("referenciaId", "<", prefix + "\uf8ff")
+        .get();
+      notifSnap.docs.forEach((d) => batch.delete(d.ref));
+
+      batch.delete(ref);
+      await batch.commit();
     } else {
       await ref.delete();
     }

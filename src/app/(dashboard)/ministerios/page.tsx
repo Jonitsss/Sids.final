@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useMinisterios } from "@/hooks/useMinisterios"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CardGridSkeleton } from "@/components/skeletons"
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import Link from "next/link"
 const iconos: Record<string, any> = { Building2, Music, Volume2, Monitor, BookOpen }
 
 export default function MinisteriosPage() {
-  const { ministerios, loading, setMinisterios } = useMinisterios()
+  const { ministerios, ministeriosLoading, setMinisterios } = useDashboardStore()
   const { userData, user } = useAuth()
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
   const [open, setOpen] = useState(false)
@@ -30,7 +30,7 @@ export default function MinisteriosPage() {
   const cleaned = useRef(false)
 
   useEffect(() => {
-    if (!esPastor || cleaned.current || loading || ministerios.length === 0) return
+    if (!esPastor || cleaned.current || ministeriosLoading || ministerios.length === 0) return
     cleaned.current = true
     ;(async () => {
       try {
@@ -46,12 +46,12 @@ export default function MinisteriosPage() {
       } catch {
       }
     })()
-  }, [esPastor, loading, ministerios, user?.uid])
+  }, [esPastor, ministeriosLoading, ministerios, user?.uid])
 
   const slugBackfilled = useRef(false)
 
   useEffect(() => {
-    if (slugBackfilled.current || loading) return
+    if (slugBackfilled.current || ministeriosLoading) return
     const sinSlug = ministerios.filter((m) => !m.slug)
     if (sinSlug.length === 0) return
     slugBackfilled.current = true
@@ -61,7 +61,7 @@ export default function MinisteriosPage() {
         await actualizarDocumento("ministerios", m.id, { slug })
       }
     })()
-  }, [loading, ministerios])
+  }, [ministeriosLoading, ministerios])
 
   const handleCreate = async () => {
     if (!form.nombre || creating) return
@@ -166,7 +166,7 @@ export default function MinisteriosPage() {
         )}
       </div>
 
-      {loading ? (
+      {ministeriosLoading ? (
         <CardGridSkeleton cols={3} count={6} />
       ) : ministerios.length === 0 ? (
         <Card>

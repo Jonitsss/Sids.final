@@ -4,8 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn, rolLabel } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
-import { useNotificaciones } from "@/hooks/useNotificaciones"
-import { useConsultas } from "@/hooks/useConsultas"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -105,8 +104,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { theme, toggleTheme } = useTheme()
   const role = userData?.rol || "colaborador"
   const items = menuItems[role] || menuItems.colaborador
-  const { noLeidas } = useNotificaciones(user?.uid || userData?.id)
-  const { noLeidas: consultasNoLeidas } = useConsultas(user?.uid, userData?.rol)
+  const { noLeidas, consultasNoLeidas } = useDashboardStore()
 
   return (
     <>

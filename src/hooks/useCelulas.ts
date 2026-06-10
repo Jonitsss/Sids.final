@@ -4,15 +4,7 @@ import { useState, useEffect } from "react"
 import { Celula, Rol } from "@/types"
 import { db } from "@/lib/firebase"
 import { collection, query, where, onSnapshot, or } from "firebase/firestore"
-
-function parseDoc(doc: any): Celula {
-  const data = doc.data()
-  return {
-    ...data,
-    id: doc.id,
-    createdAt: data.createdAt?.toDate?.() || data.createdAt,
-  } as Celula
-}
+import { mapDoc } from "@/lib/firestore"
 
 export function useCelulas(usuarioId?: string, rol?: Rol) {
   const [celulas, setCelulas] = useState<Celula[]>([])
@@ -38,7 +30,7 @@ export function useCelulas(usuarioId?: string, rol?: Rol) {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        setCelulas(snap.docs.map(parseDoc))
+        setCelulas(snap.docs.map((doc) => mapDoc<Celula>(doc)))
         setLoading(false)
       },
       () => setLoading(false),

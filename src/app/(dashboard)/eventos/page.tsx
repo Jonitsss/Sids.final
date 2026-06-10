@@ -13,8 +13,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useEventos } from "@/hooks/useEventos"
 import { Plus, ChevronLeft, ChevronRight, Trash2, CalendarDays, Loader2 } from "lucide-react"
 import { CalendarSkeleton, SidebarListSkeleton } from "@/components/skeletons"
-import { crearDocumento, eliminarDocumento, obtenerDocumentos, where } from "@/lib/firestore"
-import { Evento, GrillaServicio, Notificacion } from "@/types"
+import { crearDocumento, eliminarDocumento } from "@/lib/firestore"
+import { Evento } from "@/types"
 import { toast } from "sonner"
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay } from "date-fns"
 import { es } from "date-fns/locale"
@@ -82,18 +82,6 @@ export default function EventosPage() {
     if (!confirm(`¿Eliminar el evento "${titulo}"? También se eliminarán los cronogramas, asignaciones y notificaciones asociadas.`)) return
     setEventos((prev) => prev.filter((e) => e.id !== id))
     try {
-      const cronogramas = await obtenerDocumentos<GrillaServicio>("cronogramas", [where("eventoId", "==", id)])
-      for (const cronograma of cronogramas) {
-        const prefix = `asignacion:${cronograma.id}:`
-        const notificaciones = await obtenerDocumentos<Notificacion>("notificaciones", [
-          where("referenciaId", ">=", prefix),
-          where("referenciaId", "<", prefix + "\uf8ff"),
-        ])
-        for (const notif of notificaciones) {
-          await eliminarDocumento("notificaciones", notif.id)
-        }
-        await eliminarDocumento("cronogramas", cronograma.id)
-      }
       await eliminarDocumento("eventos", id)
       toast.success("Evento y dependencias eliminados")
     } catch {

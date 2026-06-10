@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCelulas } from "@/hooks/useCelulas"
-import { useMinisterios } from "@/hooks/useMinisterios"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CardGridSkeleton } from "@/components/skeletons"
 import { Button } from "@/components/ui/button"
@@ -30,7 +30,7 @@ export default function CelulasPage() {
   const router = useRouter()
   const { user, userData } = useAuth()
   const { celulas, loading, setCelulas } = useCelulas(user?.uid, userData?.rol)
-  const { ministerios } = useMinisterios()
+  const { ministerios } = useDashboardStore()
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const esLiderCelula = userData?.rol === "lider_celula"

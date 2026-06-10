@@ -14,16 +14,14 @@ import { CardGridSkeleton } from "@/components/skeletons"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTareas } from "@/hooks/useTareas"
-import { useMinisterios } from "@/hooks/useMinisterios"
+import { useDashboardStore } from "@/stores/dashboardStore"
 import { crearDocumento, eliminarDocumento, actualizarDocumento, enviarNotificacion } from "@/lib/firestore"
-import { obtenerDocumentos } from "@/lib/firestore"
 import { Tarea, Usuario, EstadoTarea } from "@/types"
 
 export default function TareasPage() {
   const { userData } = useAuth()
   const { tareas, loading, refetch, setTareas } = useTareas()
-  const { ministerios } = useMinisterios()
-  const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const { ministerios, usuarios, usuariosLoading } = useDashboardStore()
   const [filtro, setFiltro] = useState<EstadoTarea | "todas">("todas")
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
@@ -35,22 +33,6 @@ export default function TareasPage() {
   })
 
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
-
-  useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      const data = await obtenerDocumentos<Usuario>("usuarios")
-      const mapa = new Map<string, Usuario>()
-      for (const u of data) {
-        const key = u.email?.toLowerCase() || u.id
-        const existing = mapa.get(key)
-        if (existing && existing.authUid && !u.authUid) continue
-        mapa.set(key, u)
-      }
-      if (mounted) setUsuarios(Array.from(mapa.values()))
-    })()
-    return () => { mounted = false }
-  }, [])
 
   const filtered = filtro === "todas" ? tareas : tareas.filter((t) => t.estado === filtro)
 

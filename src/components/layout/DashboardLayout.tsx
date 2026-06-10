@@ -1,12 +1,30 @@
 "use client"
 
-import { useState, ReactNode } from "react"
+import { useState, ReactNode, useEffect, useCallback } from "react"
 import { Sidebar } from "./Sidebar"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/AuthContext"
+import { useDashboardStore } from "@/stores/dashboardStore"
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { user, userData } = useAuth()
+
+  const initMinisterios = useDashboardStore((s) => s.initMinisterios)
+  const initUsuarios = useDashboardStore((s) => s.initUsuarios)
+  const initNotificaciones = useDashboardStore((s) => s.initNotificaciones)
+  const initConsultas = useDashboardStore((s) => s.initConsultas)
+  const cleanup = useDashboardStore((s) => s.cleanup)
+
+  useEffect(() => {
+    if (!user?.uid || !userData?.rol) return
+    initMinisterios()
+    initUsuarios()
+    initNotificaciones(user.uid)
+    initConsultas(user.uid, userData.rol)
+    return () => cleanup()
+  }, [user?.uid, userData?.rol, initMinisterios, initUsuarios, initNotificaciones, initConsultas, cleanup])
 
   return (
     <div className="flex min-h-screen">
