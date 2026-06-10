@@ -132,14 +132,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </Button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-1.5 py-1 space-y-0.5">
           {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                 pathname === item.href || pathname.startsWith(item.href + "/")
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -161,7 +161,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        <div className="border-t p-3 space-y-2 shrink-0">
+        <div className="border-t p-2 space-y-1 shrink-0">
           <Link href="/perfil" onClick={onClose} className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
             <Avatar className="h-7 w-7">
               <AvatarImage src={userData?.fotoURL} alt="Foto" className="object-cover" />
