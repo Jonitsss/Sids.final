@@ -43,7 +43,7 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /usuarios/{userId} {
       allow read: if isSignedIn();
-      allow create: if esPastorOAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn()
         && (resource.data.authUid == request.auth.uid
             || request.auth.uid == userId
