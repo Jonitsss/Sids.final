@@ -179,7 +179,18 @@ export default function UsuariosPage() {
     const nuevoEstado = u.activo === false
     try {
       await actualizarDocumento("usuarios", u.id, { activo: nuevoEstado })
-      toast.success(nuevoEstado ? "Usuario aprobado" : "Usuario desactivado")
+      if (nuevoEstado) {
+        await enviarNotificacion({
+          usuarioId: u.authUid || u.id,
+          titulo: "Cuenta aprobada",
+          mensaje: "Tu cuenta ha sido aprobada. Ya podés acceder al dashboard.",
+          tipo: "aprobacion",
+          referenciaId: u.id,
+        })
+        toast.success("Usuario aprobado y notificado")
+      } else {
+        toast.success("Usuario desactivado")
+      }
     } catch {
       toast.error("Error al actualizar usuario")
     }
