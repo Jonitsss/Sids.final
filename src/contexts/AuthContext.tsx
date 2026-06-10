@@ -1,7 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react"
-import { useRouter } from "next/navigation"
+import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import {
   User,
   createUserWithEmailAndPassword,
@@ -29,7 +28,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [userData, setUserData] = useState<Usuario | null>(null)
   const [loading, setLoading] = useState(true)
@@ -163,19 +161,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = useCallback(async () => {
+  const logout = async () => {
     if (!auth) return
     await signOut(auth)
     setUserData(null)
-  }, [])
-
-  useEffect(() => {
-    if (!loading && user && !userData) {
-      console.error("Usuario autenticado sin datos en Firestore. Cerrando sesión.")
-      logout().catch(() => {})
-      router.push("/login")
-    }
-  }, [user, userData, loading, logout, router])
+  }
 
   const resetPassword = async (email: string) => {
     if (!auth) return
