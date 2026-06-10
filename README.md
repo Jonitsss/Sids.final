@@ -39,6 +39,7 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
   - `src/app/globals.css` — Tailwind v4 + shadcn tokens para `/login`, `/register`, `/dashboard/*`
 - **TypeScript** — strict mode
 - **Firebase** — Auth + Firestore + Storage + Cloud Messaging
+- **Zustand** — store global para datos compartidos (ministerios, usuarios, notificaciones, consultas)
 - **framer-motion** — animaciones dashboard
 - **shadcn/ui** — componentes accesibles (Radix primitives)
 - **[next-sitemap](https://github.com/iamvishnusankar/next-sitemap)** — sitemap + robots en postbuild
@@ -114,6 +115,7 @@ sids-next/
 │   ├── data/content.ts          # stats, schedule, navLinks, heroLines
 │   ├── hooks/                   # useEventos, useTareas, useDashboard, usePushNotifications, etc.
 │   ├── lib/                     # firebase, firestore, messaging, roles, seo, utils, constants
+│   ├── stores/                  # Zustand stores (dashboardStore)
 │   ├── styles/landing.css       # CSS vanilla del landing (700+ líneas)
 │   └── types/index.ts           # Tipos TypeScript del sistema
 ├── firestore.rules              # reglas de seguridad (delete = false, via CF)

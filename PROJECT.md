@@ -78,7 +78,7 @@ sids-next/
 │   ├── src/
 │   │   ├── index.ts                    # borrarDocumento, setRolUsuario, enviarNotificacionPush
 │   │   └── scripts/
-│   │       ├── setInitialRol.ts         # bootstrap del primer admin
+│   │       ├── setInitialRol.ts        # bootstrap del primer admin
 │   │       └── testPush.ts             # enviar push de prueba a todos los tokens FCM
 │   ├── package.json
 │   ├── tsconfig.json
@@ -87,12 +87,15 @@ sids-next/
 │   ├── app/                            # (public), (auth), (dashboard)
 │   ├── components/                     # ui/ (shadcn), auth/, layout/
 │   ├── contexts/                       # AuthContext, ThemeContext
-│   ├── hooks/                          # usePushNotifications, useNotificaciones, etc.
+│   ├── hooks/                          # useEventos, useTareas, useDashboard, usePushNotifications, etc.
 │   ├── lib/
 │   │   ├── firebase.ts                 # inicializa Firebase + Functions + Messaging
-│   │   ├── firestore.ts                # CRUD cliente (delete via CF)
+│   │   ├── firestore.ts                # CRUD cliente (delete via CF), mapDoc, documentId
 │   │   ├── messaging.ts                # FCM helpers (requestPermission, onForegroundMessage)
-│   │   └── roles.ts                    # asignarRolUsuario(uid, rol)
+│   │   ├── roles.ts                    # asignarRolUsuario(uid, rol)
+│   │   └── version.ts                  # APP_VERSION (sincronizado con package.json)
+│   ├── stores/
+│   │   └── dashboardStore.ts           # Zustand store global (ministerios, usuarios, notificaciones, consultas)
 │   ├── styles/                         # landing.css (vanilla)
 │   └── types/
 ├── public/                             # assets + sitemap + PWA files
@@ -157,11 +160,31 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
+b732bfa fix: remove compound index requirement on dashboard tareas query + null guard (v1.13.1)
+f633512 perf: Zustand store global + batch queries + cascading server delete (v1.13.0)
 44db013 fix: enviarNotificacionPush HTTP function + testPush.ts + docs
 d9ce378 chore: bump 1.4.4 → 1.5.0 + script para testear push notifications
 ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones no llegaban en iOS
 244d826 fix: notificaciones push no llegaban si el usuario fue creado por admin (doc ID != auth UID)
 ```
+
+Cambios de esta sesión (v1.14.0):
+- **Zustand store global** (`src/stores/dashboardStore.ts`) — ministerios, usuarios, notificaciones y consultas con listeners centralizados. Elimina duplicación de onSnapshot en Sidebar + páginas.
+- **DashboardLayout inicializa listeners** — un solo set de listeners al montar, cleanup al desmontar.
+- **8 páginas migradas** al store: notificaciones, consultas, tareas, asistencia, usuarios, ministerios, cronogramas/[id], ministerios/celulas.
+- **Batch fetch en notificaciones** — `where(documentId(), "in", [...])` para grillas y eventos (2 queries vs 2*N).
+- **Cascading delete server-side** — Cloud Function `borrarDocumento` ahora maneja eventos → cronogramas → notificaciones en batch. `eventos/page.tsx` simplificado a una sola llamada CF.
+- **Fix Firestore index error** — removido `where("estado", "!=", "completada")` del dashboard (requería índice compuesto), filtrado en cliente.
+- **Null guard en dashboard** — previene crash cuando el fetch falla.
+- **Scrollbar tipo macOS** — scrollbars delgadas que aparecen al hover, aplicadas globalmente en `globals.css`.
+- **Unified parseDoc** — `mapDoc` exportado desde `firestore.ts`, eliminados `parseDoc` duplicados en hooks.
+
+Cambios de esta sesión (v1.13.0-1.13.1):
+- **Optimización de queries** — eventos filtrados por fecha futura, tareas por estado, límite de 5 resultados.
+- **Fix useEffect deps** — stale closures corregidos en useConsultas y useNotificaciones con useRef.
+- **useReportes** — rango expandido a 6 meses para reportes con datos.
+- **Firestore rules** — self-registration habilitado (`allow create: if isSignedIn() && request.auth.uid == userId`).
+- **Notificación al aprobar** — `enviarNotificacion` en `handleToggleActivo` envía push + in-app al aprobar usuario.
 
 Cambios de esta sesión (v1.12.1):
 - **Fix eliminación de usuarios** — Cloud Function `borrarDocumento` ahora elimina la cuenta de Firebase Authentication (`auth.deleteUser`) al borrar un documento de `usuarios`. También elimina notificaciones asociadas (cascade delete).
@@ -329,7 +352,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.12.1 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.14.0 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 
