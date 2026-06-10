@@ -16,6 +16,7 @@ export type CalendarProps = {
   disabled?: (date: Date) => boolean
   fromDate?: Date
   toDate?: Date
+  hasEvents?: (date: Date) => boolean
 }
 
 const MONTHS = [
@@ -42,6 +43,7 @@ function Calendar({
   disabled,
   fromDate,
   toDate,
+  hasEvents,
 }: CalendarProps) {
   const today = new Date()
   const [currentMonth, setCurrentMonth] = React.useState(
@@ -134,13 +136,14 @@ function Calendar({
           }
           const date = new Date(year, month, day)
           const disabled = isDisabled(date)
+          const eventDay = hasEvents?.(date)
           return (
             <button
               key={day}
               onClick={() => handleDayClick(day)}
               disabled={disabled}
               className={cn(
-                "h-8 w-8 text-sm rounded-md flex items-center justify-center",
+                "h-8 w-8 text-sm rounded-md flex flex-col items-center justify-center",
                 isSelected(day) && "bg-primary text-primary-foreground",
                 isToday(day) && !isSelected(day) && "border border-primary",
                 !isSelected(day) && !disabled && "hover:bg-accent",
@@ -148,7 +151,10 @@ function Calendar({
                 !isSelected(day) && !disabled && "text-foreground"
               )}
             >
-              {day}
+              <span>{day}</span>
+              {eventDay && !isSelected(day) && (
+                <span className="w-1 h-1 rounded-full bg-primary mt-px" />
+              )}
             </button>
           )
         })}

@@ -136,7 +136,12 @@ export default function EventosPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Fecha</Label>
-                  <Calendar mode="single" selected={form.fecha} onSelect={(d) => d && setForm({ ...form, fecha: d })} />
+                  <Calendar
+                    mode="single"
+                    selected={form.fecha}
+                    onSelect={(d) => d && setForm({ ...form, fecha: d })}
+                    hasEvents={(date) => eventos.some((e) => isSameDay(e.fecha, date))}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Horario</Label>
