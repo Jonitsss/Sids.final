@@ -7,6 +7,7 @@ import { requestPermission } from "@/lib/messaging"
 export function usePushNotifications() {
   const { user, userData } = useAuth()
   const [permission, setPermission] = useState<NotificationPermission>("default")
+  const [requesting, setRequesting] = useState(false)
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -21,9 +22,10 @@ export function usePushNotifications() {
     const dismissed = localStorage.getItem("push-dismissed")
     if (dismissed) return
 
+    setRequesting(true)
     requestPermission(user.uid).then((token) => {
       if (token) setPermission("granted")
-    })
+    }).finally(() => setRequesting(false))
   }, [user, userData])
 
   const dismissPrompt = () => {
@@ -31,5 +33,5 @@ export function usePushNotifications() {
     setPermission("denied")
   }
 
-  return { permission, dismissPrompt }
+  return { permission, dismissPrompt, requesting }
 }

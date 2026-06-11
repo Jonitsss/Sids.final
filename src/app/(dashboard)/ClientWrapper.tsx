@@ -9,9 +9,9 @@ import { Bell, X } from "lucide-react"
 
 function PushPrompt() {
   const { user } = useAuth()
-  const { permission, dismissPrompt } = usePushNotifications()
+  const { permission, dismissPrompt, requesting } = usePushNotifications()
 
-  if (permission !== "default") return null
+  if (permission !== "default" || requesting) return null
   if (typeof window !== "undefined" && localStorage.getItem("push-dismissed")) return null
 
   const handleEnable = async () => {
