@@ -218,12 +218,14 @@ El sistema envía notificaciones in-app (Firestore) y push (FCM) con formato con
   - `confirmacion` — respuesta a asignación (aceptar/rechazar)
   - `tarea` — nueva tarea asignada
   - `ministerio` — incorporación a ministerio
+  - `rol` — cambio de rol
+  - `aprobacion` — cuenta aprobada por admin
 - **Rechazo**: requiere justificación obligatoria, notifica a Pastor/Administrador/Líder del ministerio
 - **Push**: 
   - `enviarNotificacionPush` (HTTP, llamado desde el cliente) — crea el documento y envía el push sincrónicamente
   - Service worker con Firebase SDK para push subscription en iOS PWA
-- **Marcar todas leídas**: botón disponible para pastor/admin en /notificaciones
-- **Badge**: contador en sidebar, se auto-limpia al entrar a la página
+- **Leído/no leído**: las notificaciones NO se marcan automáticamente como leídas. Cada notificación tiene un botón "Marcar como leída". Botón "Marcar todas leídas" disponible para todos los usuarios.
+- **Badge**: contador en sidebar
 - **Test local**: `cd functions && npm run test-push "Título" "Mensaje"` envía a todos los tokens FCM registrados
 
 ### Consultas

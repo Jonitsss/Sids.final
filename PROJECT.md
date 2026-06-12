@@ -160,19 +160,23 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
+ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
+1cae6a0 fix: mejorar UI del panel de notificaciones
+9eba37d fix: notificaciones no se marcan como leídas automáticamente al abrir el panel
+3f5d364 fix(pwa): manifest name/short_name for notifications and home screen
+4f4fd7e fix(pwa): redirect standalone mode to /login
+44f2209 fix(pwa): start_url changed from /login to /
+7f25a05 docs: update README and PROJECT with v1.14.3 changes
 17725b9 chore: bump version to 1.14.3
 9992c15 fix(manifest): remove short_name to change push notification label
 65272df feat(usuarios): close edit modal instantly, save in background
-e5fccbd fix(functions): use notification payload instead of data for push
-eb342f9 feat(functions): add clear-tokens script to reset FCM tokens
-b732bfa fix: remove compound index requirement on dashboard tareas query + null guard (v1.13.1)
 ```
 
-Cambios de esta sesión (v1.14.3):
-- **Fix push notifications** — `sendPushToUser` usaba payload `data` que solo funciona en foreground. Cambiado a `notification` para que lleguen siempre (foreground + background).
-- **Modal de edición de usuarios** — cierra instantáneamente al guardar. Firestore update + asignación de rol + notificaciones se ejecutan en background.
-- **Script clearAllTokens** — `npm run clear-tokens` limpia todos los tokens FCM de la colección `usuarios`. Usuarios deben re-aceptar push al hacer login.
-- **Manifest sin short_name** — eliminado `short_name: "SIDS"` del manifest para quitar "from SIDS" de las notificaciones push.
+Cambios de esta sesión (v1.14.7):
+- **Notificaciones no se auto-marcan como leídas** — eliminado el `useEffect` que marcaba todas como leídas al abrir la página. Ahora cada notificación tiene un botón "Marcar como leída".
+- **UI del panel de notificaciones mejorada** — botones "Marcar todas leídas" y "Eliminar leídas" son mutuamente excluyentes (solo uno visible a la vez). Disponible para todos los usuarios.
+- **Tipo "aprobacion" agregado** — la interfaz `Notificacion` ahora incluye `"aprobacion"` como tipo válido (antes era un string que no coincidía con el type union).
+- **Mensaje de notificación de rol simplificado** — eliminado texto "Cierra sesión y vuelve a ingresar para que los cambios tomen efecto" de las notificaciones push de cambio de rol.
 
 Cambios de esta sesión (v1.14.0):
 - **Zustand store global** (`src/stores/dashboardStore.ts`) — ministerios, usuarios, notificaciones y consultas con listeners centralizados. Elimina duplicación de onSnapshot en Sidebar + páginas.
@@ -243,8 +247,12 @@ Hecho en sesiones anteriores:
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Hecho en esta sesión:
+- ~~Notificaciones no se auto-marcan~~ — eliminado auto-read, botón "Marcar como leída" por notificación
+- ~~UI notificaciones mejorada~~ — botones mutuamente excluyentes, disponible para todos
+- ~~Tipo "aprobacion"~~ — agregado a interfaz `Notificacion`
+- ~~Mensaje de notificación de rol~~ — simplificado (sin "Cierra sesión...")
 - ~~UI instantánea en consultas~~ — enviar, responder, cerrar, eliminar con optimistic UI
-- ~~Botón "Marcar todas como leídas"~~ — notificaciones (pastor/admin)
+- ~~Botón "Marcar todas como leídas"~~ — disponible para todos los usuarios
 - ~~Botón "Eliminar todas las consultas"~~ — consultas (pastor/admin)
 - ~~Badge auto-clean~~ — al entrar a /notificaciones y /consultas se marcan como leídas
 - ~~Script clean-orphans~~ — cleanup de notificaciones huérfanas
@@ -360,7 +368,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.14.3 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.14.7 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 
