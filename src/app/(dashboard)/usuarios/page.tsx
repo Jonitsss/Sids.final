@@ -153,7 +153,7 @@ export default function UsuariosPage() {
       enviarNotificacion({
         usuarioId: (oldUser as any)?.authUid || editId,
         titulo: "Tu rol ha sido actualizado",
-        mensaje: `Tu rol cambió de "${rolLabel(oldUser?.rol)}" a "${rolLabel(form.rol)}". Cierra sesión y vuelve a ingresar para que los cambios tomen efecto.`,
+        mensaje: `Tu rol cambió de "${rolLabel(oldUser?.rol)}" a "${rolLabel(form.rol)}".`,
         tipo: "rol",
         referenciaId: editId,
       }).catch(() => {})

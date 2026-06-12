@@ -202,18 +202,17 @@ export default function NotificacionesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {notificaciones.some((n) => !n.leido) && (
+          {notificaciones.some((n) => !n.leido) ? (
             <Button variant="outline" size="sm" className="gap-2" onClick={handleMarcarTodasLeidas}>
               <Check className="h-4 w-4" />
               Marcar todas leídas
             </Button>
-          )}
-          {notificaciones.some((n) => n.leido) && (
+          ) : notificaciones.some((n) => n.leido) ? (
             <Button variant="outline" size="sm" className="gap-2" onClick={handleEliminarLeidas}>
               <Trash2 className="h-4 w-4" />
               Eliminar leídas
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
 
