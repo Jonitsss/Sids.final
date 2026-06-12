@@ -3,7 +3,7 @@
   "description": "Iglesia cristiana evangélica en Ingeniero Allan",
   "lang": "es-AR",
   "dir": "ltr",
-  "start_url": "/login",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
