@@ -18,7 +18,6 @@ import { es } from "date-fns/locale"
 export default function NotificacionesPage() {
   const { user, userData } = useAuth()
   const { notificaciones, noLeidas, notificacionesLoading, ministerios, ministeriosLoading, setNotificaciones } = useDashboardStore()
-  const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const [respondiendo, setRespondiendo] = useState<string | null>(null)
   const [fechasGrilla, setFechasGrilla] = useState<Record<string, string>>({})
   const [eventosGrilla, setEventosGrilla] = useState<Record<string, string>>({})
@@ -189,16 +188,7 @@ export default function NotificacionesPage() {
     }
   }
 
-  const markedAsReadRef = useRef(new Set<string>())
 
-  useEffect(() => {
-    if (notificaciones.length === 0 || notificacionesLoading) return
-    const ids = notificaciones.filter((n) => !n.leido && !markedAsReadRef.current.has(n.id)).map((n) => n.id)
-    if (ids.length === 0) return
-    markedAsReadRef.current = new Set([...markedAsReadRef.current, ...ids])
-    setNotificaciones((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, leido: true } : n)))
-    Promise.all(ids.map((id) => actualizarDocumento("notificaciones", id, { leido: true })))
-  }, [notificaciones, notificacionesLoading, setNotificaciones])
 
   return (
     <div className="space-y-6">
@@ -212,7 +202,7 @@ export default function NotificacionesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {esPastorOAdmin && notificaciones.some((n) => !n.leido) && (
+          {notificaciones.some((n) => !n.leido) && (
             <Button variant="outline" size="sm" className="gap-2" onClick={handleMarcarTodasLeidas}>
               <Check className="h-4 w-4" />
               Marcar todas leídas
@@ -306,7 +296,7 @@ export default function NotificacionesPage() {
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </>
-                      ) : n.tipo !== "asignacion" ? (
+                      ) : (
                         <Button
                           size="sm"
                           variant="ghost"
@@ -315,7 +305,7 @@ export default function NotificacionesPage() {
                         >
                           Marcar como leída
                         </Button>
-                      ) : null}
+                      )}
                     </div>
                   </div>
                   {n.tipo === "asignacion" && !n.leido && (
