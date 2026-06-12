@@ -123,55 +123,53 @@ export default function UsuariosPage() {
 
   const handleEditSave = async () => {
     if (!editId || !form.nombre) return
-    try {
-      const oldUser = usuarios.find((u) => u.id === editId)
-      const oldIds = oldUser?.ministerioIds || []
-      const newIds = form.ministerioIds.filter((id) => !oldIds.includes(id))
+    const oldUser = usuarios.find((u) => u.id === editId)
+    const oldIds = oldUser?.ministerioIds || []
+    const newIds = form.ministerioIds.filter((id) => !oldIds.includes(id))
 
-      await actualizarDocumento("usuarios", editId, {
-        nombre: form.nombre,
-        apellido: form.apellido,
-        email: form.email.toLowerCase().trim(),
-        telefono: form.telefono,
-        rol: form.rol,
-        ministerioIds: form.ministerioIds,
-        notificaciones: form.notificaciones,
-      })
+    setUsuarios((prev) =>
+      prev.map((u) =>
+        u.id === editId
+          ? { ...u, nombre: form.nombre, apellido: form.apellido, email: form.email.toLowerCase().trim(), telefono: form.telefono, rol: form.rol, ministerioIds: form.ministerioIds, notificaciones: form.notificaciones }
+          : u
+      )
+    )
+    setEditOpen(false)
+    setEditId(null)
+    toast.success("Usuario actualizado")
 
-      if (oldUser?.rol !== form.rol) {
-        try {
-          await asignarRolUsuario(oldUser?.authUid || editId, form.rol as RolValido)
-        } catch {
-          // Custom claims may fail if caller lacks permissions
-        }
+    actualizarDocumento("usuarios", editId, {
+      nombre: form.nombre,
+      apellido: form.apellido,
+      email: form.email.toLowerCase().trim(),
+      telefono: form.telefono,
+      rol: form.rol,
+      ministerioIds: form.ministerioIds,
+      notificaciones: form.notificaciones,
+    }).catch(() => toast.error("Error al guardar cambios"))
 
-        await enviarNotificacion({
+    if (oldUser?.rol !== form.rol) {
+      asignarRolUsuario(oldUser?.authUid || editId, form.rol as RolValido).catch(() => {})
+      enviarNotificacion({
+        usuarioId: (oldUser as any)?.authUid || editId,
+        titulo: "Tu rol ha sido actualizado",
+        mensaje: `Tu rol cambió de "${rolLabel(oldUser?.rol)}" a "${rolLabel(form.rol)}". Cierra sesión y vuelve a ingresar para que los cambios tomen efecto.`,
+        tipo: "rol",
+        referenciaId: editId,
+      }).catch(() => {})
+    }
+
+    for (const mid of newIds) {
+      const min = ministerios.find((m) => m.id === mid)
+      if (min) {
+        enviarNotificacion({
           usuarioId: (oldUser as any)?.authUid || editId,
-          titulo: "Tu rol ha sido actualizado",
-          mensaje: `Tu rol cambió de "${rolLabel(oldUser?.rol)}" a "${rolLabel(form.rol)}". Cierra sesión y vuelve a ingresar para que los cambios tomen efecto.`,
-          tipo: "rol",
-          referenciaId: editId,
-        })
+          titulo: "Nuevo ministerio",
+          mensaje: `Has sido incorporado al ministerio "${min.nombre}".`,
+          tipo: "ministerio",
+          referenciaId: mid,
+        }).catch(() => {})
       }
-
-      for (const mid of newIds) {
-        const min = ministerios.find((m) => m.id === mid)
-        if (min) {
-          await enviarNotificacion({
-            usuarioId: (oldUser as any)?.authUid || editId,
-            titulo: "Nuevo ministerio",
-            mensaje: `Has sido incorporado al ministerio "${min.nombre}".`,
-            tipo: "ministerio",
-            referenciaId: mid,
-          })
-        }
-      }
-
-      toast.success("Usuario actualizado")
-      setEditOpen(false)
-      setEditId(null)
-    } catch {
-      toast.error("Error al actualizar usuario")
     }
   }
 
