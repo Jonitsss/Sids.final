@@ -1,5 +1,6 @@
 {
-  "name": "Santa Iglesia del Señor (SIDS)",
+  "name": "Santa Iglesia del Señor",
+  "short_name": "SIDS",
   "description": "Iglesia cristiana evangélica en Ingeniero Allan",
   "lang": "es-AR",
   "dir": "ltr",
