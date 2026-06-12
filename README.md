@@ -83,7 +83,8 @@ sids-next/
 │   │   ├── index.ts             # borrarDocumento, setRolUsuario, enviarNotificacionPush
 │   │   └── scripts/
 │   │       ├── setInitialRol.ts # bootstrap del primer pastor/admin
-│   │       └── testPush.ts      # enviar push de prueba a todos los tokens FCM
+│   │       ├── testPush.ts      # enviar push de prueba a todos los tokens FCM
+│   │       └── clearAllTokens.ts # limpiar todos los tokens FCM
 │   ├── package.json
 │   └── tsconfig.json
 ├── src/
@@ -257,6 +258,7 @@ npm run build        # Compila TypeScript -> lib/
 npm run deploy       # Despliega a Firebase (firebase deploy --only functions)
 npm run logs         # Ver logs en producción
 npm run test-push    # Envía notificación push de prueba a todos los tokens FCM registrados
+npm run clear-tokens # Limpia todos los tokens FCM (usuarios deben re-aceptar push)
 ```
 
 Región: `southamerica-east1` (São Paulo) por cercanía a Argentina.

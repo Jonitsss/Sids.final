@@ -160,13 +160,19 @@ npm run logs         # firebase functions:log
 ## 7. Estado al cierre de esta sesión (git log)
 
 ```
+17725b9 chore: bump version to 1.14.3
+9992c15 fix(manifest): remove short_name to change push notification label
+65272df feat(usuarios): close edit modal instantly, save in background
+e5fccbd fix(functions): use notification payload instead of data for push
+eb342f9 feat(functions): add clear-tokens script to reset FCM tokens
 b732bfa fix: remove compound index requirement on dashboard tareas query + null guard (v1.13.1)
-f633512 perf: Zustand store global + batch queries + cascading server delete (v1.13.0)
-44db013 fix: enviarNotificacionPush HTTP function + testPush.ts + docs
-d9ce378 chore: bump 1.4.4 → 1.5.0 + script para testear push notifications
-ca014db fix: líderes/colaboradores no veían tickets enviados + notificaciones no llegaban en iOS
-244d826 fix: notificaciones push no llegaban si el usuario fue creado por admin (doc ID != auth UID)
 ```
+
+Cambios de esta sesión (v1.14.3):
+- **Fix push notifications** — `sendPushToUser` usaba payload `data` que solo funciona en foreground. Cambiado a `notification` para que lleguen siempre (foreground + background).
+- **Modal de edición de usuarios** — cierra instantáneamente al guardar. Firestore update + asignación de rol + notificaciones se ejecutan en background.
+- **Script clearAllTokens** — `npm run clear-tokens` limpia todos los tokens FCM de la colección `usuarios`. Usuarios deben re-aceptar push al hacer login.
+- **Manifest sin short_name** — eliminado `short_name: "SIDS"` del manifest para quitar "from SIDS" de las notificaciones push.
 
 Cambios de esta sesión (v1.14.0):
 - **Zustand store global** (`src/stores/dashboardStore.ts`) — ministerios, usuarios, notificaciones y consultas con listeners centralizados. Elimina duplicación de onSnapshot en Sidebar + páginas.
@@ -248,6 +254,8 @@ Hecho en esta sesión:
 
 Pendiente (notificaciones push):
 - ~~Notificaciones dobles~~ — eliminado `onNotificacionCreated` trigger (causaba doble push). Deploy OK.
+- ~~Push notifications no llegaban~~ — fix: payload `data` → `notification` en `sendPushToUser`. Deploy OK.
+- ~~"from SIDS" en notificaciones~~ — eliminado `short_name` del manifest.
 1. **Verificar si las notificaciones llegan al celular ahora**
    - Enviar un ticket desde la web y revisar en Firebase Console:
      - ¿Aparece un documento en `notificaciones`? Si no, el frontend no lo crea (Firestore rules o error cliente).
@@ -352,7 +360,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.14.0 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.14.3 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 
@@ -376,11 +384,8 @@ cd functions && npm install && cd ..
 # Copiar .env.local.example a .env.local y completar creds
 ```
 
-### Para debuggear las notificaciones (pendiente #1)
+### Para debuggear las notificaciones
 
-Ver la sección **Pendiente** (punto 1 a 4) más arriba. El flujo recomendado:
-
-1. Abrir Firebase Console → Firestore → ver si hay docs en `notificaciones` después de enviar un ticket
+1. Correr `npm run test-push` desde `functions/` con serviceAccountKey.json para confirmar que los tokens FCM funcionan
 2. Revisar logs de Cloud Functions: `cd functions && firebase functions:log`
-3. Correr `npm run test-push` desde `functions/` para confirmar que los tokens FCM funcionan
-4. Si todo falla, probar la llamada directa a `enviarNotificacionPush` (comando en sección Pendiente punto 4)
+3. Si hay problemas, verificar que el payload use `notification` (no `data`) en `sendPushToUser`
