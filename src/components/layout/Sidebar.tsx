@@ -62,7 +62,6 @@ const menuItems = {
   lider: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
-    { href: "/ministerios/celulas", icon: Network, label: "Células" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/tareas", icon: CheckSquare, label: "Tareas" },

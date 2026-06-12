@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Celula, Rol } from "@/types"
 import { db } from "@/lib/firebase"
-import { collection, query, where, onSnapshot, or } from "firebase/firestore"
+import { collection, query, where, onSnapshot, or, and } from "firebase/firestore"
 import { mapDoc } from "@/lib/firestore"
 
 export function useCelulas(usuarioId?: string, rol?: Rol) {
@@ -14,16 +14,21 @@ export function useCelulas(usuarioId?: string, rol?: Rol) {
     if (!db) { setLoading(false); return }
     setLoading(true)
 
-    const constraints: any[] = [where("activo", "==", true)]
+    const constraints: any[] = []
 
     if (rol !== "pastor" && rol !== "administrador" && usuarioId) {
       constraints.push(
-        or(
-          where("liderId", "==", usuarioId),
-          where("coliderId", "==", usuarioId),
-          where("anfitrionId", "==", usuarioId)
+        and(
+          where("activo", "==", true),
+          or(
+            where("liderId", "==", usuarioId),
+            where("coliderId", "==", usuarioId),
+            where("anfitrionId", "==", usuarioId)
+          )
         )
       )
+    } else {
+      constraints.push(where("activo", "==", true))
     }
 
     const q = query(collection(db, "celulas"), ...constraints)
