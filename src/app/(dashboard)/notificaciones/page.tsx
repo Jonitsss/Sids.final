@@ -223,7 +223,7 @@ export default function NotificacionesPage() {
           <CardContent className="p-12 text-center text-muted-foreground">
             <Bell className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg font-medium mb-1">Sin notificaciones</p>
-            <p className="text-sm">Cuando te asignen un rol en una grilla, aparecerá acá</p>
+            <p className="text-sm">Tus notificaciones aparecerán acá</p>
           </CardContent>
         </Card>
       ) : (

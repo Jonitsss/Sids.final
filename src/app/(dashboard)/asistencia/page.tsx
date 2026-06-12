@@ -35,7 +35,7 @@ export default function AsistenciaPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Asistencia</h1>
-            <p className="text-muted-foreground">Panel de confirmaciones del Pastor</p>
+            <p className="text-muted-foreground">Resumen de asignaciones de servicio</p>
           </div>
         </div>
         <AsistenciaSkeleton />
@@ -49,7 +49,7 @@ export default function AsistenciaPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Asistencia</h1>
-            <p className="text-muted-foreground">Panel de confirmaciones del Pastor</p>
+            <p className="text-muted-foreground">Resumen de asignaciones de servicio</p>
           </div>
         </div>
         <Card>
@@ -68,7 +68,7 @@ export default function AsistenciaPage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">Asistencia</h1>
-          <p className="text-muted-foreground">Panel de confirmaciones del Pastor</p>
+          <p className="text-muted-foreground">Resumen de asignaciones de servicio</p>
         </div>
       </div>
 
