@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { Ministerio, Usuario } from "@/types"
+import { Ministerio, Usuario, Celula } from "@/types"
 import { obtenerDocumentos, where, actualizarDocumento } from "@/lib/firestore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MinisterioDetailSkeleton } from "@/components/skeletons"
@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check, Pencil } from "lucide-react"
+import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check, Pencil, Users, Calendar } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
@@ -42,6 +42,7 @@ export default function MinisterioDetailPage() {
   const [configLiderId, setConfigLiderId] = useState("")
   const [savingConfig, setSavingConfig] = useState(false)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const [celulasMinisterio, setCelulasMinisterio] = useState<Celula[]>([])
   const [editingName, setEditingName] = useState(false)
   const [editingNombre, setEditingNombre] = useState("")
   const [editingDescripcion, setEditingDescripcion] = useState("")
@@ -100,6 +101,13 @@ export default function MinisterioDetailPage() {
             where("activo", "==", true),
           ])
           if (mounted) setMiembros(usuarios)
+          if (m.nombre === "Celular") {
+            const celulasDocs = await obtenerDocumentos<Celula>("celulas", [
+              where("ministerioId", "==", m.id),
+              where("activo", "==", true),
+            ])
+            if (mounted) setCelulasMinisterio(celulasDocs)
+          }
           const todos = await obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)])
           if (mounted) setUsuarios(todos)
         }
@@ -331,14 +339,60 @@ export default function MinisterioDetailPage() {
         ))}
       </div>
 
-      <Tabs defaultValue="miembros">
+      <Tabs defaultValue={ministerio.nombre === "Celular" ? "celulas" : "miembros"}>
         <TabsList>
-          <TabsTrigger value="miembros">Miembros ({miembros.length})</TabsTrigger>
-          <TabsTrigger value="roles">Roles ({roles.length})</TabsTrigger>
-          <TabsTrigger value="config">Configuración</TabsTrigger>
+          {ministerio.nombre === "Celular" ? (
+            <>
+              <TabsTrigger value="celulas">Células ({celulasMinisterio.length})</TabsTrigger>
+              <TabsTrigger value="config">Configuración</TabsTrigger>
+            </>
+          ) : (
+            <>
+              <TabsTrigger value="miembros">Miembros ({miembros.length})</TabsTrigger>
+              <TabsTrigger value="roles">Roles ({roles.length})</TabsTrigger>
+              <TabsTrigger value="config">Configuración</TabsTrigger>
+            </>
+          )}
         </TabsList>
 
-        <TabsContent value="miembros" className="space-y-4">
+        {ministerio.nombre === "Celular" && (
+          <TabsContent value="celulas" className="space-y-4">
+            {celulasMinisterio.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center text-muted-foreground">
+                  No hay células en este ministerio
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
+                {celulasMinisterio.map((celula) => (
+                  <Link key={celula.id} href={`/ministerios/celulas/${celula.id}`}>
+                    <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{celula.nombre}</p>
+                            <p className="text-sm text-muted-foreground">{celula.tipo}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          {celula.dia} {celula.hora}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {ministerio.nombre !== "Celular" && (
+          <TabsContent value="miembros" className="space-y-4">
           {miembros.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center text-muted-foreground">
@@ -366,7 +420,9 @@ export default function MinisterioDetailPage() {
             </div>
           )}
         </TabsContent>
+        )}
 
+        {ministerio.nombre !== "Celular" && (
         <TabsContent value="roles">
           <Card>
             <CardHeader>
@@ -449,6 +505,7 @@ export default function MinisterioDetailPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
         <TabsContent value="config">
           <Card>
