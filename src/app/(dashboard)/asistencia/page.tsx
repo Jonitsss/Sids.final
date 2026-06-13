@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { CalendarDays, CheckCircle2, XCircle, Clock, Users } from "lucide-react"
+import { CalendarDays, CheckCircle2, XCircle, Clock, Users, MessageSquare } from "lucide-react"
 import { AsistenciaSkeleton } from "@/components/skeletons"
 import { useCronogramas } from "@/hooks/useCronogramas"
 import { useEventos } from "@/hooks/useEventos"
@@ -122,36 +122,44 @@ export default function AsistenciaPage() {
                         : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"
 
                       return (
-                        <div key={i} className="flex items-center gap-3 p-2 rounded-lg border">
-                          <div className="w-2 h-8 rounded-full shrink-0" style={{ backgroundColor: min?.color || "#888" }} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-muted-foreground">
-                              {min?.nombre || "Ministerio"} — {a.rol}
-                            </p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              {user ? (
-                                <>
-                                  <Avatar className="h-5 w-5">
-                                    <AvatarFallback className="text-[9px]">
-                                      {user.nombre?.[0]}{user.apellido?.[0]}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm font-medium">
-                                    {user.nombre} {user.apellido}
+                        <div key={i}>
+                          <div className="flex items-center gap-3 p-2 rounded-lg border">
+                            <div className="w-2 h-8 rounded-full shrink-0" style={{ backgroundColor: min?.color || "#888" }} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-muted-foreground">
+                                {min?.nombre || "Ministerio"} — {a.rol}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {user ? (
+                                  <>
+                                    <Avatar className="h-5 w-5">
+                                      <AvatarFallback className="text-[9px]">
+                                        {user.nombre?.[0]}{user.apellido?.[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-sm font-medium">
+                                      {user.nombre} {user.apellido}
+                                    </span>
+                                  </>
+                                ) : a.esExterno ? (
+                                  <span className="text-sm text-muted-foreground italic">
+                                    {a.nombreExterno || "Externo"}
                                   </span>
-                                </>
-                              ) : a.esExterno ? (
-                                <span className="text-sm text-muted-foreground italic">
-                                  {a.nombreExterno || "Externo"}
-                                </span>
-                              ) : (
-                                <span className="text-sm text-muted-foreground italic">Sin asignar</span>
-                              )}
+                                ) : (
+                                  <span className="text-sm text-muted-foreground italic">Sin asignar</span>
+                                )}
+                              </div>
                             </div>
+                            <Badge variant="outline" className={`text-xs shrink-0 ${estadoColor}`}>
+                              {ESTADO_LABEL[a.estado]}
+                            </Badge>
                           </div>
-                          <Badge variant="outline" className={`text-xs shrink-0 ${estadoColor}`}>
-                            {ESTADO_LABEL[a.estado]}
-                          </Badge>
+                          {a.estado === "rechazado" && a.justificacionRechazo && (
+                            <div className="flex items-start gap-2 mt-1 ml-7">
+                              <MessageSquare className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                              <p className="text-xs text-muted-foreground italic">{a.justificacionRechazo}</p>
+                            </div>
+                          )}
                         </div>
                       )
                     })

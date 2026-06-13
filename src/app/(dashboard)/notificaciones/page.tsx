@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Bell, Check, X, Loader2, Clock, Trash2 } from "lucide-react"
 import { ListSkeleton } from "@/components/skeletons"
 import { useAuth } from "@/contexts/AuthContext"
@@ -22,6 +24,8 @@ export default function NotificacionesPage() {
   const [fechasGrilla, setFechasGrilla] = useState<Record<string, string>>({})
   const [eventosGrilla, setEventosGrilla] = useState<Record<string, string>>({})
   const cleaned = useRef(false)
+  const [modalRechazo, setModalRechazo] = useState<string | null>(null)
+  const [justificacion, setJustificacion] = useState("")
 
   useEffect(() => {
     const gridIds = new Set<string>()
@@ -76,7 +80,7 @@ export default function NotificacionesPage() {
     })()
   }, [notificacionesLoading, ministeriosLoading, ministerios, notificaciones, setNotificaciones])
 
-  const handleResponder = async (notifId: string, accion: "confirmado" | "rechazado") => {
+  const handleResponder = async (notifId: string, accion: "confirmado" | "rechazado", motivo?: string) => {
     const notif = notificaciones.find((n) => n.id === notifId)
     if (!notif || !notif.referenciaId.startsWith("asignacion:")) return
 
@@ -93,7 +97,7 @@ export default function NotificacionesPage() {
 
       const nuevas = grilla.asignaciones.map((a) =>
         a.ministerioId === ministerioId && a.rol === rol
-          ? { ...a, estado: accion }
+          ? { ...a, estado: accion, justificacionRechazo: accion === "rechazado" ? motivo : undefined }
           : a
       )
 
@@ -113,19 +117,35 @@ export default function NotificacionesPage() {
       const eventoDoc = await obtenerDocumento<Evento>("eventos", grilla.eventoId)
       const eventoTitulo = eventoDoc?.titulo || ""
       const horaStr = eventoDoc?.horaInicio ? ` a las ${eventoDoc.horaInicio} hs` : ""
+      const nombre = userData?.nombre || "Alguien"
+      const apellido = userData?.apellido || ""
+      const motivoStr = accion === "rechazado" && motivo ? ` Motivo: ${motivo}` : ""
+      const msgBase = `${nombre} ${apellido} ${accion === "confirmado" ? "confirmó" : "rechazó"} la función de "${rol}" en el ministerio ${ministerioNombre} para "${eventoTitulo}" del ${fechaStr}${horaStr}.${motivoStr}`
+
+      const destinatarios = new Set<string>()
 
       const pastores = await obtenerDocumentos<Usuario>("usuarios", [
-        where("rol", "==", "pastor"),
+        where("rol", "in", ["pastor", "administrador"]),
       ])
       for (const p of pastores) {
         const destId = (p as any).authUid || p.id
-        if (destId === user?.uid) continue
-        const nombre = userData?.nombre || "Alguien"
-        const apellido = userData?.apellido || ""
+        if (destId !== user?.uid) destinatarios.add(destId)
+      }
+
+      const ministerio = ministerios.find((m) => m.id === ministerioId)
+      if (ministerio?.liderId) {
+        const liderDoc = await obtenerDocumento<Usuario>("usuarios", ministerio.liderId)
+        if (liderDoc) {
+          const liderUid = (liderDoc as any).authUid || liderDoc.id
+          if (liderUid !== user?.uid) destinatarios.add(liderUid)
+        }
+      }
+
+      for (const destId of destinatarios) {
         await enviarNotificacion({
           usuarioId: destId,
           titulo: accion === "confirmado" ? "Asignación confirmada" : "Asignación rechazada",
-          mensaje: `${nombre} ${apellido} ${accion === "confirmado" ? "confirmó" : "rechazó"} la función de "${rol}" en el ministerio ${ministerioNombre} para "${eventoTitulo}" del ${fechaStr}${horaStr}.`,
+          mensaje: msgBase,
           tipo: "confirmacion",
           referenciaId: notif.referenciaId,
         })
@@ -239,7 +259,7 @@ export default function NotificacionesPage() {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{n.titulo}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground break-words line-clamp-3">
                       {(() => {
                         if (n.mensaje.startsWith("Se confirmó") || n.mensaje.startsWith("Se rechazó")) return n.mensaje
                         if (!n.referenciaId?.startsWith("asignacion:")) return n.mensaje
@@ -275,7 +295,7 @@ export default function NotificacionesPage() {
                             size="sm"
                             variant="outline"
                             className="h-7 text-xs gap-1 text-destructive border-destructive/30 hover:text-destructive"
-                            onClick={() => handleResponder(n.id, "rechazado")}
+                            onClick={() => { setModalRechazo(n.id); setJustificacion("") }}
                             disabled={respondiendo === n.id}
                           >
                             <X className="h-3 w-3" />
@@ -319,6 +339,39 @@ export default function NotificacionesPage() {
           ))}
         </div>
       )}
+
+      <Dialog open={!!modalRechazo} onOpenChange={() => setModalRechazo(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rechazar asignación</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Explicá el motivo por el cual rechazás esta asignación..."
+              value={justificacion}
+              onChange={(e) => setJustificacion(e.target.value)}
+              rows={4}
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setModalRechazo(null)}>Cancelar</Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={!justificacion.trim() || (!!modalRechazo && respondiendo === modalRechazo)}
+                onClick={() => {
+                  if (modalRechazo) {
+                    handleResponder(modalRechazo, "rechazado", justificacion.trim())
+                    setModalRechazo(null)
+                  }
+                }}
+              >
+                {modalRechazo && respondiendo === modalRechazo ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                Confirmar rechazo
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
