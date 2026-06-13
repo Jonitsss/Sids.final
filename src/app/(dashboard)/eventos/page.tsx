@@ -85,9 +85,30 @@ export default function EventosPage() {
 
   const handleCreate = async () => {
     if (!form.titulo) return
+    const datos = { ...form }
+    setOpen(false)
+    setForm({ titulo: "", fecha: new Date(), horaInicio: "20:00", tipo: "reunion_general" })
+    const tempId = `temp-${Date.now()}`
+    const eventoOptimista: Evento = {
+      id: tempId,
+      titulo: datos.titulo,
+      descripcion: "",
+      fecha: datos.fecha,
+      horaInicio: datos.horaInicio,
+      horaFin: "",
+      tipo: datos.tipo,
+      recurrencia: "unico",
+      esRecurrente: false,
+      suspendido: false,
+      ubicacion: "",
+      ministerioIds: [],
+      creadoPor: "",
+      createdAt: new Date(),
+    }
+    setEventos((prev) => [...prev, eventoOptimista])
     try {
-      await crearDocumento<Evento>("eventos", {
-        ...form,
+      const nuevoId = await crearDocumento<Evento>("eventos", {
+        ...datos,
         recurrencia: "unico",
         esRecurrente: false,
         suspendido: false,
@@ -95,11 +116,10 @@ export default function EventosPage() {
         ministerioIds: [],
         creadoPor: "",
       })
+      setEventos((prev) => prev.map((e) => e.id === tempId ? { ...e, id: nuevoId } : e))
       toast.success("Evento creado exitosamente")
-      setOpen(false)
-      setForm({ titulo: "", fecha: new Date(), horaInicio: "20:00", tipo: "reunion_general" })
-      refetch()
     } catch {
+      setEventos((prev) => prev.filter((e) => e.id !== tempId))
       toast.error("Error al crear evento")
     }
   }
