@@ -172,6 +172,12 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
 
+Cambios de esta sesión (v1.15.0):
+- **Feature Células: Miembros** — lista simple de nombres por célula (colección `miembros_celula`). Líder, colíder y admin/pastor pueden agregar/eliminar.
+- **Feature Células: Reportes Semanales** — formulario tipo "Reporte Celular" en papel (colección `reporte_celulas`). Solo el líder de la célula puede crear reportes; el creador puede editarlos. Campos: fecha, miembros, invitados, total, tema, versículo, ofrenda, observaciones, anfitrión/colíder/líder, supervisado.
+- **Tab Células en detalle de ministerio** — el ministerio "Celular" muestra tab "Células" con listado de células asociadas. Resto de ministerios sin cambios.
+- **Firestore rules** — agregadas reglas para `miembros_celula` y `reporte_celulas` (lectura: autenticados; creación/edición: según permisos; eliminación: deshabilitada).
+
 Cambios de esta sesión (v1.14.7):
 - **Notificaciones no se auto-marcan como leídas** — eliminado el `useEffect` que marcaba todas como leídas al abrir la página. Ahora cada notificación tiene un botón "Marcar como leída".
 - **UI del panel de notificaciones mejorada** — botones "Marcar todas leídas" y "Eliminar leídas" son mutuamente excluyentes (solo uno visible a la vez). Disponible para todos los usuarios.
@@ -259,6 +265,9 @@ Hecho en esta sesión:
 - ~~Fix tickets líder/colaborador~~ — useTickets con queries paralelas, sin índice compuesto
 - ~~Feature Células~~ — CRUD completo con tipo, líder/colíder/anfitrión, dirección y horarios
 - ~~Cascade delete células~~ — al borrar ministerio se eliminan sus células
+- ~~Tab Células en ministerio Celular~~ — listado de células en detalle del ministerio
+- ~~Miembros de célula~~ — lista simple de nombres con CRUD
+- ~~Reportes semanales de célula~~ — formulario tipo papel con historial
 
 Pendiente (notificaciones push):
 - ~~Notificaciones dobles~~ — eliminado `onNotificacionCreated` trigger (causaba doble push). Deploy OK.
@@ -368,7 +377,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.14.7 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.15.0 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 

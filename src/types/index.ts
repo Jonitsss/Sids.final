@@ -167,6 +167,35 @@ export interface Consulta {
   updatedAt: Date
 }
 
+export interface MiembroCelula {
+  id: string
+  celulaId: string
+  nombre: string
+  activo: boolean
+  createdAt: Date
+}
+
+export interface ReporteCelula {
+  id: string
+  celulaId: string
+  fecha: Date
+  miembros: number
+  invitados: number
+  total: number
+  temaTratado: string
+  versiculoPrincipal: string
+  ofrenda: number
+  recibio: string
+  observaciones: string
+  anfitrionId: string
+  coliderId: string
+  liderId: string
+  supervisado: string
+  createdBy: string
+  activo: boolean
+  createdAt: Date
+}
+
 export type DashboardStats = {
   proximosEventos: Evento[]
   tareasPendientes: number

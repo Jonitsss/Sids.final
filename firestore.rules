@@ -140,6 +140,30 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
+    // miembros_celula: lista simple de nombres por célula
+    // ---------------------------------------------------------------------
+    match /miembros_celula/{miembroId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && (esPastorOAdmin()
+            || request.auth.uid == request.resource.data.createdBy
+            || request.auth.uid == resource.data.createdBy);
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // reporte_celulas: reportes semanales de células
+    // ---------------------------------------------------------------------
+    match /reporte_celulas/{reporteId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && (esPastorOAdmin() || request.auth.uid == request.resource.data.createdBy);
+      allow update: if isSignedIn()
+        && (esPastorOAdmin() || request.auth.uid == resource.data.createdBy);
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
     // Deny everything else by default (fail-safe)
     // ---------------------------------------------------------------------
     match /{document=**} {

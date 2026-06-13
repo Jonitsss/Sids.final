@@ -20,6 +20,7 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/dashboard` | Protegida | Panel principal según rol |
 | `/ministerios` | Protegida | CRUD de ministerios (con detalle `/ministerios/[slug]`) |
 | `/ministerios/celulas` | Protegida | Gestión de células (con detalle `/ministerios/celulas/[id]`) |
+| `/ministerios/celulas/[id]` | Protegida | Detalle de célula: información, miembros y reportes semanales |
 | `/eventos` | Protegida | Calendario de eventos (con detalle `/eventos/[id]`) |
 | `/cronogramas` | Protegida | Grillas de servicio (con detalle `/cronogramas/[id]`) |
 | `/tareas` | Protegida | Gestión de tareas |
