@@ -149,6 +149,8 @@ npm install
 npm run build        # tsc -> lib/
 npm run deploy       # firebase deploy --only functions
 npm run logs         # firebase functions:log
+npm run delete-users # Elimina todos los usuarios excepto admin (requiere --confirm)
+npm run delete-data  # Elimina ministerios, células, miembros y reportes (requiere --confirm)
 
 # Deploy orquestado
 ./deploy.sh                              # flujo completo (prereqs + deploy)

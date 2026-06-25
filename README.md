@@ -323,6 +323,8 @@ npm run deploy       # Despliega a Firebase (firebase deploy --only functions)
 npm run logs         # Ver logs en producción
 npm run test-push    # Envía notificación push de prueba a todos los tokens FCM registrados
 npm run clear-tokens # Limpia todos los tokens FCM (usuarios deben re-aceptar push)
+npm run delete-users # Elimina todos los usuarios excepto admin (requiere --confirm)
+npm run delete-data  # Elimina ministerios, células, miembros y reportes (requiere --confirm)
 ```
 
 Región: `southamerica-east1` (São Paulo) por cercanía a Argentina.

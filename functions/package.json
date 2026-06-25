@@ -18,7 +18,8 @@
     "clean-orphans": "ts-node src/scripts/cleanOrphans.ts",
     "delete-events": "ts-node src/scripts/deleteAllEvents.ts",
     "clear-tokens": "ts-node src/scripts/clearAllTokens.ts",
-    "delete-users": "ts-node src/scripts/deleteAllUsers.ts"
+    "delete-users": "ts-node src/scripts/deleteAllUsers.ts",
+    "delete-data": "ts-node src/scripts/deleteAllData.ts"
   },
   "engines": {
     "node": "22"
