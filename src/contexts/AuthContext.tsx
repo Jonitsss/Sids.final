@@ -14,6 +14,7 @@ import { auth, db } from "@/lib/firebase"
 import { logger } from "@/lib/logger"
 import { Usuario, Rol } from "@/types"
 import { asignarRolUsuario, RolValido } from "@/lib/roles"
+import { enviarNotificacion } from "@/lib/firestore"
 
 interface AuthContextType {
   user: User | null
@@ -117,6 +118,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await cred.user.getIdToken(true)
   }
 
+  const notifyAdminsOfNewUser = async (userName: string, userEmail: string) => {
+    if (!db) return
+    try {
+      const q = query(collection(db, "usuarios"), where("rol", "in", ["pastor", "administrador"]))
+      const snap = await getDocs(q)
+      for (const d of snap.docs) {
+        const admin = d.data()
+        const adminId = admin.authUid || d.id
+        await enviarNotificacion({
+          usuarioId: adminId,
+          titulo: "Nuevo usuario registrado",
+          mensaje: `${userName} (${userEmail}) se ha registrado y está pendiente de aprobación.`,
+          tipo: "registro",
+          referenciaId: d.id,
+        })
+      }
+    } catch (error) {
+      logger.error("Error notifying admins of new user", error instanceof Error ? error : undefined)
+    }
+  }
+
   const register = async (email: string, password: string, data: Partial<Usuario>) => {
     if (!auth || !db) throw new Error("Firebase no inicializado")
     const emailLower = email.toLowerCase().trim()
@@ -126,6 +148,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const q = query(collection(db, "usuarios"), where("email", "==", emailLower))
     const snap = await getDocs(q)
     const preProfile = snap.docs.find((d) => !d.data().authUid)
+
+    const userName = `${data.nombre || ""} ${data.apellido || ""}`.trim() || emailLower
 
     if (preProfile) {
       await setDoc(doc(db, "usuarios", preProfile.id), {
@@ -159,6 +183,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatedAt: serverTimestamp(),
       })
     }
+
+    await notifyAdminsOfNewUser(userName, emailLower)
   }
 
   const logout = async () => {
