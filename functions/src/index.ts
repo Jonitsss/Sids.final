@@ -291,6 +291,12 @@ export const borrarDocumento = onRequest(async (req, res) => {
         batch.delete(cronDoc.ref);
       }
 
+      const asistSnap = await db
+        .collection("asistencias")
+        .where("eventoId", "==", id)
+        .get();
+      asistSnap.docs.forEach((d) => batch.delete(d.ref));
+
       batch.delete(ref);
       await batch.commit();
     } else if (coleccion === "cronogramas" && esDestructivo) {

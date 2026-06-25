@@ -172,6 +172,11 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
 
+Cambios de esta sesión (v1.17.0):
+- **Registro de asistencia funcional** — `/asistencia` ahora permite a cada usuario marcar su propia asistencia (Presente/Ausente/Justificado) para eventos donde tiene asignaciones confirmadas. Se guarda en la colección `asistencias` con `eventoId`, `usuarioId`, `estado`, `justificacion`, `fecha` y `registradoPor`. Hook `useAsistencias` creado para lectura en tiempo real.
+- **Cascade delete asistencias** — Al borrar un evento, la Cloud Function ahora también elimina las asistencias asociadas (evita datos huérfanos).
+- **Reportes funcionales** — La sección de reportes ahora mostrará datos reales de asistencia una vez los usuarios empiecen a registrar.
+
 Cambios de esta sesión (v1.16.2):
 - **Fix permisos ministerios** — `/ministerios` ahora filtra la lista por `ministerioIds` para líderes de área (solo ven su ministerio). Título cambia a "Mi Ministerio" para líderes.
 - **Fix acceso a ministerios ajenos** — `/ministerios/[slug]` bloquea acceso si el usuario no es pastor/admin y no está en `ministerioIds` del ministerio. Muestra mensaje "No tenés permiso para ver este ministerio".
@@ -273,6 +278,8 @@ Hecho en esta sesión:
 - ~~Fix permisos células~~ — bloquea `/ministerios/celulas/[id]` si no es líder/colíder/anfitrión
 - ~~Fix eliminación células~~ — solo pastor/admin puede eliminar células
 - ~~README.md con roles~~ — nueva sección "Roles y Permisos" con tabla y detalles
+- ~~Registro de asistencia~~ — cada usuario marca su asistencia (Presente/Ausente/Justificado)
+- ~~Cascade delete asistencias~~ — al borrar evento se eliminan asistencias asociadas
 - ~~Notificaciones no se auto-marcan~~ — eliminado auto-read, botón "Marcar como leída" por notificación
 - ~~UI notificaciones mejorada~~ — botones mutuamente excluyentes, disponible para todos
 - ~~Tipo "aprobacion"~~ — agregado a interfaz `Notificacion`

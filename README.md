@@ -24,7 +24,7 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/eventos` | Protegida | Calendario de eventos (con detalle `/eventos/[id]`) |
 | `/cronogramas` | Protegida | Grillas de servicio (con detalle `/cronogramas/[id]`) |
 | `/tareas` | Protegida | Gestión de tareas |
-| `/asistencia` | Protegida | Registro de asistencia (solo pastor) |
+| `/asistencia` | Protegida | Registro de asistencia (cada usuario marca la suya) |
 | `/consultas` | Protegida | Sistema de consultas (líder → pastor/admin) |
 | `/notificaciones` | Protegida | Bandeja de notificaciones |
 | `/perfil` | Protegida | Perfil de usuario editable |
