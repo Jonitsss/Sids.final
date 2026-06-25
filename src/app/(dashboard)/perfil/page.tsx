@@ -13,9 +13,14 @@ import { Badge } from "@/components/ui/badge"
 import { Camera, Save, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
+import { useDashboardStore } from "@/stores/dashboardStore"
 
 export default function PerfilPage() {
   const { user, userData, updateUserData } = useAuth()
+  const ministerios = useDashboardStore((s) => s.ministerios)
+  const misMinisterios = ministerios.filter((m) =>
+    userData?.ministerioIds?.includes(m.id)
+  )
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -124,6 +129,19 @@ export default function PerfilPage() {
           <div className="mt-4">
             <CardTitle>{userData?.nombre} {userData?.apellido}</CardTitle>
             <Badge variant="secondary" className="mt-1">{rolLabel(userData?.rol)}</Badge>
+            {misMinisterios.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2 justify-center">
+                {misMinisterios.map((m) => (
+                  <Badge
+                    key={m.id}
+                    className="text-white border-0"
+                    style={{ backgroundColor: m.color }}
+                  >
+                    {m.nombre}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardHeader>
       </Card>
@@ -167,6 +185,24 @@ export default function PerfilPage() {
           <div className="space-y-2">
             <Label>Rol</Label>
             <Input value={rolLabel(userData?.rol)} disabled />
+          </div>
+          <div className="space-y-2">
+            <Label>Ministerios</Label>
+            <div className="flex flex-wrap gap-1.5 min-h-[36px] items-center rounded-md border border-input bg-muted/50 px-3 py-1.5">
+              {misMinisterios.length > 0 ? (
+                misMinisterios.map((m) => (
+                  <Badge
+                    key={m.id}
+                    className="text-white border-0 text-xs"
+                    style={{ backgroundColor: m.color }}
+                  >
+                    {m.nombre}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-sm text-muted-foreground">Sin ministerios asignados</span>
+              )}
+            </div>
           </div>
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>

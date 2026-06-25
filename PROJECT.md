@@ -172,6 +172,9 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
 
+Cambios de esta sesión (v1.16.1):
+- **Perfil: mostrar ministerios del usuario** — en `/perfil` ahora se muestran los ministerios asignados al usuario como badges con el color del ministerio. Aparecen en dos lugares: debajo del rol en la tarjeta de header, y como campo "Ministerios" en la sección de información personal. Compatible con dark/light mode.
+
 Cambios de esta sesión (v1.16.0):
 - **Landing: sección "Nuestros ministerios"** — reemplaza la sección "Nuestros Valores" (portfolio grid + diagrama de Venn) por un layout de dos columnas: grid de 7 tarjetas con colores de la paleta SIDS (Grupo conexión Varones/Mujeres/Matrimonios/Adolescentes, Escuela de Ministerio, Adolescentes, Pre-Adolescentes) + panel CTA "SUMATE — Nuestros ministerios". Botón "Más información" como placeholder (sin link). Estilos CSS actualizados: eliminados `.portfolio-grid`, `.portfolio-card`, `.venn-*`; agregados `.groups-layout`, `.groups-grid`, `.group-card`, `.groups-cta`.
 
