@@ -1,14 +1,11 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Calendar } from "@/components/ui/calendar"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEventos } from "@/hooks/useEventos"
 import { Plus, ChevronLeft, ChevronRight, Trash2, CalendarDays } from "lucide-react"
@@ -18,16 +15,24 @@ import { Evento } from "@/types"
 import { toast } from "sonner"
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay } from "date-fns"
 import { es } from "date-fns/locale"
+import { EventoForm } from "@/components/eventos/EventoForm"
 
 const DIAS_CORTOS = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"]
-
-const SUGERENCIAS_REUNION = [
-  { titulo: "Reunión General Jueves", hora: "20:00" },
-  { titulo: "Reunión General Domingo", hora: "18:00" },
-]
-
-
 type ViewMode = "month" | "list"
+
+const tipoBadge = (tipo: string) => {
+  const variants: Record<string, "default" | "secondary" | "outline" | "warning"> = {
+    reunion_general: "default", reunion_coordinacion: "secondary", ensayo: "secondary", jovenes: "outline", evento_especial: "warning",
+  }
+  return variants[tipo] || "default"
+}
+
+const tipoLabel = (tipo: string) => {
+  const labels: Record<string, string> = {
+    reunion_general: "Reunión", reunion_coordinacion: "Coordinación", ensayo: "Ensayo", jovenes: "Jóvenes", evento_especial: "Especial",
+  }
+  return labels[tipo] || tipo
+}
 
 export default function EventosPage() {
   const { eventos, loading, refetch, setEventos } = useEventos()
@@ -38,50 +43,17 @@ export default function EventosPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<ViewMode>("month")
   const [open, setOpen] = useState(false)
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [form, setForm] = useState({
-    titulo: "",
-    fecha: new Date(),
-    horaInicio: "20:00",
-    tipo: "reunion_general" as Evento["tipo"],
-  })
-  const suggestionsRef = useRef<HTMLDivElement>(null)
+  const [form, setForm] = useState({ titulo: "", fecha: new Date(), horaInicio: "20:00", tipo: "reunion_general" as Evento["tipo"] })
 
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
   const calStart = startOfWeek(monthStart)
   const calEnd = endOfWeek(monthEnd)
-
   const days: Date[] = []
   let day = calStart
-  while (day <= calEnd) {
-    days.push(day)
-    day = addDays(day, 1)
-  }
+  while (day <= calEnd) { days.push(day); day = addDays(day, 1) }
 
   const eventosDelMes = eventos.filter((e) => isSameMonth(e.fecha, currentDate))
-
-  const prevMonth = () => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
-  const nextMonth = () => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
-
-  const sugerenciasFiltradas = form.titulo.length >= 3
-    ? SUGERENCIAS_REUNION.filter((s) => s.titulo.toLowerCase().includes(form.titulo.toLowerCase()))
-    : []
-
-  const handleSelectSugerencia = (sugerencia: typeof SUGERENCIAS_REUNION[0]) => {
-    setForm({ ...form, titulo: sugerencia.titulo, horaInicio: sugerencia.hora })
-    setShowSuggestions(false)
-  }
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
 
   const handleCreate = async () => {
     if (!form.titulo) return
@@ -89,33 +61,10 @@ export default function EventosPage() {
     setOpen(false)
     setForm({ titulo: "", fecha: new Date(), horaInicio: "20:00", tipo: "reunion_general" })
     const tempId = `temp-${Date.now()}`
-    const eventoOptimista: Evento = {
-      id: tempId,
-      titulo: datos.titulo,
-      descripcion: "",
-      fecha: datos.fecha,
-      horaInicio: datos.horaInicio,
-      horaFin: "",
-      tipo: datos.tipo,
-      recurrencia: "unico",
-      esRecurrente: false,
-      suspendido: false,
-      ubicacion: "",
-      ministerioIds: [],
-      creadoPor: "",
-      createdAt: new Date(),
-    }
+    const eventoOptimista: Evento = { id: tempId, titulo: datos.titulo, descripcion: "", fecha: datos.fecha, horaInicio: datos.horaInicio, horaFin: "", tipo: datos.tipo, recurrencia: "unico", esRecurrente: false, suspendido: false, ubicacion: "", ministerioIds: [], creadoPor: "", createdAt: new Date() }
     setEventos((prev) => [...prev, eventoOptimista])
     try {
-      const nuevoId = await crearDocumento<Evento>("eventos", {
-        ...datos,
-        recurrencia: "unico",
-        esRecurrente: false,
-        suspendido: false,
-        ubicacion: "",
-        ministerioIds: [],
-        creadoPor: "",
-      })
+      const nuevoId = await crearDocumento<Evento>("eventos", { ...datos, recurrencia: "unico", esRecurrente: false, suspendido: false, ubicacion: "", ministerioIds: [], creadoPor: "" })
       setEventos((prev) => prev.map((e) => e.id === tempId ? { ...e, id: nuevoId } : e))
       toast.success("Evento creado exitosamente")
     } catch {
@@ -127,25 +76,9 @@ export default function EventosPage() {
   const handleDelete = useCallback(async (id: string, titulo: string) => {
     if (!confirm(`¿Eliminar el evento "${titulo}"? También se eliminarán los cronogramas, asignaciones y notificaciones asociadas.`)) return
     setEventos((prev) => prev.filter((e) => e.id !== id))
-    try {
-      await eliminarDocumento("eventos", id)
-      toast.success("Evento y dependencias eliminados")
-    } catch {
-      toast.error("Error al eliminar evento")
-      refetch()
-    }
+    try { await eliminarDocumento("eventos", id); toast.success("Evento y dependencias eliminados") }
+    catch { toast.error("Error al eliminar evento"); refetch() }
   }, [setEventos, refetch])
-
-  const tipoBadge = (tipo: string) => {
-    const variants: Record<string, "default" | "secondary" | "outline" | "warning"> = {
-      reunion_general: "default",
-      reunion_coordinacion: "secondary",
-      ensayo: "secondary",
-      jovenes: "outline",
-      evento_especial: "warning",
-    }
-    return variants[tipo] || "default"
-  }
 
   return (
     <div className="space-y-6">
@@ -156,133 +89,48 @@ export default function EventosPage() {
         </div>
         <div className="flex gap-2">
           <Select value={viewMode} onValueChange={(v: ViewMode) => setViewMode(v)}>
-            <SelectTrigger className="w-28">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="month">Mes</SelectItem>
               <SelectItem value="list">Lista</SelectItem>
             </SelectContent>
           </Select>
           {puedeCrear && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4" />
-                Nuevo Evento
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Crear Evento</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Título</Label>
-                  <div className="relative" ref={suggestionsRef}>
-                    <Input
-                      value={form.titulo}
-                      onChange={(e) => {
-                        setForm({ ...form, titulo: e.target.value })
-                        setShowSuggestions(true)
-                      }}
-                      onFocus={() => setShowSuggestions(true)}
-                      placeholder="Ej: Reunión General..."
-                    />
-                    {showSuggestions && sugerenciasFiltradas.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md z-50">
-                        {sugerenciasFiltradas.map((s) => (
-                          <button
-                            key={s.titulo}
-                            onClick={() => handleSelectSugerencia(s)}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
-                          >
-                            {s.titulo} <span className="text-muted-foreground">({s.hora})</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Fecha</Label>
-                  <Calendar
-                    mode="single"
-                    selected={form.fecha}
-                    onSelect={(d) => d && setForm({ ...form, fecha: d })}
-                    hasEvents={(date) => eventos.some((e) => isSameDay(e.fecha, date))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Horario</Label>
-                  <Input type="time" value={form.horaInicio} onChange={(e) => setForm({ ...form, horaInicio: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Tipo</Label>
-                  <Select value={form.tipo} onValueChange={(v: any) => setForm({ ...form, tipo: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="reunion_general">Reunión General</SelectItem>
-                      <SelectItem value="reunion_coordinacion">Reunión de Coordinación</SelectItem>
-                      <SelectItem value="ensayo">Ensayo</SelectItem>
-                      <SelectItem value="jovenes">Jóvenes</SelectItem>
-                      <SelectItem value="escuela_biblica">Escuela Bíblica</SelectItem>
-                      <SelectItem value="evento_especial">Evento Especial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={handleCreate} className="w-full">Crear Evento</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button><Plus className="h-4 w-4" />Nuevo Evento</Button></DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Crear Evento</DialogTitle></DialogHeader>
+                <EventoForm form={form} setForm={setForm} eventos={eventos} onSubmit={handleCreate} />
+              </DialogContent>
+            </Dialog>
           )}
         </div>
       </div>
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          {loading && eventos.length === 0 ? (
-            <CalendarSkeleton />
-          ) : viewMode === "month" ? (
+          {loading && eventos.length === 0 ? <CalendarSkeleton /> : viewMode === "month" ? (
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <Button variant="ghost" size="icon" onClick={prevMonth}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}><ChevronLeft className="h-4 w-4" /></Button>
                   <CardTitle>{format(currentDate, "MMMM yyyy", { locale: es })}</CardTitle>
-                  <Button variant="ghost" size="icon" onClick={nextMonth}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}><ChevronRight className="h-4 w-4" /></Button>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-7 gap-1">
-                  {DIAS_CORTOS.map((d) => (
-                    <div key={d} className="text-center text-[10px] sm:text-xs font-medium text-muted-foreground py-1">{d}</div>
-                  ))}
+                  {DIAS_CORTOS.map((d) => <div key={d} className="text-center text-[10px] sm:text-xs font-medium text-muted-foreground py-1">{d}</div>)}
                   {days.map((d, idx) => {
                     const evs = eventos.filter((e) => isSameDay(e.fecha, d))
                     return (
-                      <div
-                        key={idx}
-                        className={`aspect-square p-0.5 sm:p-1 border rounded-md text-sm flex flex-col ${
-                          !isSameMonth(d, currentDate) ? "text-muted-foreground/40" : ""
-                        } ${isSameDay(d, new Date()) ? "border-primary" : ""}`}
-                      >
+                      <div key={idx} className={`aspect-square p-0.5 sm:p-1 border rounded-md text-sm flex flex-col ${!isSameMonth(d, currentDate) ? "text-muted-foreground/40" : ""} ${isSameDay(d, new Date()) ? "border-primary" : ""}`}>
                         <span className="text-[10px] sm:text-xs font-medium leading-none">{format(d, "d")}</span>
                         <div className="flex-1 overflow-hidden">
                           {evs.map((e) => (
                             <div key={e.id} className="group/ev flex items-center gap-0.5 text-[8px] sm:text-[10px] bg-primary/10 text-primary rounded px-0.5 mt-0.5">
                               <span className="truncate flex-1 leading-tight">{e.titulo}</span>
-                              {esPastor && (
-                                <button
-                                  className="shrink-0 opacity-0 group-hover/ev:opacity-100 hover:text-destructive transition-opacity"
-                                  onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id, e.titulo) }}
-                                >
-                                  <Trash2 className="h-2.5 w-2.5" />
-                                </button>
-                              )}
+                              {esPastor && <button className="shrink-0 opacity-0 group-hover/ev:opacity-100 hover:text-destructive transition-opacity" onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id, e.titulo) }}><Trash2 className="h-2.5 w-2.5" /></button>}
                             </div>
                           ))}
                         </div>
@@ -294,15 +142,10 @@ export default function EventosPage() {
             </Card>
           ) : (
             <Card>
-              <CardHeader>
-                <CardTitle>Lista de Eventos</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Lista de Eventos</CardTitle></CardHeader>
               <CardContent>
                 {eventosDelMes.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <CalendarDays className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                    <p>No hay eventos este mes</p>
-                  </div>
+                  <div className="text-center py-12 text-muted-foreground"><CalendarDays className="h-12 w-12 mx-auto mb-4 opacity-30" /><p>No hay eventos este mes</p></div>
                 ) : (
                   <div className="space-y-3">
                     {eventosDelMes.map((e) => (
@@ -312,25 +155,11 @@ export default function EventosPage() {
                             <p className="text-lg font-bold">{format(e.fecha, "d")}</p>
                             <p className="text-xs text-muted-foreground">{format(e.fecha, "MMM", { locale: es })}</p>
                           </div>
-                          <div>
-                            <p className="font-medium">{e.titulo}</p>
-                            <p className="text-sm text-muted-foreground">{e.horaInicio}</p>
-                          </div>
+                          <div><p className="font-medium">{e.titulo}</p><p className="text-sm text-muted-foreground">{e.horaInicio}</p></div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={tipoBadge(e.tipo)}>
-                            {e.tipo === "reunion_general" ? "Reunión" : e.tipo === "reunion_coordinacion" ? "Coordinación" : e.tipo === "ensayo" ? "Ensayo" : e.tipo === "jovenes" ? "Jóvenes" : "Especial"}
-                          </Badge>
-                          {esPastor && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive/80 hover:bg-transparent"
-                              onClick={() => handleDelete(e.id, e.titulo)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Badge variant={tipoBadge(e.tipo)}>{tipoLabel(e.tipo)}</Badge>
+                          {esPastor && <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80 hover:bg-transparent" onClick={() => handleDelete(e.id, e.titulo)}><Trash2 className="h-4 w-4" /></Button>}
                         </div>
                       </div>
                     ))}
@@ -342,13 +171,9 @@ export default function EventosPage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Próximos Eventos</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Próximos Eventos</CardTitle></CardHeader>
           <CardContent>
-            {loading ? (
-              <SidebarListSkeleton count={5} />
-            ) : eventos.length === 0 ? (
+            {loading ? <SidebarListSkeleton count={5} /> : eventos.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No hay próximos eventos</p>
             ) : (
               <div className="space-y-2">
@@ -357,14 +182,7 @@ export default function EventosPage() {
                     <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
                     <span className="flex-1 truncate">{e.titulo}</span>
                     <span className="text-xs text-muted-foreground shrink-0">{format(e.fecha, "d MMM", { locale: es })}</span>
-                    {esPastor && (
-                      <button
-                        className="shrink-0 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive/80 transition-opacity"
-                        onClick={() => handleDelete(e.id, e.titulo)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
+                    {esPastor && <button className="shrink-0 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive/80 transition-opacity" onClick={() => handleDelete(e.id, e.titulo)}><Trash2 className="h-3 w-3" /></button>}
                   </div>
                 ))}
               </div>
