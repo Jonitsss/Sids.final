@@ -15,6 +15,7 @@ import { obtenerDocumento, actualizarDocumento, crearDocumento, enviarNotificaci
 import { useDashboardStore } from "@/stores/dashboardStore"
 import { useAuth } from "@/contexts/AuthContext"
 import { obtenerDocumentos } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -84,7 +85,7 @@ export default function CronogramaDetailPage() {
           if (mounted) setEvento(ev)
         }
       } catch (error) {
-        console.error("Error loading grilla:", error)
+        logger.error("Error loading grilla", error instanceof Error ? error : undefined)
       } finally {
         if (mounted) setLoading(false)
       }
@@ -134,7 +135,7 @@ export default function CronogramaDetailPage() {
       setAsignaciones(nuevasAsignaciones)
       toast.success("Asignación aceptada")
     } catch (error) {
-      console.error("Error al aceptar:", error)
+      logger.error("Error al aceptar", error instanceof Error ? error : undefined)
       toast.error("Error al aceptar la asignación")
     } finally {
       setSaving(false)
@@ -183,7 +184,7 @@ export default function CronogramaDetailPage() {
       setModalRechazo(null)
       setJustificacion("")
     } catch (error) {
-      console.error("Error al rechazar:", error)
+      logger.error("Error al rechazar", error instanceof Error ? error : undefined)
       toast.error("Error al rechazar la asignación")
     } finally {
       setSaving(false)
@@ -225,7 +226,7 @@ export default function CronogramaDetailPage() {
 
       toast.success("Asignaciones guardadas")
     } catch (error) {
-      console.error("Error saving:", error)
+      logger.error("Error saving", error instanceof Error ? error : undefined)
       toast.error("Error al guardar")
     } finally {
       setSaving(false)

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Ministerio, Usuario, Celula } from "@/types"
 import { obtenerDocumentos, where, actualizarDocumento } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MinisterioDetailSkeleton } from "@/components/skeletons"
 import { Button } from "@/components/ui/button"
@@ -118,7 +119,7 @@ export default function MinisterioDetailPage() {
           if (mounted) setUsuarios(todos)
         }
       } catch (error) {
-        if (mounted) console.error(error)
+        if (mounted) logger.error("Error loading ministerio", error instanceof Error ? error : undefined)
       } finally {
         if (mounted) setLoading(false)
       }

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext"
 import { useDashboardStore } from "@/stores/dashboardStore"
 import { crearDocumento, actualizarDocumento, eliminarDocumento, obtenerDocumentos, enviarNotificacion, where } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 import { Consulta, Usuario } from "@/types"
 import { Plus, MessageSquare, Loader2, Send, X, CheckCircle, Clock, AlertCircle, Trash2 } from "lucide-react"
 import { format } from "date-fns"
@@ -124,7 +125,7 @@ export default function ConsultasPage() {
         })
       })
       .catch((err) => {
-        console.error("Error al enviar consulta:", err)
+        logger.error("Error al enviar consulta", err instanceof Error ? err : undefined)
         toast.error("Error al enviar consulta")
       })
       .finally(() => setSending(false))
@@ -156,7 +157,7 @@ export default function ConsultasPage() {
         toast.success("Respuesta enviada")
       })
       .catch((err) => {
-        console.error("Error al responder:", err)
+        logger.error("Error al responder", err instanceof Error ? err : undefined)
         toast.error("Error al responder")
       })
       .finally(() => setSending(false))

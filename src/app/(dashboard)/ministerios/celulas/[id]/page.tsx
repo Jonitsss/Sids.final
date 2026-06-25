@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Celula, TipoCelula, Usuario, MiembroCelula, ReporteCelula } from "@/types"
 import { obtenerDocumentos, where, actualizarDocumento, crearDocumento, eliminarDocumento } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -121,7 +122,7 @@ export default function CelulaDetailPage() {
           }))
         }
       } catch (error) {
-        if (mounted) console.error(error)
+        if (mounted) logger.error("Error loading celula", error instanceof Error ? error : undefined)
       } finally {
         if (mounted) setLoading(false)
       }

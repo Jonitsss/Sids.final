@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/AuthContext"
 import { Plus, Building2, Music, Volume2, Monitor, BookOpen, Trash2, Loader2 } from "lucide-react"
 import { crearDocumento, eliminarDocumento, obtenerDocumentos, where, actualizarDocumento } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 import { Ministerio, Notificacion } from "@/types"
 import { MINISTERIOS_PREDETERMINADOS } from "@/lib/constants"
 import { slugify } from "@/lib/utils"
@@ -125,10 +126,11 @@ export default function MinisteriosPage() {
       await eliminarDocumento("ministerios", id)
       toast.success("Ministerio eliminado")
     } catch (err: any) {
-      console.error("[handleDelete] Error completo:", err)
-      console.error("[handleDelete] Code:", err?.code)
-      console.error("[handleDelete] Message:", err?.message)
-      console.error("[handleDelete] Details:", err?.details)
+      logger.error("Error al eliminar ministerio", err instanceof Error ? err : undefined, {
+        code: (err as any)?.code,
+        message: (err as any)?.message,
+        details: (err as any)?.details,
+      })
       setMinisterios(anterior)
       toast.error("Error al eliminar ministerio")
     }

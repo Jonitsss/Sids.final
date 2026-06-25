@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Evento } from "@/types"
 import { obtenerDocumentos, where, orderBy } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 
 export function useEventos(fechaInicio?: Date, fechaFin?: Date) {
   const [eventos, setEventos] = useState<Evento[]>([])
@@ -23,7 +24,7 @@ export function useEventos(fechaInicio?: Date, fechaFin?: Date) {
         const data = await obtenerDocumentos<Evento>("eventos", c)
         if (mounted) setEventos(data)
       } catch (error) {
-        if (mounted) console.error("Error fetching eventos:", error)
+        if (mounted) logger.error("Error fetching eventos", error instanceof Error ? error : undefined)
       } finally {
         if (mounted) setLoading(false)
       }

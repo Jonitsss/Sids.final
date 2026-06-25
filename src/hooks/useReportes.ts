@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Evento, Usuario, Asistencia, Ministerio } from "@/types"
 import { obtenerDocumentos, where, orderBy } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 
 export interface ReportesData {
   stats: {
@@ -170,7 +171,7 @@ export function useReportes() {
           })
         }
       } catch (error) {
-        if (mounted) console.error("Error fetching reportes:", error)
+        if (mounted) logger.error("Error fetching reportes", error instanceof Error ? error : undefined)
       } finally {
         if (mounted) setLoading(false)
       }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Tarea } from "@/types"
 import { obtenerDocumentos, where } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 
 export function useTareas(usuarioId?: string, ministerioId?: string) {
   const [tareas, setTareas] = useState<Tarea[]>([])
@@ -24,7 +25,7 @@ export function useTareas(usuarioId?: string, ministerioId?: string) {
         data.sort((a, b) => new Date(a.fechaLimite).getTime() - new Date(b.fechaLimite).getTime())
         if (mounted) setTareas(data)
       } catch (error) {
-        if (mounted) console.error("Error fetching tareas:", error)
+        if (mounted) logger.error("Error fetching tareas", error instanceof Error ? error : undefined)
       } finally {
         if (mounted) setLoading(false)
       }

@@ -11,6 +11,7 @@ import {
 } from "firebase/auth"
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
+import { logger } from "@/lib/logger"
 import { Usuario, Rol } from "@/types"
 import { asignarRolUsuario, RolValido } from "@/lib/roles"
 
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return null
     } catch (error) {
-      console.error("Error fetching user data:", error)
+      logger.error("Error fetching user data", error instanceof Error ? error : undefined)
       return null
     }
   }
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const data = await fetchUserData(firebaseUser)
           setUserData(data)
         } catch (error) {
-          console.error("Error in auth state change:", error)
+          logger.error("Error in auth state change", error instanceof Error ? error : undefined)
           setUserData(null)
         }
       } else {

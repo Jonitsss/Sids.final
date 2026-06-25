@@ -172,6 +172,13 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
 
+Cambios de esta sesión (v1.18.0):
+- **Logger centralizado** — `src/lib/logger.ts` con interfaz unificada (info/warn/error/debug). Solo muestra logs en dev, captura errores en Sentry en producción.
+- **Error Handler centralizado** — `src/lib/error-handler.ts` con clase `AppError`, `handleFirestoreError()` que mapea errores Firebase a mensajes amigables, y `useErrorHandler()` hook para componentes.
+- **Toast helpers** — `src/lib/toast.ts` con `showError()` y `showSuccess()` que combinan toast + logger.
+- **Sentry integrado** — `@sentry/nextjs` v10.61.0 con `instrumentation.ts`, `instrumentation-client.ts`, `global-error.tsx`. Solo activo en producción. Logger envía errores a Sentry automáticamente.
+- **Env var `NEXT_PUBLIC_SENTRY_DSN`** — placeholder en `.env.local`, reemplazar con DSN real de Sentry.
+
 Cambios de esta sesión (v1.17.0):
 - **Registro de asistencia funcional** — `/asistencia` ahora permite a cada usuario marcar su propia asistencia (Presente/Ausente/Justificado) para eventos donde tiene asignaciones confirmadas. Se guarda en la colección `asistencias` con `eventoId`, `usuarioId`, `estado`, `justificacion`, `fecha` y `registradoPor`. Hook `useAsistencias` creado para lectura en tiempo real.
 - **Cascade delete asistencias** — Al borrar un evento, la Cloud Function ahora también elimina las asistencias asociadas (evita datos huérfanos).
@@ -271,6 +278,10 @@ Hecho en sesiones anteriores:
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Hecho en esta sesión:
+- ~~Logger centralizado~~ — `src/lib/logger.ts` con interfaz unificada
+- ~~Error Handler centralizado~~ — `src/lib/error-handler.ts` con `AppError` y `handleFirestoreError()`
+- ~~Toast helpers~~ — `src/lib/toast.ts` con `showError()` y `showSuccess()`
+- ~~Sentry integrado~~ — `@sentry/nextjs` v10.61.0 con instrumentation, solo en producción
 - ~~Landing: sección "Nuestros ministerios"~~ — reemplaza "Nuestros Valores" con grid de 7 tarjetas + CTA
 - ~~Perfil: mostrar ministerios~~ — badges con color del ministerio en header y campo "Ministerios" en info
 - ~~Fix permisos ministerios~~ — líderes solo ven su ministerio en `/ministerios`

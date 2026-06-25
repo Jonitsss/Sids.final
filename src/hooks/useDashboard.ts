@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Evento, Tarea, Usuario, Ministerio, Asignacion } from "@/types"
 import { obtenerDocumentos, where, orderBy, limit } from "@/lib/firestore"
+import { logger } from "@/lib/logger"
 
 export interface DashboardData {
   stats: {
@@ -72,7 +73,7 @@ export function useDashboard() {
           })
         }
       } catch (error) {
-        if (mounted) console.error("Error fetching dashboard:", error)
+        if (mounted) logger.error("Error fetching dashboard", error instanceof Error ? error : undefined)
       } finally {
         if (mounted) setLoading(false)
       }
