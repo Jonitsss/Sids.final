@@ -172,6 +172,13 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
 
+Cambios de esta sesión (v1.16.2):
+- **Fix permisos ministerios** — `/ministerios` ahora filtra la lista por `ministerioIds` para líderes de área (solo ven su ministerio). Título cambia a "Mi Ministerio" para líderes.
+- **Fix acceso a ministerios ajenos** — `/ministerios/[slug]` bloquea acceso si el usuario no es pastor/admin y no está en `ministerioIds` del ministerio. Muestra mensaje "No tenés permiso para ver este ministerio".
+- **Fix permisos células** — `/ministerios/celulas/[id]` bloquea acceso si el usuario no es pastor/admin y no es líder/colíder/anfitrión de esa célula. `puedeEditarCelula` y `puedeGestionarMiembros` ahora verifican `celula.liderId === userData.id` en lugar de `esLiderCelula` (cualquier líder de célula).
+- **Fix eliminación células** — `/ministerios/celulas` separa `puedeCrear` (pastor/admin + líder_celula) de `puedeEliminar` (solo pastor/admin). Líderes de célula ya no pueden eliminar células.
+- **README.md actualizado** — nueva sección "Roles y Permisos" con tabla resumen y permisos detallados por rol.
+
 Cambios de esta sesión (v1.16.1):
 - **Perfil: mostrar ministerios del usuario** — en `/perfil` ahora se muestran los ministerios asignados al usuario como badges con el color del ministerio. Aparecen en dos lugares: debajo del rol en la tarjeta de header, y como campo "Ministerios" en la sección de información personal. Compatible con dark/light mode.
 
@@ -260,6 +267,12 @@ Hecho en sesiones anteriores:
 
 Hecho en esta sesión:
 - ~~Landing: sección "Nuestros ministerios"~~ — reemplaza "Nuestros Valores" con grid de 7 tarjetas + CTA
+- ~~Perfil: mostrar ministerios~~ — badges con color del ministerio en header y campo "Ministerios" en info
+- ~~Fix permisos ministerios~~ — líderes solo ven su ministerio en `/ministerios`
+- ~~Fix acceso ministerios ajenos~~ — bloquea `/ministerios/[slug]` si no pertenece
+- ~~Fix permisos células~~ — bloquea `/ministerios/celulas/[id]` si no es líder/colíder/anfitrión
+- ~~Fix eliminación células~~ — solo pastor/admin puede eliminar células
+- ~~README.md con roles~~ — nueva sección "Roles y Permisos" con tabla y detalles
 - ~~Notificaciones no se auto-marcan~~ — eliminado auto-read, botón "Marcar como leída" por notificación
 - ~~UI notificaciones mejorada~~ — botones mutuamente excluyentes, disponible para todos
 - ~~Tipo "aprobacion"~~ — agregado a interfaz `Notificacion`

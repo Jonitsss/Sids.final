@@ -24,6 +24,12 @@ export default function MinisteriosPage() {
   const { ministerios, ministeriosLoading, setMinisterios } = useDashboardStore()
   const { userData, user } = useAuth()
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
+  const esLider = userData?.rol === "lider"
+  
+  const ministeriosFiltrados = esLider && userData?.ministerioIds
+    ? ministerios.filter((m) => userData.ministerioIds.includes(m.id))
+    : ministerios
+  
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ nombre: "", descripcion: "" })
   const [creating, setCreating] = useState(false)
@@ -132,8 +138,8 @@ export default function MinisteriosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Ministerios</h1>
-          <p className="text-muted-foreground">Gestiona los ministerios de la iglesia</p>
+          <h1 className="text-2xl font-bold">{esLider ? "Mi Ministerio" : "Ministerios"}</h1>
+          <p className="text-muted-foreground">{esLider ? "Tu ministerio asignado" : "Gestiona los ministerios de la iglesia"}</p>
         </div>
         {esPastor && (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -168,17 +174,19 @@ export default function MinisteriosPage() {
 
       {ministeriosLoading ? (
         <CardGridSkeleton cols={3} count={6} />
-      ) : ministerios.length === 0 ? (
+      ) : ministeriosFiltrados.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center text-muted-foreground">
             <Building2 className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg font-medium mb-1">No hay ministerios</p>
-            <p className="text-sm">Crea el primer ministerio para empezar</p>
+            <p className="text-sm">
+              {esLider ? "No tenés ministerios asignados" : "Crea el primer ministerio para empezar"}
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {ministerios.map((m) => {
+          {ministeriosFiltrados.map((m) => {
             const Icon = iconos[m.icono] || Building2
             return (
               <Card key={m.id} className="hover:shadow-md transition-shadow group">

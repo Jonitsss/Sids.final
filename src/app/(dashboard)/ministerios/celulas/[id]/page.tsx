@@ -34,9 +34,9 @@ export default function CelulaDetailPage() {
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const esLiderCelula = userData?.rol === "lider_celula"
   const esColider = userData?.rol === "colider"
-  const puedeEditarCelula = esPastorOAdmin || esLiderCelula
 
   const [celula, setCelula] = useState<Celula | null>(null)
+  const [sinAcceso, setSinAcceso] = useState(false)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -85,6 +85,11 @@ export default function CelulaDetailPage() {
         if (!mounted) return
         const c = resultados[0] || null
         setCelula(c)
+        if (c && !esPastorOAdmin && c.liderId !== userData?.id && c.coliderId !== userData?.id && c.anfitrionId !== userData?.id) {
+          setSinAcceso(true)
+          setLoading(false)
+          return
+        }
         if (c) {
           setForm({
             nombre: c.nombre,
@@ -158,7 +163,8 @@ export default function CelulaDetailPage() {
     }
   }
 
-  const puedeGestionarMiembros = esPastorOAdmin || esLiderCelula || esColider
+  const puedeEditarCelula = esPastorOAdmin || celula?.liderId === userData?.id || celula?.coliderId === userData?.id
+  const puedeGestionarMiembros = esPastorOAdmin || celula?.liderId === userData?.id || celula?.coliderId === userData?.id
 
   const handleAgregarMiembro = async () => {
     const nombre = nuevoMiembroNombre.trim()
@@ -280,6 +286,21 @@ export default function CelulaDetailPage() {
       <div className="space-y-4">
         <div className="h-8 w-32 bg-muted animate-pulse rounded" />
         <div className="h-40 bg-muted animate-pulse rounded" />
+      </div>
+    )
+  }
+
+  if (sinAcceso) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <Users className="h-12 w-12 mx-auto opacity-30 text-muted-foreground" />
+        <div>
+          <p className="text-lg font-medium">No tenés permiso para ver esta célula</p>
+          <p className="text-sm text-muted-foreground">Solo podés ver las células donde estás asignado.</p>
+        </div>
+        <Link href="/ministerios/celulas">
+          <Button variant="outline">Volver a células</Button>
+        </Link>
       </div>
     )
   }

@@ -35,6 +35,7 @@ export default function CelulasPage() {
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const esLiderCelula = userData?.rol === "lider_celula"
   const puedeCrear = esPastorOAdmin || esLiderCelula
+  const puedeEliminar = esPastorOAdmin
 
   const [open, setOpen] = useState(false)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
@@ -331,7 +332,7 @@ export default function CelulasPage() {
                     <CardTitle className="text-base truncate">{c.nombre}</CardTitle>
                     <p className="text-xs text-muted-foreground truncate">{TIPO_LABELS[c.tipo]}</p>
                   </div>
-                  {puedeCrear && (
+                  {puedeEliminar && (
                     <Button
                       variant="ghost"
                       size="icon"

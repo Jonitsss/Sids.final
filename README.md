@@ -31,6 +31,59 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/reportes` | Protegida | Reportes ministeriales |
 | `/usuarios` | Protegida | CRUD de usuarios (solo pastor) |
 
+## Roles y Permisos
+
+El sistema tiene 7 roles con diferentes niveles de acceso. Los roles se almacenan como **custom claims** en Firebase Authentication y se sincronizan con el campo `usuarios.rol`.
+
+### Resumen de roles
+
+| Rol | Nivel | ¿Borra? | Acceso principal |
+|-----|-------|---------|------------------|
+| **Pastor** | 🔴 Máximo | ✅ Sí | Todo: ministerios, células, eventos, cronogramas, tareas, usuarios, reportes |
+| **Administrador** | 🔴 Máximo | ✅ Sí | Igual que Pastor |
+| **Líder de área** | 🟡 Medio | ❌ No | Su ministerio, eventos, cronogramas, tareas, consultas, asistencia |
+| **Líder de célula** | 🟢 Bajo | ❌ No | Sus células asignadas, eventos |
+| **Colíder** | 🟢 Bajo | ❌ No | Sus células asignadas, eventos |
+| **Anfitrión** | 🟢 Bajo | ❌ No | Sus células asignadas, eventos |
+| **Colaborador** | 🔵 Mínimo | ❌ No | Sus asignaciones de cronograma, tareas, eventos, consultas |
+
+### Permisos detallados por rol
+
+#### Pastor / Administrador (roles destructivos)
+- **Acceso total** a todas las secciones del dashboard
+- Pueden **crear, editar y eliminar** ministerios, células, eventos, cronogramas, tareas
+- Pueden **gestionar usuarios**: cambiar roles, aprobar cuentas, desactivar
+- Pueden **ver reportes** ministeriales
+- El borrado se hace vía **Cloud Function** (`borrarDocumento`) que valida el rol
+
+#### Líder de área
+- Ve **solo su ministerio** en `/ministerios` (filtrado por `ministerioIds`)
+- Puede **crear eventos y cronogramas** (pero no eliminarlos)
+- Puede ver **Asistencia** (solo lectura, pastor puede editar)
+- Puede enviar y recibir **Consultas**
+- No puede ver ministerios ajenos ni gestionar usuarios
+
+#### Líder de célula / Colíder / Anfitrión
+- Ve **solo sus células asignadas** (donde es líder, colíder o anfitrión)
+- Puede **editar** solo su propia célula (nombre, dirección, horario)
+- Puede **gestionar miembros** solo de su célula
+- Puede **crear reportes** solo de su célula (líder de célula)
+- No puede ver células de otros líderes
+
+#### Colaborador
+- Ve **solo sus asignaciones** de cronograma ("Mis Asignaciones")
+- Ve **solo sus tareas** ("Mis Tareas")
+- Puede enviar **Consultas** a pastores/admin
+- Solo lectura del resto
+
+### Seguridad
+
+- **Firestore Rules**: `allow delete: if false;` en todas las colecciones operativas
+- **Borrado**: solo vía Cloud Function `borrarDocumento` con validación de rol
+- **Acceso a ministerios**: filtrado por `ministerioIds` del usuario
+- **Acceso a células**: filtrado por `liderId`, `coliderId` o `anfitrionId`
+- **Custom claims**: se asignan con la Cloud Function `setRolUsuario` (solo pastor/admin)
+
 ## Stack técnico
 
 - **[Next.js 15](https://nextjs.org/)** — App Router + Server Components + Route Groups

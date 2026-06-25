@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check, Pencil, Users, Calendar } from "lucide-react"
+import { ArrowLeft, UserPlus, Plus, Trash2, Save, Loader2, Search, Check, Pencil, Users, Calendar, Building2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
@@ -28,6 +28,7 @@ export default function MinisterioDetailPage() {
   const [ministerio, setMinisterio] = useState<Ministerio | null>(null)
   const [miembros, setMiembros] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
+  const [sinAcceso, setSinAcceso] = useState(false)
   const [roles, setRoles] = useState<string[]>([])
   const [nuevoRol, setNuevoRol] = useState("")
   const [savingRoles, setSavingRoles] = useState(false)
@@ -92,6 +93,11 @@ export default function MinisterioDetailPage() {
         if (!mounted) return
         const m = resultados[0] || null
         setMinisterio(m)
+        if (m && !esPastor && !userData?.ministerioIds?.includes(m.id)) {
+          setSinAcceso(true)
+          setLoading(false)
+          return
+        }
         if (m) {
           setRoles(m.roles || [])
           setConfigColor(m.color || "#000000")
@@ -195,6 +201,20 @@ export default function MinisterioDetailPage() {
   }
 
   if (loading) return <MinisterioDetailSkeleton />
+  if (sinAcceso) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <Building2 className="h-12 w-12 mx-auto opacity-30 text-muted-foreground" />
+        <div>
+          <p className="text-lg font-medium">No tenés permiso para ver este ministerio</p>
+          <p className="text-sm text-muted-foreground">Solo podés ver los ministerios a los que estás asignado.</p>
+        </div>
+        <Link href="/ministerios">
+          <Button variant="outline">Volver a ministerios</Button>
+        </Link>
+      </div>
+    )
+  }
   if (!ministerio) return <div className="p-8 text-center text-muted-foreground">Ministerio no encontrado</div>
 
   const liderUsuario = usuarios.find((u) => u.id === configLiderId)
