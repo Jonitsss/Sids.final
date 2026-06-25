@@ -1,58 +1,38 @@
 export default function Values() {
-  const values = [
-    { num: "01", label: "Fe", meta: "Creer en la Palabra" },
-    { num: "02", label: "Esperanza", meta: "Confiar en el Señor" },
-    { num: "03", label: "Amor", meta: "Servir a la comunidad" },
+  const groups = [
+    { label: "Grupo conexión Varones", bg: "var(--green-mid)" },
+    { label: "Grupo conexión Mujeres", bg: "var(--bg-deep)" },
+    { label: "Grupo conexión Matrimonios", bg: "var(--green)" },
+    { label: "Grupo Conexión Adolescentes", bg: "var(--teal)" },
+    { label: "Escuela de Ministerio", bg: "var(--green-mid)" },
+    { label: "Adolescentes", bg: "var(--bg-deep)" },
+    { label: "Pre-Adolescentes", bg: "var(--green)" },
   ];
 
   return (
-    <>
-      <section className="section section-dark" id="valores">
-        <div className="container">
-          <div className="eyebrow reveal-el">03 — Nuestros Valores</div>
-          <h2 className="section-headline reveal-el">Fe · Esperanza · Amor</h2>
-          <div className="portfolio-grid">
-            {values.map((v) => (
-              <div className="portfolio-card reveal-el" key={v.num}>
-                <span className="num">{v.num}</span>
-                <span className="label">{v.label}</span>
-                <span className="meta">{v.meta}</span>
-                <span className="arrow">→</span>
+    <section className="section section-dark" id="ministerios">
+      <div className="container">
+        <div className="groups-layout">
+          <div className="groups-grid">
+            {groups.map((g) => (
+              <div
+                className="group-card reveal-el"
+                key={g.label}
+                style={{ background: g.bg }}
+              >
+                <span className="label">{g.label}</span>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="section section-light">
-        <div className="container venn-wrap">
-          <div className="venn-diagram" aria-hidden="true">
-            <div className="venn-circle">
-              <span className="venn-title">Fe</span>
-              <span className="venn-sub">Creer</span>
-            </div>
-            <div className="venn-circle">
-              <span className="venn-title">Esperanza</span>
-              <span className="venn-sub">Confiar</span>
-            </div>
-            <div className="venn-circle">
-              <span className="venn-title">Amor</span>
-              <span className="venn-sub">Servir</span>
-            </div>
-          </div>
-          <div className="venn-copy reveal-el">
-            <div className="eyebrow">Nuestro Fundamento</div>
-            <h2 className="section-headline">Fe · Esperanza · Amor</h2>
-            <p className="body-text">
-              Tres pilares que guían nuestra misión y visión como iglesia.
-              Cada uno se entrelaza con los otros para formar una vida en Cristo.
-            </p>
-            <a className="btn" href="https://www.instagram.com/sids_iglesia/" target="_blank" rel="noopener">
-              Conocé más <span className="arrow">→</span>
-            </a>
+          <div className="groups-cta reveal-el">
+            <div className="eyebrow">SUMATE</div>
+            <h2 className="section-headline">Nuestros ministerios</h2>
+            <button className="btn btn-outline" type="button">
+              — Más información <span className="arrow">→</span>
+            </button>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

@@ -172,6 +172,9 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
 
+Cambios de esta sesión (v1.16.0):
+- **Landing: sección "Nuestros ministerios"** — reemplaza la sección "Nuestros Valores" (portfolio grid + diagrama de Venn) por un layout de dos columnas: grid de 7 tarjetas con colores de la paleta SIDS (Grupo conexión Varones/Mujeres/Matrimonios/Adolescentes, Escuela de Ministerio, Adolescentes, Pre-Adolescentes) + panel CTA "SUMATE — Nuestros ministerios". Botón "Más información" como placeholder (sin link). Estilos CSS actualizados: eliminados `.portfolio-grid`, `.portfolio-card`, `.venn-*`; agregados `.groups-layout`, `.groups-grid`, `.group-card`, `.groups-cta`.
+
 Cambios de esta sesión (v1.15.0):
 - **Feature Células: Miembros** — lista simple de nombres por célula (colección `miembros_celula`). Líder, colíder y admin/pastor pueden agregar/eliminar.
 - **Feature Células: Reportes Semanales** — formulario tipo "Reporte Celular" en papel (colección `reporte_celulas`). Solo el líder de la célula puede crear reportes; el creador puede editarlos. Campos: fecha, miembros, invitados, total, tema, versículo, ofrenda, observaciones, anfitrión/colíder/líder, supervisado.
@@ -253,6 +256,7 @@ Hecho en sesiones anteriores:
 - ~~Seguridad cronogramas~~ — colaborador solo ve sus asignaciones, no puede editar
 
 Hecho en esta sesión:
+- ~~Landing: sección "Nuestros ministerios"~~ — reemplaza "Nuestros Valores" con grid de 7 tarjetas + CTA
 - ~~Notificaciones no se auto-marcan~~ — eliminado auto-read, botón "Marcar como leída" por notificación
 - ~~UI notificaciones mejorada~~ — botones mutuamente excluyentes, disponible para todos
 - ~~Tipo "aprobacion"~~ — agregado a interfaz `Notificacion`

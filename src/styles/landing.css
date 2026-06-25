@@ -662,123 +662,45 @@ em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
 }
 .marquee-dot { color: var(--accent); font-size: 0.5em; }
 
-/* ─── Portfolio cards (valores) ─── */
-.portfolio-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-4);
-  margin-top: var(--space-7);
-}
-.portfolio-card {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  align-items: center;
-  gap: var(--space-5);
-  padding: 36px 22px;
-  border: 1px solid var(--border-dark);
-  border-radius: var(--radius-md);
-  transition: background .3s ease, border-color .3s ease, transform .25s ease;
-  color: var(--text-light);
-}
-.portfolio-card:hover {
-  background: rgba(218, 233, 83, 0.06);
-  border-color: rgba(218, 233, 83, 0.4);
-  transform: translateY(-2px);
-}
-.portfolio-card .num {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--text-light);
-  opacity: 0.45;
-}
-.portfolio-card .label {
-  font-family: var(--font-sans);
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--text-light);
-  letter-spacing: -0.01em;
-}
-.portfolio-card .meta {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 16px;
-  color: var(--text-secondary);
-  opacity: 0.85;
-}
-.portfolio-card .arrow {
-  color: var(--accent);
-  font-size: 20px;
-  transition: transform .25s;
-}
-.portfolio-card:hover .arrow { transform: translateX(4px); }
-
-/* ─── Venn ─── */
-.venn-wrap {
+/* ─── Groups (ministerios) ─── */
+.groups-layout {
   display: flex;
   align-items: center;
   gap: clamp(40px, 6vw, 96px);
-  justify-content: center;
 }
-.venn-diagram {
-  position: relative;
-  width: clamp(340px, 42vw, 540px);
-  aspect-ratio: 1;
-  flex-shrink: 0;
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  flex: 1;
 }
-.venn-circle {
-  position: absolute;
-  width: 68%;
-  height: 68%;
-  border-radius: 50%;
-  background: var(--bg-deep);
-  opacity: 0.92;
-  mix-blend-mode: multiply;
+.group-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: 6px;
+  padding: var(--space-6) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+  transition: transform .25s ease, border-color .3s ease, box-shadow .3s ease;
+  min-height: 120px;
+}
+.group-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(218, 233, 83, 0.4);
+  box-shadow: 0 8px 24px -8px rgba(218, 233, 83, 0.15);
+}
+.group-card .label {
+  font-family: var(--font-sans);
+  font-size: clamp(14px, 1.4vw, 18px);
+  font-weight: 600;
   color: var(--text-light);
-  transition: transform .4s ease, opacity .4s ease;
-  border: 1px solid rgba(218, 233, 83, 0.18);
+  text-align: center;
+  line-height: 1.2;
 }
-.venn-circle:hover { opacity: 1; transform: scale(1.04); }
-.venn-circle:nth-child(1) {
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--green-mid);
+.groups-cta {
+  max-width: 380px;
+  flex-shrink: 0;
 }
-.venn-circle:nth-child(1):hover { transform: translateX(-50%) scale(1.04); }
-.venn-circle:nth-child(2) {
-  bottom: 4%;
-  left: 4%;
-  background: var(--bg-deep);
-}
-.venn-circle:nth-child(3) {
-  bottom: 4%;
-  right: 4%;
-  background: var(--green);
-}
-
-.venn-title {
-  font-family: var(--font-display);
-  font-size: clamp(22px, 3vw, 42px);
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: -0.02em;
-}
-.venn-circle:nth-child(3) .venn-title { color: var(--bg-dark); }
-.venn-sub {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: clamp(15px, 1.8vw, 22px);
-  color: var(--text-secondary);
-}
-.venn-circle:nth-child(3) .venn-sub { color: var(--bg-dark); opacity: 0.75; }
-.venn-copy { max-width: 480px; }
 
 /* ─── Stats ─── */
 .stats-grid {
@@ -1095,11 +1017,9 @@ em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
 /* ─── Responsive ─── */
 @media (max-width: 1100px) {
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
-  .venn-wrap { flex-direction: column; text-align: center; }
-  .venn-copy { text-align: center; }
-  .portfolio-grid { grid-template-columns: 1fr; }
-  .portfolio-card { grid-template-columns: auto 1fr auto; }
-  .portfolio-card .meta { display: none; }
+  .groups-layout { flex-direction: column; text-align: center; }
+  .groups-grid { grid-template-columns: repeat(2, 1fr); }
+  .groups-cta { max-width: 100%; }
 }
 
 @media (max-width: 860px) {
@@ -1178,6 +1098,7 @@ em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
 
 @media (max-width: 520px) {
   .stats-grid { grid-template-columns: 1fr; }
+  .groups-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .footer-meta { flex-direction: column; gap: 8px; }
   .hero-text { font-size: clamp(44px, 13vw, 72px); }

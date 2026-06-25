@@ -272,7 +272,7 @@ Región: `southamerica-east1` (São Paulo) por cercanía a Argentina.
 
 El proyecto usa **dos CSS completamente diferentes** que conviven sin conflicto:
 
-1. **Landing (`src/styles/landing.css`)** — vanilla CSS con custom properties y clases BEM-like (`.hero`, `.section`, `.portfolio-card`, etc.). Importado en `app/(public)/layout.tsx`.
+1. **Landing (`src/styles/landing.css`)** — vanilla CSS con custom properties y clases BEM-like (`.hero`, `.section`, `.group-card`, etc.). Importado en `app/(public)/layout.tsx`.
 2. **Auth + Dashboard (`src/app/globals.css`)** — Tailwind v4 con tokens de tema y dark mode. Importado en `app/layout.tsx` (root).
 
 Como las clases del landing (`.hero`, `.section`, etc.) no colisionan con las clases utility de Tailwind (`flex`, `text-xl`, etc.), no hay conflicto. El body se estiliza con los defaults de Tailwind para auth/dashboard, y con las reglas del landing para la página principal.
