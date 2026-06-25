@@ -177,11 +177,16 @@ Cambios de esta sesión (v1.18.0):
 - **Error Handler centralizado** — `src/lib/error-handler.ts` con clase `AppError`, `handleFirestoreError()` que mapea errores Firebase a mensajes amigables, y `useErrorHandler()` hook para componentes.
 - **Toast helpers** — `src/lib/toast.ts` con `showError()` y `showSuccess()` que combinan toast + logger.
 - **Sentry integrado** — `@sentry/nextjs` v10.61.0 con `instrumentation.ts`, `instrumentation-client.ts`, `global-error.tsx`. Solo activo en producción. Logger envía errores a Sentry automáticamente.
-- **Env var `NEXT_PUBLIC_SENTRY_DSN`** — placeholder en `.env.local`, reemplazar con DSN real de Sentry.
+- **Env var `NEXT_PUBLIC_SENTRY_DSN`** — configurada en `.env.local`.
 - **Vitest configurado** — `vitest.config.ts` con jsdom, 42 tests pasando.
 - **Tests de permisos** — `src/lib/permissions.ts` + `src/lib/permissions.spec.ts` (22 tests).
 - **Tests de error handler** — `src/lib/error-handler.spec.ts` (7 tests).
 - **Tests de utilidades** — `src/lib/firestore.spec.ts` (13 tests para `mapDoc`, `slugify`, `rolLabel`, `cn`).
+- **Fragmentación de componentes** — 4 páginas >300 líneas refactorizadas:
+  - `usuarios/page.tsx` (508 → <300): extraídos `UsuarioForm` y `UsuarioRow`
+  - `consultas/page.tsx` (429 → <300): extraídos `ConsultaForm` y `ConsultaDetail`
+  - `eventos/page.tsx` (358 → <300): extraído `EventoForm`
+  - `notificaciones/page.tsx` (352 → <300): extraído `NotificacionCard`
 
 Cambios de esta sesión (v1.17.0):
 - **Registro de asistencia funcional** — `/asistencia` ahora permite a cada usuario marcar su propia asistencia (Presente/Ausente/Justificado) para eventos donde tiene asignaciones confirmadas. Se guarda en la colección `asistencias` con `eventoId`, `usuarioId`, `estado`, `justificacion`, `fecha` y `registradoPor`. Hook `useAsistencias` creado para lectura en tiempo real.
@@ -286,6 +291,12 @@ Hecho en esta sesión:
 - ~~Error Handler centralizado~~ — `src/lib/error-handler.ts` con `AppError` y `handleFirestoreError()`
 - ~~Toast helpers~~ — `src/lib/toast.ts` con `showError()` y `showSuccess()`
 - ~~Sentry integrado~~ — `@sentry/nextjs` v10.61.0 con instrumentation, solo en producción
+- ~~Vitest configurado~~ — 42 tests pasando (permisos, error handler, utilidades)
+- ~~Fragmentación de componentes~~ — 4 páginas >300 líneas refactorizadas:
+  - ~~usuarios/page.tsx~~ — extraídos `UsuarioForm` y `UsuarioRow`
+  - ~~consultas/page.tsx~~ — extraídos `ConsultaForm` y `ConsultaDetail`
+  - ~~eventos/page.tsx~~ — extraído `EventoForm`
+  - ~~notificaciones/page.tsx~~ — extraído `NotificacionCard`
 - ~~Landing: sección "Nuestros ministerios"~~ — reemplaza "Nuestros Valores" con grid de 7 tarjetas + CTA
 - ~~Perfil: mostrar ministerios~~ — badges con color del ministerio en header y campo "Ministerios" en info
 - ~~Fix permisos ministerios~~ — líderes solo ven su ministerio en `/ministerios`

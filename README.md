@@ -167,11 +167,15 @@ sids-next/
 │   │   ├── *.tsx                # Componentes del landing (Hero, Nav, Marquee, etc.)
 │   │   ├── ui/                  # shadcn/ui (Button, Card, Input, ...)
 │   │   ├── auth/                # ProtectedRoute, RoleGuard
-│   │   └── layout/              # DashboardLayout, Sidebar
+│   │   ├── layout/              # DashboardLayout, Sidebar
+│   │   ├── usuarios/            # UsuarioForm, UsuarioRow
+│   │   ├── consultas/           # ConsultaForm, ConsultaDetail
+│   │   ├── eventos/             # EventoForm
+│   │   └── notificaciones/      # NotificacionCard
 │   ├── contexts/                # AuthContext, ThemeContext
 │   ├── data/content.ts          # stats, schedule, navLinks, heroLines
 │   ├── hooks/                   # useEventos, useTareas, useDashboard, usePushNotifications, etc.
-│   ├── lib/                     # firebase, firestore, messaging, roles, seo, utils, constants
+│   ├── lib/                     # firebase, firestore, messaging, roles, seo, utils, constants, logger, error-handler, permissions, toast
 │   ├── stores/                  # Zustand stores (dashboardStore)
 │   ├── styles/landing.css       # CSS vanilla del landing (700+ líneas)
 │   └── types/index.ts           # Tipos TypeScript del sistema
