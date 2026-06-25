@@ -178,6 +178,10 @@ Cambios de esta sesión (v1.18.0):
 - **Toast helpers** — `src/lib/toast.ts` con `showError()` y `showSuccess()` que combinan toast + logger.
 - **Sentry integrado** — `@sentry/nextjs` v10.61.0 con `instrumentation.ts`, `instrumentation-client.ts`, `global-error.tsx`. Solo activo en producción. Logger envía errores a Sentry automáticamente.
 - **Env var `NEXT_PUBLIC_SENTRY_DSN`** — placeholder en `.env.local`, reemplazar con DSN real de Sentry.
+- **Vitest configurado** — `vitest.config.ts` con jsdom, 42 tests pasando.
+- **Tests de permisos** — `src/lib/permissions.ts` + `src/lib/permissions.spec.ts` (22 tests).
+- **Tests de error handler** — `src/lib/error-handler.spec.ts` (7 tests).
+- **Tests de utilidades** — `src/lib/firestore.spec.ts` (13 tests para `mapDoc`, `slugify`, `rolLabel`, `cn`).
 
 Cambios de esta sesión (v1.17.0):
 - **Registro de asistencia funcional** — `/asistencia` ahora permite a cada usuario marcar su propia asistencia (Presente/Ausente/Justificado) para eventos donde tiene asignaciones confirmadas. Se guarda en la colección `asistencias` con `eventoId`, `usuarioId`, `estado`, `justificacion`, `fecha` y `registradoPor`. Hook `useAsistencias` creado para lectura en tiempo real.

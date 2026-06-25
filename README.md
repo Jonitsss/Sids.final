@@ -96,6 +96,8 @@ El sistema tiene 7 roles con diferentes niveles de acceso. Los roles se almacena
 - **Zustand** — store global para datos compartidos (ministerios, usuarios, notificaciones, consultas)
 - **framer-motion** — animaciones dashboard
 - **shadcn/ui** — componentes accesibles (Radix primitives)
+- **[Vitest](https://vitest.dev/)** — testing framework (42+ tests)
+- **[Sentry](https://sentry.io/)** — error tracking en producción
 - **[next-sitemap](https://github.com/iamvishnusankar/next-sitemap)** — sitemap + robots en postbuild
 - **Despliegue**: Vercel (frontend) + Firebase (backend + push notifications)
 
@@ -302,6 +304,8 @@ npm run dev          # Servidor de desarrollo → http://localhost:3000
 npm run build        # Build de producción (genera .next/)
 npm start            # Servidor de producción
 npm run lint         # ESLint
+npm run test         # Ejecutar tests (Vitest)
+npm run test:watch   # Tests en modo watch
 ```
 
 `npm run build` ejecuta automáticamente `next-sitemap` (vía `postbuild`) para generar `robots.txt` y `sitemap.xml` en `public/`.
