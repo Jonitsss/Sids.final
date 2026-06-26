@@ -31,7 +31,7 @@ export default function ConsultasPage() {
   const consultasSalientes = useMemo(() => consultas.filter((t) => t.de === user?.uid), [consultas, user?.uid])
 
   const [open, setOpen] = useState(false)
-  const [tab, setTab] = useState<"enviados" | "recibidos">("enviados")
+  const [tab, setTab] = useState<"enviados" | "recibidos">(esPastorOAdmin ? "recibidos" : "enviados")
   const [form, setForm] = useState({ tipo: "sugerencia" as Consulta["tipo"], a: "", asunto: "", mensaje: "" })
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [usuariosLoading, setUsuariosLoading] = useState(false)
@@ -47,7 +47,7 @@ export default function ConsultasPage() {
     setOpen(true)
     setUsuariosLoading(true)
     try {
-      setUsuarios(await obtenerDocumentos<Usuario>("usuarios", [where("rol", "in", ["pastor", "administrador"])]))
+      setUsuarios(await obtenerDocumentos<Usuario>("usuarios", esPastorOAdmin ? [] : [where("rol", "in", ["pastor", "administrador"])]))
     } catch { toast.error("Error al cargar destinatarios") }
     finally { setUsuariosLoading(false) }
   }
@@ -130,17 +130,15 @@ export default function ConsultasPage() {
               <Trash2 className="h-4 w-4" /> Eliminar todas
             </Button>
           )}
-          {!esPastorOAdmin && (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={handleOpenCreate}><Plus className="h-4 w-4" />Nueva Consulta</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader><DialogTitle>Nueva Consulta</DialogTitle></DialogHeader>
-                <ConsultaForm form={form} setForm={setForm} usuarios={usuarios} usuariosLoading={usuariosLoading} sending={sending} onSubmit={handleCreate} />
-              </DialogContent>
-            </Dialog>
-          )}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={handleOpenCreate}><Plus className="h-4 w-4" />Nueva Consulta</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader><DialogTitle>Nueva Consulta</DialogTitle></DialogHeader>
+              <ConsultaForm form={form} setForm={setForm} usuarios={usuarios} usuariosLoading={usuariosLoading} sending={sending} onSubmit={handleCreate} />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
