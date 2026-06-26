@@ -58,6 +58,12 @@ export default function CronogramaDetailPage() {
   const puedeEditar = esPastorOAdmin || esLider
   const uid = userData?.authUid || userData?.id
 
+  const puedeEditarMinisterio = (ministerioId: string) => {
+    if (esPastorOAdmin) return true
+    if (esLider) return userData?.ministerioIds?.includes(ministerioId) ?? false
+    return false
+  }
+
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -318,7 +324,8 @@ export default function CronogramaDetailPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {ministerios
             .filter((min) => {
-              if (puedeEditar) return true
+              if (esPastorOAdmin) return true
+              if (esLider) return userData?.ministerioIds?.includes(min.id) ?? false
               return asignaciones.some((a) => a.ministerioId === min.id && a.usuarioId === uid)
             })
             .map((min) => {
@@ -354,7 +361,7 @@ export default function CronogramaDetailPage() {
                                   {user ? `${user.nombre} ${user.apellido}` : "Externo"}
                                 </p>
                                 <div className="flex gap-1 mt-0.5">
-                                  {puedeEditar ? (
+                                  {puedeEditarMinisterio(min.id) ? (
                                   <button
                                     className={`text-[10px] px-1.5 py-0.5 rounded ${
                                       asig.estado === "confirmado"
@@ -415,7 +422,7 @@ export default function CronogramaDetailPage() {
                                   )}
                                 </div>
                               </div>
-                              {puedeEditar && (
+                              {puedeEditarMinisterio(min.id) && (
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -426,7 +433,7 @@ export default function CronogramaDetailPage() {
                               </Button>
                               )}
                             </div>
-                          ) : puedeEditar ? (
+                          ) : puedeEditarMinisterio(min.id) ? (
                             <div className="flex items-center gap-2 mt-1">
                               <Select
                                 value=""

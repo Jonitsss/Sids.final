@@ -26,12 +26,13 @@ export default function ConsultasPage() {
   const { user, userData } = useAuth()
   const { consultas, consultasLoading, consultasNoLeidas } = useDashboardStore()
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
+  const esDestinatario = esPastorOAdmin || userData?.rol === "lider" || userData?.rol === "lider_celula"
 
   const consultasEntrantes = useMemo(() => consultas.filter((t) => t.a === user?.uid), [consultas, user?.uid])
   const consultasSalientes = useMemo(() => consultas.filter((t) => t.de === user?.uid), [consultas, user?.uid])
 
   const [open, setOpen] = useState(false)
-  const [tab, setTab] = useState<"enviados" | "recibidos">(esPastorOAdmin ? "recibidos" : "enviados")
+  const [tab, setTab] = useState<"enviados" | "recibidos">(esDestinatario ? "recibidos" : "enviados")
   const [form, setForm] = useState({ tipo: "sugerencia" as Consulta["tipo"], a: "", asunto: "", mensaje: "" })
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [usuariosLoading, setUsuariosLoading] = useState(false)
@@ -47,7 +48,7 @@ export default function ConsultasPage() {
     setOpen(true)
     setUsuariosLoading(true)
     try {
-      setUsuarios(await obtenerDocumentos<Usuario>("usuarios", esPastorOAdmin ? [] : [where("rol", "in", ["pastor", "administrador"])]))
+      setUsuarios(await obtenerDocumentos<Usuario>("usuarios", esPastorOAdmin ? [] : [where("rol", "in", ["pastor", "administrador", "lider", "lider_celula"])]))
     } catch { toast.error("Error al cargar destinatarios") }
     finally { setUsuariosLoading(false) }
   }
@@ -202,7 +203,7 @@ export default function ConsultasPage() {
         <Dialog open={!!selectedConsulta} onOpenChange={(v) => !v && setSelectedConsulta(null)}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{selectedConsulta.asunto}</DialogTitle></DialogHeader>
-            <ConsultaDetail consulta={selectedConsulta} esPastorOAdmin={esPastorOAdmin} respuesta={respuesta}
+            <ConsultaDetail consulta={selectedConsulta} esPastorOAdmin={esPastorOAdmin} esDestinatario={esDestinatario} respuesta={respuesta}
               setRespuesta={setRespuesta} sending={sending} onResponder={handleResponder} onCerrar={handleCerrar} onEliminar={handleDelete} />
           </DialogContent>
         </Dialog>

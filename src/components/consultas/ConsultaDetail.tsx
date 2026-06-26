@@ -17,6 +17,7 @@ const ESTADO_VARIANTS: Record<string, "default" | "secondary" | "outline" | "war
 interface ConsultaDetailProps {
   consulta: Consulta
   esPastorOAdmin: boolean
+  esDestinatario: boolean
   respuesta: string
   setRespuesta: (v: string) => void
   sending: boolean
@@ -25,7 +26,7 @@ interface ConsultaDetailProps {
   onEliminar: (c: Consulta) => void
 }
 
-export function ConsultaDetail({ consulta, esPastorOAdmin, respuesta, setRespuesta, sending, onResponder, onCerrar, onEliminar }: ConsultaDetailProps) {
+export function ConsultaDetail({ consulta, esPastorOAdmin, esDestinatario, respuesta, setRespuesta, sending, onResponder, onCerrar, onEliminar }: ConsultaDetailProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
@@ -56,7 +57,7 @@ export function ConsultaDetail({ consulta, esPastorOAdmin, respuesta, setRespues
         </div>
       )}
 
-      {esPastorOAdmin && consulta.estado !== "cerrado" && (
+      {esDestinatario && consulta.estado !== "cerrado" && (
         <div className="space-y-2">
           <Label>Responder</Label>
           <Textarea value={respuesta} onChange={(e) => setRespuesta(e.target.value)} placeholder="Escribí tu respuesta..." rows={3} />
@@ -80,7 +81,7 @@ export function ConsultaDetail({ consulta, esPastorOAdmin, respuesta, setRespues
         </Button>
       )}
 
-      {!esPastorOAdmin && consulta.estado === "respondido" && (
+      {!esDestinatario && consulta.estado === "respondido" && (
         <Button variant="outline" onClick={() => onCerrar(consulta)} className="w-full">
           <CheckCircle className="h-4 w-4" />
           Marcar como resuelto
