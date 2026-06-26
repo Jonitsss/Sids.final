@@ -88,32 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const cred = await signInWithEmailAndPassword(auth, email, password)
     const uid = cred.user.uid
 
-    let userDoc = await getDoc(doc(db, "usuarios", uid))
-    let userData = userDoc.exists() ? userDoc.data() : null
-
-    if (!userData?.email) {
-      const q = query(collection(db, "usuarios"), where("authUid", "==", uid))
-      const snap = await getDocs(q)
-      if (!snap.empty) {
-        userData = snap.docs[0].data()
-        if (!userData?.authUid) {
-          await setDoc(snap.docs[0].ref, { authUid: uid }, { merge: true }).catch(() => {})
-        }
-      }
-    }
-
-    if (!userData?.email) {
-      const emailQ = query(collection(db, "usuarios"), where("email", "==", email.toLowerCase()))
-      const emailSnap = await getDocs(emailQ)
-      if (!emailSnap.empty) {
-        const d = emailSnap.docs[0]
-        userData = d.data()
-        await setDoc(d.ref, { authUid: uid }, { merge: true }).catch(() => {})
-      }
-    }
-
-    if (userData?.rol) {
-      try { await asignarRolUsuario(uid, userData.rol as RolValido) } catch {}
+    const data = await fetchUserData(cred.user)
+    if (data?.rol) {
+      try { await asignarRolUsuario(uid, data.rol as RolValido) } catch {}
     }
     await cred.user.getIdToken(true)
   }

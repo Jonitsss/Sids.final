@@ -61,7 +61,6 @@ export default function LoginPage() {
     try {
       await login(email.toLowerCase().trim(), password)
       toast.success("Inicio de sesión exitoso")
-      router.push("/dashboard")
     } catch (error: any) {
       const mensajes: Record<string, string> = {
         "auth/user-not-found": "Usuario no encontrado",

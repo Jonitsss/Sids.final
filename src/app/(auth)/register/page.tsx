@@ -57,7 +57,6 @@ export default function RegisterPage() {
         rol: form.rol as any,
       })
       toast.success("Registro exitoso")
-      router.push("/dashboard")
     } catch (error: any) {
       const mensajes: Record<string, string> = {
         "auth/email-already-in-use": "El correo ya está registrado",
