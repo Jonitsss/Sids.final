@@ -316,41 +316,43 @@ export default function CelulaDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/ministerios/celulas">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div className="flex-1 min-w-0">
-          {editing ? (
-            <Input
-              autoFocus
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              className="text-2xl font-bold h-auto py-1"
-              placeholder="Nombre de la célula"
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold truncate">{celula.nombre}</h1>
-              {puedeEditarCelula && (
-                <Button variant="ghost" size="icon" onClick={() => setEditing(true)} className="shrink-0">
-                  <Pencil className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              )}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <Link href="/ministerios/celulas">
+            <Button variant="ghost" size="icon" className="shrink-0">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div className="flex-1 min-w-0">
+            {editing ? (
+              <Input
+                autoFocus
+                value={form.nombre}
+                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                className="text-xl sm:text-2xl font-bold h-auto py-1"
+                placeholder="Nombre de la célula"
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold truncate">{celula.nombre}</h1>
+                {puedeEditarCelula && (
+                  <Button variant="ghost" size="icon" onClick={() => setEditing(true)} className="shrink-0">
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                )}
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <Badge variant="secondary">{TIPO_LABELS[celula.tipo]}</Badge>
+              <Badge variant="outline">Celular</Badge>
             </div>
-          )}
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="secondary">{TIPO_LABELS[celula.tipo]}</Badge>
-            <Badge variant="outline">Celular</Badge>
           </div>
         </div>
         {editing && (
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 self-end sm:self-auto">
             <Button size="sm" onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-              Guardar
+              <span className="ml-1">Guardar</span>
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancelar</Button>
           </div>
@@ -440,7 +442,7 @@ export default function CelulaDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Día y hora</p>
                   <p className="font-medium">{celula.dia} a las {celula.hora}</p>
                 </div>
@@ -448,9 +450,9 @@ export default function CelulaDetailPage() {
               {celula.direccion && (
                 <div className="flex items-center gap-3">
                   <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Dirección</p>
-                    <p className="font-medium">{celula.direccion}</p>
+                    <p className="font-medium break-words">{celula.direccion}</p>
                   </div>
                 </div>
               )}
@@ -458,13 +460,13 @@ export default function CelulaDetailPage() {
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Líder</p>
                 {lider ? (
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-10 w-10 shrink-0">
                       <AvatarFallback className="bg-primary/10 text-primary">{lider.nombre?.[0]}{lider.apellido?.[0]}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium">{lider.nombre} {lider.apellido}</p>
-                      <p className="text-xs text-muted-foreground">{lider.email}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{lider.nombre} {lider.apellido}</p>
+                      <p className="text-xs text-muted-foreground truncate">{lider.email}</p>
                     </div>
                   </div>
                 ) : <p className="text-sm text-muted-foreground">Sin asignar</p>}
@@ -472,13 +474,13 @@ export default function CelulaDetailPage() {
               {colider && (
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Colíder</p>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-10 w-10 shrink-0">
                       <AvatarFallback className="bg-primary/10 text-primary">{colider.nombre?.[0]}{colider.apellido?.[0]}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium">{colider.nombre} {colider.apellido}</p>
-                      <p className="text-xs text-muted-foreground">{colider.email}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{colider.nombre} {colider.apellido}</p>
+                      <p className="text-xs text-muted-foreground truncate">{colider.email}</p>
                     </div>
                   </div>
                 </div>
@@ -486,13 +488,13 @@ export default function CelulaDetailPage() {
               {anfitrion && (
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Anfitrión</p>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-10 w-10 shrink-0">
                       <AvatarFallback className="bg-primary/10 text-primary">{anfitrion.nombre?.[0]}{anfitrion.apellido?.[0]}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium">{anfitrion.nombre} {anfitrion.apellido}</p>
-                      <p className="text-xs text-muted-foreground">{anfitrion.email}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{anfitrion.nombre} {anfitrion.apellido}</p>
+                      <p className="text-xs text-muted-foreground truncate">{anfitrion.email}</p>
                     </div>
                   </div>
                 </div>
@@ -522,21 +524,21 @@ export default function CelulaDetailPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Miembros ({miembros.length})
             </CardTitle>
             {puedeGestionarMiembros && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <Input
                   placeholder="Nombre del miembro..."
                   value={nuevoMiembroNombre}
                   onChange={(e) => setNuevoMiembroNombre(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAgregarMiembro()}
-                  className="w-64"
+                  className="flex-1 sm:w-64"
                 />
-                <Button size="sm" onClick={handleAgregarMiembro} disabled={agregandoMiembro || !nuevoMiembroNombre.trim()}>
+                <Button size="sm" onClick={handleAgregarMiembro} disabled={agregandoMiembro || !nuevoMiembroNombre.trim()} className="shrink-0">
                   {agregandoMiembro ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 </Button>
               </div>
@@ -572,13 +574,13 @@ export default function CelulaDetailPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Reportes Semanales ({reportes.length})
             </CardTitle>
             {puedeCrearReporte && (
-              <Button size="sm" onClick={() => setShowFormReporte(!showFormReporte)}>
+              <Button size="sm" onClick={() => setShowFormReporte(!showFormReporte)} className="self-start sm:self-auto">
                 <Plus className="h-4 w-4 mr-1" />
                 Nuevo Reporte
               </Button>
@@ -685,23 +687,24 @@ export default function CelulaDetailPage() {
                 return (
                   <Card key={r.id} className="hover:bg-accent/30 transition-colors">
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpandedReporte(isExpanded ? null : r.id)}>
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between gap-3 cursor-pointer" onClick={() => setExpandedReporte(isExpanded ? null : r.id)}>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <p className="font-medium">{formatearFecha(r.fecha)}</p>
-                            <p className="text-xs text-muted-foreground">{r.temaTratado}</p>
+                            <p className="text-xs text-muted-foreground truncate">{r.temaTratado}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right hidden sm:block">
-                            <p className="text-sm">
+                        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                          <div className="hidden sm:flex flex-col items-end gap-0.5">
+                            <p className="text-sm whitespace-nowrap">
                               <span className="text-muted-foreground">M:</span> {r.miembros}
                               <span className="text-muted-foreground ml-2">I:</span> {r.invitados}
                               <span className="text-muted-foreground ml-2">T:</span> {total}
                             </p>
                             {r.ofrenda > 0 && <p className="text-xs text-muted-foreground">${r.ofrenda.toLocaleString("es-AR")}</p>}
                           </div>
+                          <Badge variant="secondary" className="sm:hidden">{total}</Badge>
                           {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                         </div>
                       </div>

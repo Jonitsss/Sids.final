@@ -21,6 +21,7 @@ interface DashboardStore {
   initNotificaciones: (usuarioId: string) => void
   initConsultas: (usuarioId: string, rol: string) => void
   cleanup: () => void
+  refreshAll: (usuarioId: string, rol: string) => void
 
   setMinisterios: (ministeriosOrFn: Ministerio[] | ((prev: Ministerio[]) => Ministerio[])) => void
   setUsuarios: (usuariosOrFn: Usuario[] | ((prev: Usuario[]) => Usuario[])) => void
@@ -139,6 +140,17 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     if (unsubUsuarios) { unsubUsuarios(); unsubUsuarios = null }
     if (unsubNotificaciones) { unsubNotificaciones(); unsubNotificaciones = null }
     if (unsubConsultas) { unsubConsultas(); unsubConsultas = null }
+  },
+
+  refreshAll: (usuarioId, rol) => {
+    if (unsubMinisterios) { unsubMinisterios(); unsubMinisterios = null }
+    if (unsubUsuarios) { unsubUsuarios(); unsubUsuarios = null }
+    if (unsubNotificaciones) { unsubNotificaciones(); unsubNotificaciones = null }
+    if (unsubConsultas) { unsubConsultas(); unsubConsultas = null }
+    get().initMinisterios()
+    get().initUsuarios()
+    get().initNotificaciones(usuarioId)
+    get().initConsultas(usuarioId, rol)
   },
 
   setMinisterios: (ministeriosOrFn) => {

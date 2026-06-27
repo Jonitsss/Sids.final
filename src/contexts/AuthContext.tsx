@@ -83,6 +83,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe
   }, [])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    let lastVisible = true
+    const onVisibilityChange = async () => {
+      if (document.visibilityState !== "visible") {
+        lastVisible = false
+        return
+      }
+      if (lastVisible) return
+      lastVisible = true
+      if (!auth || !db) return
+      const current = auth.currentUser
+      if (!current) return
+      try {
+        await current.getIdToken(true)
+        const data = await fetchUserData(current)
+        setUserData((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(data)) return prev
+          return data
+        })
+      } catch (error) {
+        logger.error("Error refreshing user data on visibility change", error instanceof Error ? error : undefined)
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange)
+  }, [])
+
   const login = async (email: string, password: string) => {
     if (!auth || !db) throw new Error("Firebase no inicializado")
     const cred = await signInWithEmailAndPassword(auth, email, password)

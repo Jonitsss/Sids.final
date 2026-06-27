@@ -174,6 +174,23 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
 
+Cambios de esta sesión (v1.20.0):
+- **Acceso a ministerios para `lider_celula`** — Se agregó "Mi Ministerio" en la sidebar para líderes de célula y se corrigió el filtro en `/ministerios` para que muestre solo los ministerios donde el líder está asignado (`ministerioIds`). Antes no veía el link en la sidebar y al entrar a `/ministerios` se mostraba todo.
+- **Refresh al volver de background (PWA)** — Cuando la app pasa a background y vuelve, ahora se re-inicializan los stores (ministerios, usuarios, notificaciones, consultas) y se refresca el `userData` + custom claims del usuario. Soluciona el problema donde había que cerrar y reabrir la app para ver cambios de rol/asignaciones.
+  - `AuthContext` escucha `visibilitychange`, llama `getIdToken(true)` y re-fetcha el doc del usuario
+  - `dashboardStore.refreshAll()` desuscribe y vuelve a suscribir los listeners
+  - `DashboardLayout` dispara `refreshAll` cuando vuelve a `visible`
+
+Cambios de esta sesión (v1.19.3):
+- **Permisos de creación de células** — El botón "Nueva Célula" ya no aparece para `lider_celula`. Solo `pastor` y `administrador` pueden crear células (también se ajustó la lógica de "puedeCrear" en la página de detalle).
+- **UI mobile de células** — Mejorado el responsive en `/ministerios/celulas` y `/ministerios/celulas/[id]`:
+  - Header del listado apilado en mobile (título arriba, botón abajo)
+  - Header de detalle de célula con nombre+badges arriba y botones de edición en mobile
+  - Input "Nombre del miembro..." con `flex-1` en mobile (antes tenía `w-64` fijo que rompía el layout)
+  - Headers de "Miembros" y "Reportes Semanales" apilados en mobile
+  - Lista de personas (Líder/Colíder/Anfitrión) con `min-w-0` y `truncate` para emails largos
+  - Reportes: chip con total visible en mobile, chips M:/I:/T: solo en desktop
+
 Cambios de esta sesión (v1.18.0):
 - **Logger centralizado** — `src/lib/logger.ts` con interfaz unificada (info/warn/error/debug). Solo muestra logs en dev, captura errores en Sentry en producción.
 - **Error Handler centralizado** — `src/lib/error-handler.ts` con clase `AppError`, `handleFirestoreError()` que mapea errores Firebase a mensajes amigables, y `useErrorHandler()` hook para componentes.

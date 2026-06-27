@@ -16,6 +16,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const initNotificaciones = useDashboardStore((s) => s.initNotificaciones)
   const initConsultas = useDashboardStore((s) => s.initConsultas)
   const cleanup = useDashboardStore((s) => s.cleanup)
+  const refreshAll = useDashboardStore((s) => s.refreshAll)
 
   useEffect(() => {
     if (!user?.uid || !userData?.rol) return
@@ -25,6 +26,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     initConsultas(user.uid, userData.rol)
     return () => cleanup()
   }, [user?.uid, userData?.rol, initMinisterios, initUsuarios, initNotificaciones, initConsultas, cleanup])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    let lastVisible = true
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        lastVisible = false
+        return
+      }
+      if (document.visibilityState === "visible" && !lastVisible) {
+        lastVisible = true
+        if (user?.uid && userData?.rol) {
+          refreshAll(user.uid, userData.rol)
+        }
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange)
+  }, [user?.uid, userData?.rol, refreshAll])
 
   return (
     <div className="flex min-h-screen">

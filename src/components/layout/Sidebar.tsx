@@ -71,6 +71,7 @@ const menuItems = {
   ],
   lider_celula: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
     { href: "/ministerios/celulas", icon: Network, label: "Células" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },

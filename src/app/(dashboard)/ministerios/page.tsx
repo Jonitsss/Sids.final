@@ -25,8 +25,8 @@ export default function MinisteriosPage() {
   const { ministerios, ministeriosLoading, setMinisterios } = useDashboardStore()
   const { userData, user } = useAuth()
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLider = userData?.rol === "lider"
-  
+  const esLider = userData?.rol === "lider" || userData?.rol === "lider_celula"
+
   const ministeriosFiltrados = esLider && userData?.ministerioIds
     ? ministerios.filter((m) => userData.ministerioIds.includes(m.id))
     : ministerios

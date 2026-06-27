@@ -33,8 +33,7 @@ export default function CelulasPage() {
   const { ministerios } = useDashboardStore()
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLiderCelula = userData?.rol === "lider_celula"
-  const puedeCrear = esPastorOAdmin || esLiderCelula
+  const puedeCrear = esPastorOAdmin
   const puedeEliminar = esPastorOAdmin
 
   const [open, setOpen] = useState(false)
@@ -151,7 +150,7 @@ export default function CelulasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Células</h1>
           <p className="text-muted-foreground">Gestiona las células del Ministerio Celular</p>
