@@ -181,6 +181,17 @@ Cambios de esta sesión (v1.20.0):
   - `dashboardStore.refreshAll()` desuscribe y vuelve a suscribir los listeners
   - `DashboardLayout` dispara `refreshAll` cuando vuelve a `visible`
 
+Cambios de esta sesión (v1.21.0):
+- **Feature: Mis Asignaciones** — Nueva página `/mis-asignaciones` donde los usuarios pueden ver todas sus asignaciones en grillas de servicio, con filtros por estado (pendientes, confirmadas, rechazadas) y estadísticas resumen.
+  - Aceptar/rechazar asignaciones directamente desde la página
+  - Rechazo con justificación obligatoria (notifica a pastor/admin/líder)
+  - Confirmación notifica a pastores/admin y líder del ministerio
+  - Listado en tiempo real con listener de Firestore
+  - Info de evento y ministerio con colores
+- **Sidebar actualizada** — Todos los roles ahora tienen acceso a "Mis Asignaciones" con ícono `UserCheck`
+- **Colaborador actualizado** — El link "Mis Asignaciones" ahora apunta a `/mis-asignaciones` (antes era `/cronogramas`)
+- **Notificaciones** — Los botones de aceptar/rechazar ya funcionan correctamente en notificaciones tipo `asignacion`
+
 Cambios de esta sesión (v1.19.3):
 - **Permisos de creación de células** — El botón "Nueva Célula" ya no aparece para `lider_celula`. Solo `pastor` y `administrador` pueden crear células (también se ajustó la lógica de "puedeCrear" en la página de detalle).
 - **UI mobile de células** — Mejorado el responsive en `/ministerios/celulas` y `/ministerios/celulas/[id]`:

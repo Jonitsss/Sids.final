@@ -23,6 +23,7 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/ministerios/celulas/[id]` | Protegida | Detalle de célula: información, miembros y reportes semanales |
 | `/eventos` | Protegida | Calendario de eventos (con detalle `/eventos/[id]`) |
 | `/cronogramas` | Protegida | Grillas de servicio (con detalle `/cronogramas/[id]`) |
+| `/mis-asignaciones` | Protegida | Mis asignaciones en grillas de servicio |
 | `/tareas` | Protegida | Gestión de tareas |
 | `/asistencia` | Protegida | Registro de asistencia (cada usuario marca la suya) |
 | `/consultas` | Protegida | Sistema de consultas (líder → pastor/admin) |
