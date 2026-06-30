@@ -228,6 +228,14 @@ Cambios de esta sesión (v1.23.0) — ERP Módulo Celular:
 - **Constantes compartidas** — `TIPO_LABELS` movido a `src/lib/celulas.ts` para evitar export desde page.tsx.
 - **Página de detalle adaptada** — Formulario de reporte semanal ahora genera objetos compatibles con el nuevo tipo `ReporteCelula`.
 
+Cambios de esta sesión (v1.25.1):
+- **Fix: Ya no se requiere el ministerio "Celular" creado para crear células o ramas** — Removido el bloqueo que impedía crear células y ramas si no existía el ministerio "Celular" en la colección `ministerios`. Ahora pastor/administrador puede crear células y ramas independientemente de que el ministerio esté registrado.
+  - `ministerioId` ahora es opcional en los tipos `Celula` y `RamaCelular`
+  - Eliminado `toast.error("No se encontró el ministerio Celular")` y el `return` temprano en `handleCreate` de células
+  - Eliminada la dependencia `ministerioCelular` en `handleCrearRama` de ramas
+  - Eliminadas variables muertas `ministerioCelular` en `/celular/page.tsx` y `/celular/ramas/[ramaId]/page.tsx`
+  - Removido el `Celula` duplicado en `src/types/index.ts`
+
 Cambios de esta sesión (v1.25.0):
 - **Sidebar: Ministerios como grupo expandible** — Reestructurado el sidebar para que "Ministerios" sea un menú desplegable con sub-items:
   - "Todos los Ministerios" → `/ministerios`
@@ -516,7 +524,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.25.0 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.25.1 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 

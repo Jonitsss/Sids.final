@@ -135,21 +135,6 @@ export type TipoCelula =
   | "adolescentes_mujeres"
   | "matrimonios"
 
-export interface Celula {
-  id: string
-  nombre: string
-  tipo: TipoCelula
-  direccion: string
-  liderId: string
-  coliderId: string
-  anfitrionId: string
-  dia: string
-  hora: string
-  ministerioId: string
-  activo: boolean
-  createdAt: Date
-}
-
 export interface Consulta {
   id: string
   de: string
@@ -173,7 +158,7 @@ export interface RamaCelular {
   tipo: TipoCelula
   encargadoId?: string
   descripcion?: string
-  ministerioId: string
+  ministerioId?: string
   activo: boolean
   createdAt: Date
   updatedAt: Date
@@ -190,7 +175,7 @@ export interface Celula {
   anfitrionId: string
   dia: string
   hora: string
-  ministerioId: string
+  ministerioId?: string
   activo: boolean
   createdAt: Date
 }

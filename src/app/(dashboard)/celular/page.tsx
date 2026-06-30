@@ -12,9 +12,7 @@ import { TIPO_LABELS } from "@/lib/celulas"
 export default function CelularHubPage() {
   const router = useRouter()
   const { userData } = useAuth()
-  const { ramas, ramasLoading, ministerios } = useDashboardStore()
-
-  const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
+  const { ramas, ramasLoading } = useDashboardStore()
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
 
   if (ramasLoading) {

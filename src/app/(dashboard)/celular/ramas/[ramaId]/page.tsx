@@ -15,11 +15,10 @@ export default function RamaCelulasPage() {
   const router = useRouter()
   const ramaId = params.ramaId as string
   const { userData } = useAuth()
-  const { ramas, ramasLoading, ministerios } = useDashboardStore()
+  const { ramas, ramasLoading } = useDashboardStore()
   const { celulas, loading } = useCelulas(userData?.id, userData?.rol, undefined, ramaId)
 
   const rama = ramas.find((r) => r.id === ramaId)
-  const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const esEncargadoRama = rama?.encargadoId === userData?.id
   const puedeCrear = esPastorOAdmin || esEncargadoRama

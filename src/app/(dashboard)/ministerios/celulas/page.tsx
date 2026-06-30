@@ -80,12 +80,7 @@ export default function CelulasPage() {
     setCreating(true)
 
     const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
-    if (!ministerioCelular) {
-      toast.error("No se encontró el ministerio Celular")
-      setCreating(false)
-      return
-    }
-    const ministerioId = ministerioCelular.id
+    const ministerioId = ministerioCelular?.id
 
     const tempId = `temp_${Date.now()}`
 

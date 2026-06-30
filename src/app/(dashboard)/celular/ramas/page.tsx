@@ -50,8 +50,6 @@ export default function RamasAdminPage() {
     )
   }
 
-  const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
-
   const handleAsignarEncargado = async (ramaId: string, encargadoId: string) => {
     setGuardando(ramaId)
     try {
@@ -65,7 +63,7 @@ export default function RamasAdminPage() {
   }
 
   const handleCrearRama = async () => {
-    if (!form.nombre.trim() || !ministerioCelular) return
+    if (!form.nombre.trim()) return
     setCreating(true)
     try {
       await crearDocumento("ramas_celular", {
@@ -73,7 +71,6 @@ export default function RamasAdminPage() {
         tipo: form.tipo,
         descripcion: form.descripcion.trim(),
         encargadoId: null,
-        ministerioId: ministerioCelular.id,
         activo: true,
         createdAt: new Date(),
         updatedAt: new Date(),
