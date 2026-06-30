@@ -192,6 +192,22 @@ Cambios de esta sesión (v1.21.0):
 - **Colaborador actualizado** — El link "Mis Asignaciones" ahora apunta a `/mis-asignaciones` (antes era `/cronogramas`)
 - **Notificaciones** — Los botones de aceptar/rechazar ya funcionan correctamente en notificaciones tipo `asignacion`
 
+Cambios de esta sesión (v1.22.0):
+- **Tipos ERP — Persona como entidad central** — Agregados tipos TypeScript para la transición hacia un modelo de dominio ERP: `Persona`, `AsignacionMinisterio`, `HistorialPersona` con estados (`visitante`, `nuevo`, `en_consolidacion`, `miembro`, `bautizado`, `inactivo`) y tipos de historial (ministerio, célula, escuela, bautismo, rol, evento, servicio, membresía, presentación de niño, visita pastoral, consejería, discipulado). Preparan el terreno para migrar desde `Usuario` como entidad principal.
+- **Dashboard — Card Asignaciones con total real** — `useDashboard` ahora consulta `cronogramas` y cuenta las asignaciones reales del usuario (en vez del hardcode `0`). El hook recibe `userData` para filtrar por `usuarioId`.
+- **Mis Asignaciones — Notificaciones se actualizan al aceptar/rechazar** — Al confirmar o rechazar desde `/mis-asignaciones`, se busca la notificación original (`tipo: "asignacion"`) y se marca como `leida: true` + `tipo: "confirmacion"`. Soluciona el bug donde la notificación seguía apareciendo como pendiente aunque ya se había aceptado.
+- **Mis Asignaciones — UI mobile compacta** — Mejoras responsive:
+  - Grid de stats: `grid-cols-2` en mobile (antes `grid-cols-1`)
+  - Padding reducido en tarjetas (`p-3 sm:p-4`)
+  - Avatar más pequeño en mobile (`h-8 w-8`)
+  - Fecha y evento apilados en mobile (`flex-col`)
+  - Botones Aceptar/Rechazar apilados y más compactos
+- **Sidebar — Líder de área con ministerio Celular ve "Células"** — El rol `lider` ahora muestra el link "Células" en el navbar **solo si** su `ministerioIds` incluye el ministerio "Celular". Roles `lider_celula`, `colider` y `anfitrion` ahora ven **"Mi Célula"** en vez de "Células" (más descriptivo de su alcance).
+- **Permisos células — Líder de área puede crear y ver todas** —
+  - `useCelulas` acepta `ministerioId` opcional; si `rol === "lider"` y se pasa el `ministerioId` del ministerio Celular, devuelve todas las células de ese ministerio.
+  - `/ministerios/celulas` detecta si el `lider` pertenece al ministerio Celular (`esLiderCelular`) y le habilita el botón "Nueva Célula".
+  - Eliminación sigue restringida a `pastor`/`administrador`.
+
 Cambios de esta sesión (v1.19.3):
 - **Permisos de creación de células** — El botón "Nueva Célula" ya no aparece para `lider_celula`. Solo `pastor` y `administrador` pueden crear células (también se ajustó la lógica de "puedeCrear" en la página de detalle).
 - **UI mobile de células** — Mejorado el responsive en `/ministerios/celulas` y `/ministerios/celulas/[id]`:

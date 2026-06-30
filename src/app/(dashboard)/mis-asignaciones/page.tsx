@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Loader2, Check, X as XIcon, Calendar, Clock, Filter } from "lucide-react"
 import { toast } from "sonner"
 import { GrillaServicio, Evento, Ministerio, Asignacion } from "@/types"
-import { actualizarDocumento, escucharDocumentos, obtenerDocumento, enviarNotificacion, where, documentId } from "@/lib/firestore"
+import { actualizarDocumento, escucharDocumentos, obtenerDocumento, obtenerDocumentos, enviarNotificacion, where, documentId } from "@/lib/firestore"
 import { useDashboardStore } from "@/stores/dashboardStore"
 import { useAuth } from "@/contexts/AuthContext"
 import { logger } from "@/lib/logger"
@@ -128,6 +128,16 @@ export default function MisAsignacionesPage() {
         )
       )
 
+      const referenciaId = `asignacion:${grillaId}:${ministerioId}:${rol}`
+      const notifs = await obtenerDocumentos<any>("notificaciones", [
+        where("usuarioId", "==", uid),
+        where("tipo", "==", "asignacion"),
+        where("referenciaId", "==", referenciaId),
+      ])
+      for (const n of notifs) {
+        await actualizarDocumento("notificaciones", n.id, { leido: true, tipo: "confirmacion" })
+      }
+
       const min = ministerios.find((m) => m.id === ministerioId)
       const evento = grilla.eventoId ? eventos[grilla.eventoId] : null
       const fechaStr = format(new Date(grilla.fecha), "dd/MM/yyyy", { locale: es })
@@ -139,7 +149,7 @@ export default function MisAsignacionesPage() {
           titulo: "Asignación confirmada",
           mensaje: `${userData?.nombre} ${userData?.apellido} confirmó la función de "${rol}" en el ministerio ${min?.nombre || ""} para "${evento?.titulo || "evento"}" del ${fechaStr}.`,
           tipo: "confirmacion",
-          referenciaId: `asignacion:${grillaId}:${ministerioId}:${rol}`,
+          referenciaId,
         })
       }
 
@@ -173,6 +183,16 @@ export default function MisAsignacionesPage() {
           g.id === grillaId ? { ...g, asignaciones: nuevasAsignaciones } : g
         )
       )
+
+      const referenciaId = `asignacion:${grillaId}:${ministerioId}:${rol}`
+      const notifs = await obtenerDocumentos<any>("notificaciones", [
+        where("usuarioId", "==", uid),
+        where("tipo", "==", "asignacion"),
+        where("referenciaId", "==", referenciaId),
+      ])
+      for (const n of notifs) {
+        await actualizarDocumento("notificaciones", n.id, { leido: true, tipo: "confirmacion" })
+      }
 
       const min = ministerios.find((m) => m.id === ministerioId)
       const evento = grilla.eventoId ? eventos[grilla.eventoId] : null
@@ -254,29 +274,29 @@ export default function MisAsignacionesPage() {
         <p className="text-muted-foreground">Visualizá y gestioná tus asignaciones en las grillas de servicio</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setFiltro("todas")}>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">Total</p>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold">{stats.total}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
           </CardContent>
         </Card>
         <Card className={`cursor-pointer transition-colors ${filtro === "pendientes" ? "border-yellow-500 bg-yellow-500/5" : "hover:border-yellow-500/50"}`} onClick={() => setFiltro(filtro === "pendientes" ? "todas" : "pendientes")}>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-yellow-600">{stats.pendientes}</p>
-            <p className="text-xs text-muted-foreground">Pendientes</p>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pendientes}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Pendientes</p>
           </CardContent>
         </Card>
         <Card className={`cursor-pointer transition-colors ${filtro === "confirmadas" ? "border-green-500 bg-green-500/5" : "hover:border-green-500/50"}`} onClick={() => setFiltro(filtro === "confirmadas" ? "todas" : "confirmadas")}>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-600">{stats.confirmadas}</p>
-            <p className="text-xs text-muted-foreground">Confirmadas</p>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.confirmadas}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Confirmadas</p>
           </CardContent>
         </Card>
         <Card className={`cursor-pointer transition-colors ${filtro === "rechazadas" ? "border-red-500 bg-red-500/5" : "hover:border-red-500/50"}`} onClick={() => setFiltro(filtro === "rechazadas" ? "todas" : "rechazadas")}>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-red-600">{stats.rechazadas}</p>
-            <p className="text-xs text-muted-foreground">Rechazadas</p>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.rechazadas}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Rechazadas</p>
           </CardContent>
         </Card>
       </div>
@@ -296,24 +316,24 @@ export default function MisAsignacionesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {asignacionesFiltradas.map((item, idx) => (
             <Card key={`${item.grillaId}-${item.asignacion.rol}-${idx}`} className="border-l-4" style={{ borderLeftColor: item.ministerio.color }}>
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-10 w-10 shrink-0">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
                     <AvatarFallback style={{ backgroundColor: `${item.ministerio.color}20`, color: item.ministerio.color }}>
                       {item.ministerio.nombre.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium">{item.asignacion.rol}</p>
-                      <span className="text-muted-foreground">en</span>
-                      <p className="font-medium">{item.ministerio.nombre}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-sm sm:text-base font-medium">{item.asignacion.rol}</p>
+                      <span className="text-muted-foreground text-xs sm:text-sm">en</span>
+                      <p className="text-sm sm:text-base font-medium">{item.ministerio.nombre}</p>
                       {getEstadoBadge(item.asignacion.estado)}
                     </div>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-xs sm:text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {format(new Date(item.fecha), "EEEE d 'de' MMMM yyyy", { locale: es })}
@@ -327,15 +347,15 @@ export default function MisAsignacionesPage() {
                       )}
                     </div>
                     {item.asignacion.estado === "rechazado" && item.asignacion.justificacionRechazo && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-2 italic">
+                      <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-2 italic">
                         Motivo: {item.asignacion.justificacionRechazo}
                       </p>
                     )}
                     {item.asignacion.estado === "pendiente" && (
-                      <div className="flex gap-2 mt-3">
+                      <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-3">
                         <Button
                           size="sm"
-                          className="h-8 gap-1"
+                          className="h-7 sm:h-8 gap-1 text-xs"
                           onClick={() => handleAceptar(item.grillaId, item.asignacion.ministerioId, item.asignacion.rol)}
                           disabled={saving}
                         >
@@ -345,7 +365,7 @@ export default function MisAsignacionesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 gap-1 text-destructive border-destructive/30 hover:text-destructive"
+                          className="h-7 sm:h-8 gap-1 text-xs text-destructive border-destructive/30 hover:text-destructive"
                           onClick={() => {
                             setModalRechazo({
                               grillaId: item.grillaId,

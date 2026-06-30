@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase"
 import { collection, query, where, onSnapshot, or, and } from "firebase/firestore"
 import { mapDoc } from "@/lib/firestore"
 
-export function useCelulas(usuarioId?: string, rol?: Rol) {
+export function useCelulas(usuarioId?: string, rol?: Rol, ministerioId?: string) {
   const [celulas, setCelulas] = useState<Celula[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -16,7 +16,14 @@ export function useCelulas(usuarioId?: string, rol?: Rol) {
 
     const constraints: any[] = []
 
-    if (rol !== "pastor" && rol !== "administrador" && usuarioId) {
+    if (rol === "lider" && ministerioId) {
+      constraints.push(
+        and(
+          where("activo", "==", true),
+          where("ministerioId", "==", ministerioId)
+        )
+      )
+    } else if (rol !== "pastor" && rol !== "administrador" && usuarioId) {
       constraints.push(
         and(
           where("activo", "==", true),
@@ -42,7 +49,7 @@ export function useCelulas(usuarioId?: string, rol?: Rol) {
     )
 
     return unsub
-  }, [usuarioId, rol])
+  }, [usuarioId, rol, ministerioId])
 
   return { celulas, loading, setCelulas }
 }

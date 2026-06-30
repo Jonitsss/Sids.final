@@ -29,11 +29,13 @@ const TIPO_LABELS: Record<TipoCelula, string> = {
 export default function CelulasPage() {
   const router = useRouter()
   const { user, userData } = useAuth()
-  const { celulas, loading, setCelulas } = useCelulas(user?.uid, userData?.rol)
   const { ministerios } = useDashboardStore()
+  const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
+  const { celulas, loading, setCelulas } = useCelulas(user?.uid, userData?.rol, ministerioCelular?.id)
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const puedeCrear = esPastorOAdmin
+  const esLiderCelular = userData?.rol === "lider" && ministerioCelular && userData?.ministerioIds?.includes(ministerioCelular.id)
+  const puedeCrear = esPastorOAdmin || !!esLiderCelular
   const puedeEliminar = esPastorOAdmin
 
   const [open, setOpen] = useState(false)

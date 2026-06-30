@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Evento, Tarea, Usuario, Ministerio, Asignacion } from "@/types"
+import { Evento, Tarea, Usuario, Ministerio, Asignacion, GrillaServicio } from "@/types"
 import { obtenerDocumentos, where, orderBy, limit } from "@/lib/firestore"
 import { logger } from "@/lib/logger"
+import { useAuth } from "@/contexts/AuthContext"
 
 export interface DashboardData {
   stats: {
@@ -21,6 +22,7 @@ export interface DashboardData {
 }
 
 export function useDashboard() {
+  const { userData } = useAuth()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -29,8 +31,9 @@ export function useDashboard() {
     ;(async () => {
       try {
         const ahora = new Date()
+        const uid = userData?.authUid || userData?.id
 
-        const [eventos, tareas, usuarios, ministerios] = await Promise.all([
+        const [eventos, tareas, usuarios, ministerios, grillas] = await Promise.all([
           obtenerDocumentos<Evento>("eventos", [
             where("fecha", ">=", ahora),
             orderBy("fecha", "asc"),
@@ -42,6 +45,7 @@ export function useDashboard() {
           ]),
           obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)]),
           obtenerDocumentos<Ministerio>("ministerios", [where("activo", "==", true)]),
+          uid ? obtenerDocumentos<GrillaServicio>("cronogramas", [where("fecha", ">=", ahora)]) : Promise.resolve([] as GrillaServicio[]),
         ])
 
         const proximosEventos = eventos
@@ -59,13 +63,20 @@ export function useDashboard() {
           miembros: miembroCount[m.id] || 0,
         }))
 
+        let totalAsignaciones = 0
+        if (uid && grillas.length > 0) {
+          for (const g of grillas) {
+            totalAsignaciones += g.asignaciones?.filter((a) => a.usuarioId === uid).length || 0
+          }
+        }
+
         if (mounted) {
           setData({
             stats: {
               proximasReuniones: proximosEventos.length,
               tareasPendientes: tareasRecientes.length,
               colaboradores: usuarios.length,
-              confirmacionesPendientes: 0,
+              confirmacionesPendientes: totalAsignaciones,
             },
             proximosEventos,
             tareasRecientes,
@@ -79,7 +90,7 @@ export function useDashboard() {
       }
     })()
     return () => { mounted = false }
-  }, [])
+  }, [userData?.authUid, userData?.id])
 
   return { data, loading }
 }

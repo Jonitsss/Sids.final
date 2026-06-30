@@ -76,21 +76,21 @@ const menuItems = {
   lider_celula: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
-    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/ministerios/celulas", icon: Network, label: "Mi Célula" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
   ],
   colider: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/ministerios/celulas", icon: Network, label: "Mi Célula" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
   ],
   anfitrion: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/ministerios/celulas", icon: Network, label: "Mi Célula" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
     { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
@@ -110,8 +110,22 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { user, userData, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const role = userData?.rol || "colaborador"
-  const items = menuItems[role] || menuItems.colaborador
-  const { noLeidas, consultasNoLeidas } = useDashboardStore()
+  const { noLeidas, consultasNoLeidas, ministerios } = useDashboardStore()
+
+  const baseItems = menuItems[role] || menuItems.colaborador
+  const items = (() => {
+    if (role === "lider") {
+      const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
+      const esLiderCelular = ministerioCelular && userData?.ministerioIds?.includes(ministerioCelular.id)
+      if (esLiderCelular) {
+        const idx = baseItems.findIndex((i) => i.href === "/eventos")
+        const before = baseItems.slice(0, idx)
+        const after = baseItems.slice(idx)
+        return [...before, { href: "/ministerios/celulas", icon: Network, label: "Células" }, ...after]
+      }
+    }
+    return baseItems
+  })()
 
   return (
     <>

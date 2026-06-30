@@ -47,3 +47,7 @@ export function puedeEliminarCelulas(rol: Rol): boolean {
 export function puedeCrearCelulas(rol: Rol): boolean {
   return ['pastor', 'administrador', 'lider_celula'].includes(rol)
 }
+
+export function esLiderDeArea(rol: Rol): boolean {
+  return rol === 'lider'
+}

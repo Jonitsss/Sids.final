@@ -59,6 +59,7 @@ El sistema tiene 7 roles con diferentes niveles de acceso. Los roles se almacena
 
 #### Líder de área
 - Ve **solo su ministerio** en `/ministerios` (filtrado por `ministerioIds`)
+- Si su ministerio es **Celular**, puede **ver todas las células** del ministerio y **crear nuevas células**
 - Puede **crear eventos y cronogramas** (pero no eliminarlos)
 - Puede ver **Asistencia** (solo lectura, pastor puede editar)
 - Puede enviar y recibir **Consultas**

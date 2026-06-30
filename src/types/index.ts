@@ -204,3 +204,48 @@ export type DashboardStats = {
   asistenciaMensual: { presente: number; ausente: number; justificado: number }
   miembrosPorMinisterio: { ministerio: string; cantidad: number }[]
 }
+
+export type EstadoPersona = "visitante" | "nuevo" | "en_consolidacion" | "miembro" | "bautizado" | "inactivo"
+
+export type TipoHistorial = "ministerio" | "celula" | "escuela" | "bautismo" | "rol" | "evento" | "servicio" | "membresia" | "presentacion_nino" | "visita_pastoral" | "consejeria" | "discipulado"
+
+export interface Persona {
+  id: string
+  nombre: string
+  apellido: string
+  email?: string
+  telefono?: string
+  fechaNacimiento?: Date
+  estado: EstadoPersona
+  fotoURL?: string
+  direccion?: string
+  familia?: string[]
+  notas?: string
+  usuarioId?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AsignacionMinisterio {
+  id: string
+  personaId: string
+  ministerioId: string
+  roles: string[]
+  fechaInicio: Date
+  fechaFin?: Date
+  activo: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface HistorialPersona {
+  id: string
+  personaId: string
+  tipo: TipoHistorial
+  titulo: string
+  descripcion?: string
+  referenciaId?: string
+  fechaInicio: Date
+  fechaFin?: Date
+  createdAt: Date
+}
