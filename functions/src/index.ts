@@ -99,6 +99,7 @@ const COLECCIONES_PERMITIDAS_PASTOR_ADMIN = new Set([
   "notificaciones",
   "consultas",
   "celulas",
+  "ramas_celular",
 ]);
 
 function getRol(token: Record<string, unknown> | undefined): string | null {
@@ -257,6 +258,17 @@ export const borrarDocumento = onRequest(async (req, res) => {
       const celulasSnap = await db
         .collection("celulas")
         .where("ministerioId", "==", id)
+        .get();
+      celulasSnap.docs.forEach((doc) => batch.delete(doc.ref));
+
+      batch.delete(ref);
+      await batch.commit();
+    } else if (coleccion === "ramas_celular" && esDestructivo) {
+      const batch = db.batch();
+
+      const celulasSnap = await db
+        .collection("celulas")
+        .where("ramaId", "==", id)
         .get();
       celulasSnap.docs.forEach((doc) => batch.delete(doc.ref));
 
