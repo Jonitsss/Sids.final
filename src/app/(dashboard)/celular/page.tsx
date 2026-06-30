@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CardGridSkeleton } from "@/components/skeletons"
 import { Button } from "@/components/ui/button"
-import { Users, ArrowRight, Network } from "lucide-react"
+import { Users, ArrowRight, Network, Settings, Plus } from "lucide-react"
 import { TIPO_LABELS } from "@/lib/celulas"
 
 export default function CelularHubPage() {
@@ -36,6 +36,14 @@ export default function CelularHubPage() {
           <h1 className="text-2xl font-bold">Ministerio Celular</h1>
           <p className="text-muted-foreground">Grupos pequeños que se reúnen en casas</p>
         </div>
+        {esPastorOAdmin && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => router.push("/celular/ramas")}>
+              <Settings className="h-4 w-4 mr-2" />
+              Gestionar Ramas
+            </Button>
+          </div>
+        )}
       </div>
 
       {ramas.length === 0 ? (
