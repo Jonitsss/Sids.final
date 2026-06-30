@@ -12,6 +12,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, userData } = useAuth()
 
   const initMinisterios = useDashboardStore((s) => s.initMinisterios)
+  const initRamas = useDashboardStore((s) => s.initRamas)
   const initUsuarios = useDashboardStore((s) => s.initUsuarios)
   const initNotificaciones = useDashboardStore((s) => s.initNotificaciones)
   const initConsultas = useDashboardStore((s) => s.initConsultas)
@@ -21,11 +22,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user?.uid || !userData?.rol) return
     initMinisterios()
+    initRamas()
     initUsuarios()
     initNotificaciones(user.uid)
     initConsultas(user.uid, userData.rol)
     return () => cleanup()
-  }, [user?.uid, userData?.rol, initMinisterios, initUsuarios, initNotificaciones, initConsultas, cleanup])
+  }, [user?.uid, userData?.rol, initMinisterios, initRamas, initUsuarios, initNotificaciones, initConsultas, cleanup])
 
   useEffect(() => {
     if (typeof window === "undefined") return

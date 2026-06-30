@@ -19,7 +19,8 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/register` | Auth | Registro de usuarios |
 | `/dashboard` | Protegida | Panel principal según rol |
 | `/ministerios` | Protegida | CRUD de ministerios (con detalle `/ministerios/[slug]`) |
-| `/ministerios/celulas` | Protegida | Gestión de células (con detalle `/ministerios/celulas/[id]`) |
+| `/celular` | Protegida | Hub del Ministerio Celular: ramas y células |
+| `/celular/ramas/[ramaId]` | Protegida | Células de una rama (Mujeres, Hombres, Adolescentes, Matrimonios) |
 | `/ministerios/celulas/[id]` | Protegida | Detalle de célula: información, miembros y reportes semanales |
 | `/eventos` | Protegida | Calendario de eventos (con detalle `/eventos/[id]`) |
 | `/cronogramas` | Protegida | Grillas de servicio (con detalle `/cronogramas/[id]`) |
@@ -85,6 +86,33 @@ El sistema tiene 7 roles con diferentes niveles de acceso. Los roles se almacena
 - **Acceso a ministerios**: filtrado por `ministerioIds` del usuario
 - **Acceso a células**: filtrado por `liderId`, `coliderId` o `anfitrionId`
 - **Custom claims**: se asignan con la Cloud Function `setRolUsuario` (solo pastor/admin)
+- **Acceso a células por rama**: el encargado de una rama puede ver todas las células de su rama (validado en Firestore Rules vía `get()` a `ramas_celular`)
+
+## Modelo de datos ERP (en construcción)
+
+SIDS está evolucionando hacia un ERP para iglesias con `Persona` como entidad central.
+
+### Colecciones principales
+
+| Colección | Descripción |
+|---|---|
+| `personas` | Ficha central de cada individuo (miembro, visitante, niño) |
+| `usuarios` | Autenticación y roles globales (pastor, administrador, usuario) |
+| `ministerios` | Áreas de la iglesia (Alabanza, Diáconos, Celular, Escuela Bíblica, Multimedia, Sonido) |
+| `asignaciones_ministerio` | Quién hace qué en cada ministerio |
+| `ramas_celular` | Ramas del ministerio celular (Mujeres, Hombres, Adolescentes, Matrimonios) |
+| `celulas` | Grupos pequeños que se reúnen en casas |
+| `miembros_celula` | Membresía de cada célula con estados (activo, visitante, en consolidación, etc.) |
+| `reporte_celulas` | Reportes semanales con asistencia detallada |
+| `historial_persona` | Línea de tiempo de cada persona (ministerios, bautismos, escuelas) |
+
+### Ministerio Celular
+
+- **4 ramas**: Mujeres, Hombres, Adolescentes, Matrimonios
+- Cada rama tiene un **encargado** (asignado por pastor/admin)
+- El encargado puede crear células y ver todas las de su rama
+- Cada célula tiene: líder, colíder, anfitrión, miembros, reportes semanales
+- Los reportes incluyen: asistencia por persona, tema, versículo, ofrenda
 
 ## Stack técnico
 

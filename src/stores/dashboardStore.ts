@@ -2,11 +2,13 @@ import { create } from "zustand"
 import { db } from "@/lib/firebase"
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore"
 import { mapDoc } from "@/lib/firestore"
-import { Ministerio, Usuario, Notificacion, Consulta } from "@/types"
+import { Ministerio, Usuario, Notificacion, Consulta, RamaCelular } from "@/types"
 
 interface DashboardStore {
   ministerios: Ministerio[]
   ministeriosLoading: boolean
+  ramas: RamaCelular[]
+  ramasLoading: boolean
   usuarios: Usuario[]
   usuariosLoading: boolean
   notificaciones: Notificacion[]
@@ -17,6 +19,7 @@ interface DashboardStore {
   consultasNoLeidas: number
 
   initMinisterios: () => void
+  initRamas: () => void
   initUsuarios: () => void
   initNotificaciones: (usuarioId: string) => void
   initConsultas: (usuarioId: string, rol: string) => void
@@ -24,12 +27,14 @@ interface DashboardStore {
   refreshAll: (usuarioId: string, rol: string) => void
 
   setMinisterios: (ministeriosOrFn: Ministerio[] | ((prev: Ministerio[]) => Ministerio[])) => void
+  setRamas: (ramasOrFn: RamaCelular[] | ((prev: RamaCelular[]) => RamaCelular[])) => void
   setUsuarios: (usuariosOrFn: Usuario[] | ((prev: Usuario[]) => Usuario[])) => void
   setNotificaciones: (notifsOrFn: Notificacion[] | ((prev: Notificacion[]) => Notificacion[])) => void
   setConsultas: (consultas: Consulta[]) => void
 }
 
 let unsubMinisterios: (() => void) | null = null
+let unsubRamas: (() => void) | null = null
 let unsubUsuarios: (() => void) | null = null
 let unsubNotificaciones: (() => void) | null = null
 let unsubConsultas: (() => void) | null = null
@@ -37,6 +42,8 @@ let unsubConsultas: (() => void) | null = null
 export const useDashboardStore = create<DashboardStore>((set, get) => ({
   ministerios: [],
   ministeriosLoading: true,
+  ramas: [],
+  ramasLoading: true,
   usuarios: [],
   usuariosLoading: true,
   notificaciones: [],
@@ -55,6 +62,18 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
         set({ ministerios: snap.docs.map((doc) => mapDoc<Ministerio>(doc)), ministeriosLoading: false })
       },
       () => set({ ministeriosLoading: false })
+    )
+  },
+
+  initRamas: () => {
+    if (!db || unsubRamas) return
+    const q = query(collection(db, "ramas_celular"), where("activo", "==", true))
+    unsubRamas = onSnapshot(
+      q,
+      (snap) => {
+        set({ ramas: snap.docs.map((doc) => mapDoc<RamaCelular>(doc)), ramasLoading: false })
+      },
+      () => set({ ramasLoading: false })
     )
   },
 
@@ -137,6 +156,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   cleanup: () => {
     if (unsubMinisterios) { unsubMinisterios(); unsubMinisterios = null }
+    if (unsubRamas) { unsubRamas(); unsubRamas = null }
     if (unsubUsuarios) { unsubUsuarios(); unsubUsuarios = null }
     if (unsubNotificaciones) { unsubNotificaciones(); unsubNotificaciones = null }
     if (unsubConsultas) { unsubConsultas(); unsubConsultas = null }
@@ -144,10 +164,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   refreshAll: (usuarioId, rol) => {
     if (unsubMinisterios) { unsubMinisterios(); unsubMinisterios = null }
+    if (unsubRamas) { unsubRamas(); unsubRamas = null }
     if (unsubUsuarios) { unsubUsuarios(); unsubUsuarios = null }
     if (unsubNotificaciones) { unsubNotificaciones(); unsubNotificaciones = null }
     if (unsubConsultas) { unsubConsultas(); unsubConsultas = null }
     get().initMinisterios()
+    get().initRamas()
     get().initUsuarios()
     get().initNotificaciones(usuarioId)
     get().initConsultas(usuarioId, rol)
@@ -157,6 +179,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     const prev = get().ministerios
     const ministerios = typeof ministeriosOrFn === "function" ? ministeriosOrFn(prev) : ministeriosOrFn
     set({ ministerios })
+  },
+
+  setRamas: (ramasOrFn) => {
+    const prev = get().ramas
+    const ramas = typeof ramasOrFn === "function" ? ramasOrFn(prev) : ramasOrFn
+    set({ ramas })
   },
 
   setUsuarios: (usuariosOrFn) => {

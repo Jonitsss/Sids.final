@@ -61,12 +61,38 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // celulas (sub-colección de ministerios): lideres/celulas pueden
-    // gestionar su célula, pastor/admin pueden ver/crear/editar todas
+    // ramas_celular
     // ---------------------------------------------------------------------
-    match /celulas/{celulaId} {
+    match /ramas_celular/{ramaId} {
       allow read: if isSignedIn();
       allow create, update: if esPastorOAdmin();
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // celulas: pastor/admin todo; encargado de rama su rama; líder/colíder/anfitrión su célula
+    // ---------------------------------------------------------------------
+    match /celulas/{celulaId} {
+      allow read: if isSignedIn() && (
+        esPastorOAdmin()
+        || resource.data.liderId == request.auth.uid
+        || resource.data.coliderId == request.auth.uid
+        || resource.data.anfitrionId == request.auth.uid
+        || (resource.data.ramaId != null
+            && get(/databases/$(database)/documents/ramas_celular/$(resource.data.ramaId)).data.encargadoId == request.auth.uid)
+      );
+      allow create: if isSignedIn() && (
+        esPastorOAdmin()
+        || (request.resource.data.ramaId != null
+            && get(/databases/$(database)/documents/ramas_celular/$(request.resource.data.ramaId)).data.encargadoId == request.auth.uid)
+      );
+      allow update: if isSignedIn() && (
+        esPastorOAdmin()
+        || resource.data.liderId == request.auth.uid
+        || resource.data.coliderId == request.auth.uid
+        || (resource.data.ramaId != null
+            && get(/databases/$(database)/documents/ramas_celular/$(resource.data.ramaId)).data.encargadoId == request.auth.uid)
+      );
       allow delete: if false;
     }
 
@@ -140,10 +166,18 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // miembros_celula: lista simple de nombres por célula
+    // miembros_celula: miembros de una célula
     // ---------------------------------------------------------------------
     match /miembros_celula/{miembroId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (
+        esPastorOAdmin()
+        || (resource.data.celulaId != null
+            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.liderId == request.auth.uid)
+        || (resource.data.celulaId != null
+            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.coliderId == request.auth.uid)
+        || (resource.data.celulaId != null
+            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.anfitrionId == request.auth.uid)
+      );
       allow create, update: if isSignedIn()
         && (esPastorOAdmin()
             || request.auth.uid == request.resource.data.createdBy
@@ -155,7 +189,15 @@ service cloud.firestore {
     // reporte_celulas: reportes semanales de células
     // ---------------------------------------------------------------------
     match /reporte_celulas/{reporteId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (
+        esPastorOAdmin()
+        || resource.data.liderId == request.auth.uid
+        || resource.data.createdBy == request.auth.uid
+        || (resource.data.celulaId != null
+            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.liderId == request.auth.uid)
+        || (resource.data.celulaId != null
+            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.coliderId == request.auth.uid)
+      );
       allow create: if isSignedIn()
         && (esPastorOAdmin() || request.auth.uid == request.resource.data.createdBy);
       allow update: if isSignedIn()

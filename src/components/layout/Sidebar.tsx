@@ -37,7 +37,7 @@ const menuItems = {
   pastor: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Ministerios" },
-    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/celular", icon: Network, label: "Células" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
@@ -51,7 +51,7 @@ const menuItems = {
   administrador: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Ministerios" },
-    { href: "/ministerios/celulas", icon: Network, label: "Células" },
+    { href: "/celular", icon: Network, label: "Células" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
@@ -121,7 +121,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         const idx = baseItems.findIndex((i) => i.href === "/eventos")
         const before = baseItems.slice(0, idx)
         const after = baseItems.slice(idx)
-        return [...before, { href: "/ministerios/celulas", icon: Network, label: "Células" }, ...after]
+        return [...before, { href: "/celular", icon: Network, label: "Células" }, ...after]
       }
     }
     return baseItems

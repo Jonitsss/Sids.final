@@ -208,6 +208,26 @@ Cambios de esta sesión (v1.22.0):
   - `/ministerios/celulas` detecta si el `lider` pertenece al ministerio Celular (`esLiderCelular`) y le habilita el botón "Nueva Célula".
   - Eliminación sigue restringida a `pastor`/`administrador`.
 
+Cambios de esta sesión (v1.23.0) — ERP Módulo Celular:
+- **Tipos ERP — RamaCelular y modelo de células reestructurado** —
+  - Nuevos tipos: `RamaCelular` (con `encargadoId`, `tipo`, `ministerioId`), `AsistenciaReporteCelula`
+  - `Celula` ahora tiene `ramaId` (opcional durante migración, obligatorio post-migración)
+  - `MiembroCelula` ahora tiene `estado` (`activo` | `inactivo` | `visitante` | `nuevo` | `en_consolidacion` | `bautizado`), `fechaIngreso`, `fechaSalida`, `motivoSalida`, `personaId`
+  - `ReporteCelula` ahora tiene `semana` (ISO), `asistencia` (array detallado), `totalMiembros`, `asistentes`, `ausentes`
+- **Script de migración** — `functions/src/scripts/migrarCelulasARamas.ts` crea 4 ramas a partir de los `tipo` existentes y backfill `ramaId` en todas las células. Pastor/Admin asigna encargados manualmente después.
+- **Firestore Rules estrictas** — `ramas_celular` con reglas CRUD para pastor/admin. `celulas`, `miembros_celula` y `reporte_celulas` ahora validan lectura por:
+  - pastor/admin (todo)
+  - líder/colíder/anfitrión de la célula
+  - encargado de la rama (vía `get()` a `ramas_celular`)
+- **Hooks nuevos** — `useRamasCelular` (listener de ramas), `useReportesCelula` (reportes por célula con `orderBy("semana", "desc")`)
+- **Store actualizado** — `dashboardStore` ahora incluye `ramas` con `initRamas()` y `setRamas()`
+- **UI: Hub `/celular`** — Nueva página que muestra las 4 ramas como cards clickeables. Visible para pastor/admin/encargados.
+- **UI: `/celular/ramas/[ramaId]`** — Lista de células filtrada por rama. Encargado de rama puede crear células (botón "Nueva Célula").
+- **UI: Sidebar actualizado** — Links de "Células" ahora apuntan a `/celular` en vez de `/ministerios/celulas`.
+- **Redirección** — `/ministerios/celulas` redirige automáticamente a `/celular` (a menos que tenga `?ramaId=` para creación desde rama).
+- **Constantes compartidas** — `TIPO_LABELS` movido a `src/lib/celulas.ts` para evitar export desde page.tsx.
+- **Página de detalle adaptada** — Formulario de reporte semanal ahora genera objetos compatibles con el nuevo tipo `ReporteCelula`.
+
 Cambios de esta sesión (v1.19.3):
 - **Permisos de creación de células** — El botón "Nueva Célula" ya no aparece para `lider_celula`. Solo `pastor` y `administrador` pueden crear células (también se ajustó la lógica de "puedeCrear" en la página de detalle).
 - **UI mobile de células** — Mejorado el responsive en `/ministerios/celulas` y `/ministerios/celulas/[id]`:

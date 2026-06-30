@@ -18,14 +18,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { Timestamp } from "@/lib/firestore"
-
-const TIPO_LABELS: Record<TipoCelula, string> = {
-  mujeres: "Mujeres",
-  hombres: "Hombres",
-  adolescentes_varones: "Adolescentes Varones",
-  adolescentes_mujeres: "Adolescentes Mujeres",
-  matrimonios: "Matrimonios",
-}
+import { TIPO_LABELS } from "@/lib/celulas"
 
 export default function CelulaDetailPage() {
   const params = useParams()
@@ -183,6 +176,7 @@ export default function CelulaDetailPage() {
         id: nuevoId,
         celulaId: celula.id,
         nombre,
+        estado: "activo",
         activo: true,
         createdAt: new Date(),
       }])
@@ -216,22 +210,33 @@ export default function CelulaDetailPage() {
     }
     setSavingReporte(true)
     try {
-      const total = f.miembros + f.invitados
       const fechaDate = new Date(f.fecha + "T12:00:00")
+      const dia = fechaDate.getDay()
+      const diff = fechaDate.getDate() - dia + (dia === 0 ? -6 : 1)
+      const lunes = new Date(fechaDate)
+      lunes.setDate(diff)
+      const semana = lunes.toISOString().split("T")[0]
+
+      const totalMiembros = f.miembros
+      const asistentes = f.miembros
+      const ausentes = 0
+      const invitados = f.invitados
+
       const nuevoId = await crearDocumento("reporte_celulas", {
         celulaId: celula.id,
+        semana,
         fecha: fechaDate,
-        miembros: f.miembros,
-        invitados: f.invitados,
-        total,
+        liderId: f.liderId || celula.liderId,
+        asistencia: [],
+        totalMiembros,
+        asistentes,
+        ausentes,
+        invitados,
         temaTratado: f.temaTratado,
         versiculoPrincipal: f.versiculoPrincipal,
         ofrenda: f.ofrenda,
         recibio: f.recibio,
         observaciones: f.observaciones,
-        anfitrionId: f.anfitrionId,
-        coliderId: f.coliderId,
-        liderId: f.liderId,
         supervisado: f.supervisado,
         createdBy: userData?.id || "",
         activo: true,
@@ -240,18 +245,19 @@ export default function CelulaDetailPage() {
       const nuevoReporte: ReporteCelula = {
         id: nuevoId,
         celulaId: celula.id,
+        semana,
         fecha: fechaDate,
-        miembros: f.miembros,
-        invitados: f.invitados,
-        total,
+        liderId: f.liderId || celula.liderId,
+        asistencia: [],
+        totalMiembros,
+        asistentes,
+        ausentes,
+        invitados,
         temaTratado: f.temaTratado,
         versiculoPrincipal: f.versiculoPrincipal,
         ofrenda: f.ofrenda,
         recibio: f.recibio,
         observaciones: f.observaciones,
-        anfitrionId: f.anfitrionId,
-        coliderId: f.coliderId,
-        liderId: f.liderId,
         supervisado: f.supervisado,
         createdBy: userData?.id || "",
         activo: true,
@@ -683,7 +689,7 @@ export default function CelulaDetailPage() {
             <div className="space-y-2">
               {reportes.map((r) => {
                 const isExpanded = expandedReporte === r.id
-                const total = r.miembros + r.invitados
+                const total = r.asistentes + r.invitados
                 return (
                   <Card key={r.id} className="hover:bg-accent/30 transition-colors">
                     <CardContent className="p-4">
@@ -698,7 +704,7 @@ export default function CelulaDetailPage() {
                         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                           <div className="hidden sm:flex flex-col items-end gap-0.5">
                             <p className="text-sm whitespace-nowrap">
-                              <span className="text-muted-foreground">M:</span> {r.miembros}
+                              <span className="text-muted-foreground">M:</span> {r.totalMiembros}
                               <span className="text-muted-foreground ml-2">I:</span> {r.invitados}
                               <span className="text-muted-foreground ml-2">T:</span> {total}
                             </p>
@@ -711,9 +717,9 @@ export default function CelulaDetailPage() {
                       {isExpanded && (
                         <div className="mt-3 pt-3 border-t space-y-2 text-sm">
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <div><span className="text-muted-foreground">Miembros:</span> {r.miembros}</div>
+                            <div><span className="text-muted-foreground">Miembros:</span> {r.totalMiembros}</div>
+                            <div><span className="text-muted-foreground">Asistentes:</span> {r.asistentes}</div>
                             <div><span className="text-muted-foreground">Invitados:</span> {r.invitados}</div>
-                            <div><span className="text-muted-foreground">Total:</span> {total}</div>
                             {r.ofrenda > 0 && <div><span className="text-muted-foreground">Ofrenda:</span> ${r.ofrenda.toLocaleString("es-AR")}</div>}
                           </div>
                           {r.versiculoPrincipal && <p><span className="text-muted-foreground">Versículo:</span> {r.versiculoPrincipal}</p>}

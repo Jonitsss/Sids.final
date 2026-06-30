@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCelulas } from "@/hooks/useCelulas"
 import { useDashboardStore } from "@/stores/dashboardStore"
@@ -17,21 +17,23 @@ import { Plus, MapPin, Users, Clock, Trash2, Loader2, Calendar } from "lucide-re
 import { crearDocumento, eliminarDocumento, actualizarDocumento, obtenerDocumentos, where } from "@/lib/firestore"
 import { Celula, TipoCelula, Usuario } from "@/types"
 import { toast } from "sonner"
-
-const TIPO_LABELS: Record<TipoCelula, string> = {
-  mujeres: "Mujeres",
-  hombres: "Hombres",
-  adolescentes_varones: "Adolescentes Varones",
-  adolescentes_mujeres: "Adolescentes Mujeres",
-  matrimonios: "Matrimonios",
-}
+import { TIPO_LABELS } from "@/lib/celulas"
 
 export default function CelulasPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const ramaIdFromQuery = searchParams.get("ramaId")
+
   const { user, userData } = useAuth()
   const { ministerios } = useDashboardStore()
   const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
-  const { celulas, loading, setCelulas } = useCelulas(user?.uid, userData?.rol, ministerioCelular?.id)
+  const { celulas, loading, setCelulas } = useCelulas(user?.uid, userData?.rol, ministerioCelular?.id, ramaIdFromQuery || undefined)
+
+  useEffect(() => {
+    if (!ramaIdFromQuery) {
+      router.replace("/celular")
+    }
+  }, [ramaIdFromQuery, router])
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
   const esLiderCelular = userData?.rol === "lider" && ministerioCelular && userData?.ministerioIds?.includes(ministerioCelular.id)

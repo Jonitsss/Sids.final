@@ -167,30 +167,72 @@ export interface Consulta {
   updatedAt: Date
 }
 
+export interface RamaCelular {
+  id: string
+  nombre: string
+  tipo: TipoCelula
+  encargadoId?: string
+  descripcion?: string
+  ministerioId: string
+  activo: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Celula {
+  id: string
+  nombre: string
+  tipo: TipoCelula
+  ramaId?: string
+  direccion: string
+  liderId: string
+  coliderId: string
+  anfitrionId: string
+  dia: string
+  hora: string
+  ministerioId: string
+  activo: boolean
+  createdAt: Date
+}
+
+export type EstadoMiembroCelula = "activo" | "inactivo" | "visitante" | "nuevo" | "en_consolidacion" | "bautizado"
+
 export interface MiembroCelula {
   id: string
   celulaId: string
+  personaId?: string
   nombre: string
+  estado: EstadoMiembroCelula
+  fechaIngreso?: Date
+  fechaSalida?: Date
+  motivoSalida?: string
   activo: boolean
   createdAt: Date
+}
+
+export interface AsistenciaReporteCelula {
+  personaId?: string
+  nombre: string
+  estado: "presente" | "ausente"
 }
 
 export interface ReporteCelula {
   id: string
   celulaId: string
+  semana: string
   fecha: Date
-  miembros: number
+  liderId: string
+  asistencia: AsistenciaReporteCelula[]
+  totalMiembros: number
+  asistentes: number
+  ausentes: number
   invitados: number
-  total: number
   temaTratado: string
   versiculoPrincipal: string
   ofrenda: number
-  recibio: string
   observaciones: string
-  anfitrionId: string
-  coliderId: string
-  liderId: string
-  supervisado: string
+  recibio: string
+  supervisado?: string
   createdBy: string
   activo: boolean
   createdAt: Date
