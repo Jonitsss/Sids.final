@@ -228,6 +228,16 @@ Cambios de esta sesión (v1.23.0) — ERP Módulo Celular:
 - **Constantes compartidas** — `TIPO_LABELS` movido a `src/lib/celulas.ts` para evitar export desde page.tsx.
 - **Página de detalle adaptada** — Formulario de reporte semanal ahora genera objetos compatibles con el nuevo tipo `ReporteCelula`.
 
+Cambios de esta sesión (v1.24.0) — ERP Sesión 2:
+- **UI: Gestión de Ramas `/celular/ramas`** — Nueva página solo para pastor/admin donde pueden:
+  - Ver todas las ramas del Ministerio Celular
+  - Asignar o quitar encargados con un dropdown de usuarios activos
+  - Guardado inmediato con feedback toast
+- **Tipos: Escuela Bíblica** — Nuevos tipos `GrupoEscuelaBiblica` y `AsistenciaEscuelaBiblica`
+- **Hook: `useEscuelaBiblica`** — Listener en tiempo real de grupos de escuela bíblica activos
+- **UI: Hub `/escuela-biblica`** — Página básica que muestra los grupos de escuela bíblica con maestra y ayudantes. En construcción (placeholder para crear grupos).
+- **Sidebar** — Agregado link "Escuela Bíblica" para pastor y administrador
+
 Cambios de esta sesión (v1.19.3):
 - **Permisos de creación de células** — El botón "Nueva Célula" ya no aparece para `lider_celula`. Solo `pastor` y `administrador` pueden crear células (también se ajustó la lógica de "puedeCrear" en la página de detalle).
 - **UI mobile de células** — Mejorado el responsive en `/ministerios/celulas` y `/ministerios/celulas/[id]`:
