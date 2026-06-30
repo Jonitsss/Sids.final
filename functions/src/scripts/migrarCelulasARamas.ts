@@ -69,7 +69,7 @@ async function main() {
       nombre: config.nombre,
       tipo: config.tipo,
       encargadoId: null,
-      descripcion: `",
+      descripcion: "",
       ministerioId,
       activo: true,
       createdAt: FieldValue.serverTimestamp(),
