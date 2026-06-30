@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn, rolLabel } from "@/lib/utils"
@@ -25,6 +26,8 @@ import {
   Network,
   UserCheck,
   BookOpen,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react"
 import { APP_VERSION } from "@/lib/version"
 import { useTheme } from "@/contexts/ThemeContext"
@@ -34,12 +37,31 @@ interface SidebarProps {
   onClose: () => void
 }
 
-const menuItems = {
+type MenuItem = {
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+}
+
+type MenuGroup = {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  href?: string
+  children: MenuItem[]
+}
+
+const menuItems: Record<string, (MenuItem | MenuGroup)[]> = {
   pastor: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/ministerios", icon: Building2, label: "Ministerios" },
-    { href: "/celular", icon: Network, label: "Células" },
-    { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
+    {
+      icon: Building2,
+      label: "Ministerios",
+      children: [
+        { href: "/ministerios", icon: Building2, label: "Todos los Ministerios" },
+        { href: "/celular", icon: Network, label: "Células" },
+        { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
+      ],
+    },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
@@ -52,9 +74,15 @@ const menuItems = {
   ],
   administrador: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/ministerios", icon: Building2, label: "Ministerios" },
-    { href: "/celular", icon: Network, label: "Células" },
-    { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
+    {
+      icon: Building2,
+      label: "Ministerios",
+      children: [
+        { href: "/ministerios", icon: Building2, label: "Todos los Ministerios" },
+        { href: "/celular", icon: Network, label: "Células" },
+        { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
+      ],
+    },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
@@ -67,7 +95,14 @@ const menuItems = {
   ],
   lider: [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
+    {
+      icon: Building2,
+      label: "Mi Ministerio",
+      children: [
+        { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
+        { href: "/celular", icon: Network, label: "Células" },
+      ],
+    },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
@@ -108,27 +143,43 @@ const menuItems = {
   ],
 }
 
+function isGroup(item: MenuItem | MenuGroup): item is MenuGroup {
+  return "children" in item
+}
+
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { user, userData, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const role = userData?.rol || "colaborador"
   const { noLeidas, consultasNoLeidas, ministerios } = useDashboardStore()
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    Ministerios: true,
+    "Mi Ministerio": true,
+  })
 
   const baseItems = menuItems[role] || menuItems.colaborador
   const items = (() => {
     if (role === "lider") {
       const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
       const esLiderCelular = ministerioCelular && userData?.ministerioIds?.includes(ministerioCelular.id)
-      if (esLiderCelular) {
-        const idx = baseItems.findIndex((i) => i.href === "/eventos")
-        const before = baseItems.slice(0, idx)
-        const after = baseItems.slice(idx)
-        return [...before, { href: "/celular", icon: Network, label: "Células" }, ...after]
+      if (!esLiderCelular) {
+        return baseItems.map((item) => {
+          if (isGroup(item) && item.label === "Mi Ministerio") {
+            return { ...item, children: item.children.filter((c) => c.href !== "/celular") }
+          }
+          return item
+        })
       }
     }
     return baseItems
   })()
+
+  const toggleGroup = (label: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [label]: !prev[label] }))
+  }
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")
 
   return (
     <>
@@ -157,32 +208,80 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-1.5 py-1 space-y-0.5">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                pathname === item.href || pathname.startsWith(item.href + "/")
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              <span className="flex-1">{item.label}</span>
-              {item.href === "/notificaciones" && noLeidas > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                  {noLeidas > 99 ? "99+" : noLeidas}
-                </span>
-              )}
-              {item.href === "/consultas" && consultasNoLeidas > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                  {consultasNoLeidas > 99 ? "99+" : consultasNoLeidas}
-                </span>
-              )}
-            </Link>
-          ))}
+          {items.map((item) => {
+            if (isGroup(item)) {
+              const isExpanded = expandedGroups[item.label] ?? false
+              const hasActiveChild = item.children.some((child) => isActive(child.href))
+              return (
+                <div key={item.label} className="space-y-0.5">
+                  <button
+                    onClick={() => toggleGroup(item.label)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                      hasActiveChild
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {isExpanded ? (
+                      <ChevronDown className="h-3 w-3" />
+                    ) : (
+                      <ChevronRight className="h-3 w-3" />
+                    )}
+                  </button>
+                  {isExpanded && (
+                    <div className="ml-4 pl-3 border-l border-border space-y-0.5">
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          onClick={onClose}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                            isActive(child.href)
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          )}
+                        >
+                          <child.icon className="h-4 w-4" />
+                          <span className="flex-1">{child.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                  isActive(item.href)
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="flex-1">{item.label}</span>
+                {item.href === "/notificaciones" && noLeidas > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {noLeidas > 99 ? "99+" : noLeidas}
+                  </span>
+                )}
+                {item.href === "/consultas" && consultasNoLeidas > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {consultasNoLeidas > 99 ? "99+" : consultasNoLeidas}
+                  </span>
+                )}
+              </Link>
+            )
+          })}
         </nav>
 
         <div className="border-t p-2 space-y-1 shrink-0">

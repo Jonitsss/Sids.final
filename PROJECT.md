@@ -228,6 +228,16 @@ Cambios de esta sesión (v1.23.0) — ERP Módulo Celular:
 - **Constantes compartidas** — `TIPO_LABELS` movido a `src/lib/celulas.ts` para evitar export desde page.tsx.
 - **Página de detalle adaptada** — Formulario de reporte semanal ahora genera objetos compatibles con el nuevo tipo `ReporteCelula`.
 
+Cambios de esta sesión (v1.25.0):
+- **Sidebar: Ministerios como grupo expandible** — Reestructurado el sidebar para que "Ministerios" sea un menú desplegable con sub-items:
+  - "Todos los Ministerios" → `/ministerios`
+  - "Células" → `/celular`
+  - "Escuela Bíblica" → `/escuela-biblica`
+  - Íconos de flecha (ChevronDown/ChevronRight) indican estado expandido/colapsado
+  - Estado expandido por defecto para pastor, administrador y líder
+  - Para líderes de área sin ministerio Celular, el sub-item "Células" se oculta automáticamente
+- **Eliminados links sueltos** — Removidos los links directos de "Células" y "Escuela Bíblica" del nivel raíz del sidebar; ahora solo aparecen dentro del grupo Ministerios
+
 Cambios de esta sesión (v1.24.0) — ERP Sesión 2:
 - **UI: Gestión de Ramas `/celular/ramas`** — Nueva página solo para pastor/admin donde pueden:
   - Ver todas las ramas del Ministerio Celular
@@ -506,7 +516,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.15.0 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.25.0 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 
