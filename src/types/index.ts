@@ -291,3 +291,23 @@ export interface HistorialPersona {
   fechaFin?: Date
   createdAt: Date
 }
+
+export interface GrupoEscuelaBiblica {
+  id: string
+  nombre: string
+  maestraId: string
+  ayudantes: string[]
+  temaActual?: string
+  activo: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AsistenciaEscuelaBiblica {
+  id: string
+  grupoId: string
+  personaId: string
+  fecha: Date
+  asistio: boolean
+  createdAt: Date
+}

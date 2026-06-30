@@ -21,7 +21,9 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/ministerios` | Protegida | CRUD de ministerios (con detalle `/ministerios/[slug]`) |
 | `/celular` | Protegida | Hub del Ministerio Celular: ramas y células |
 | `/celular/ramas/[ramaId]` | Protegida | Células de una rama (Mujeres, Hombres, Adolescentes, Matrimonios) |
+| `/celular/ramas` | Protegida | Gestión de ramas y encargados (solo pastor/admin) |
 | `/ministerios/celulas/[id]` | Protegida | Detalle de célula: información, miembros y reportes semanales |
+| `/escuela-biblica` | Protegida | Escuela Bíblica: grupos, maestras, asistencias (en construcción) |
 | `/eventos` | Protegida | Calendario de eventos (con detalle `/eventos/[id]`) |
 | `/cronogramas` | Protegida | Grillas de servicio (con detalle `/cronogramas/[id]`) |
 | `/mis-asignaciones` | Protegida | Mis asignaciones en grillas de servicio |

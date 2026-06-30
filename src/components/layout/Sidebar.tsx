@@ -24,6 +24,7 @@ import {
   MessageSquare,
   Network,
   UserCheck,
+  BookOpen,
 } from "lucide-react"
 import { APP_VERSION } from "@/lib/version"
 import { useTheme } from "@/contexts/ThemeContext"
@@ -38,6 +39,7 @@ const menuItems = {
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Ministerios" },
     { href: "/celular", icon: Network, label: "Células" },
+    { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
@@ -52,6 +54,7 @@ const menuItems = {
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/ministerios", icon: Building2, label: "Ministerios" },
     { href: "/celular", icon: Network, label: "Células" },
+    { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
     { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
