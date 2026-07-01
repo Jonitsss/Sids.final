@@ -2,27 +2,28 @@ import { describe, it, expect } from 'vitest'
 import {
   puedeBorrar,
   tieneAccesoTotal,
-  esLider,
-  esLiderDeCelula,
-  esColaborador,
-  puedeCrearEventos,
   puedeGestionarUsuarios,
+  puedeAdministrarMinisterio,
+  puedeAdministrarCelula,
+  puedeAdministrarEscuela,
+  puedeCrearEventos,
   puedeVerReportes,
   puedeModificarAsistencia,
   puedeEliminarCelulas,
   puedeCrearCelulas,
+  esLiderDeArea,
 } from './permissions'
-import { Rol } from '@/types'
+import type { Administer } from '@/types'
 
-const TODOS_LOS_ROLES: Rol[] = [
-  'pastor',
-  'administrador',
-  'lider',
-  'lider_celula',
-  'colider',
-  'anfitrion',
-  'colaborador',
-]
+const administerVacio: Administer = {}
+const administerConMinisterio: Administer = { ministerios: ['min-1', 'min-2'] }
+const administerConCelula: Administer = { celulas: ['cel-1'] }
+const administerConEscuela: Administer = { escuelas: ['esc-1'] }
+const administerConTodo: Administer = {
+  ministerios: ['min-1'],
+  celulas: ['cel-1'],
+  escuelas: ['esc-1'],
+}
 
 describe('puedeBorrar', () => {
   it('pastor y administrador pueden borrar', () => {
@@ -32,9 +33,6 @@ describe('puedeBorrar', () => {
 
   it('otros roles no pueden borrar', () => {
     expect(puedeBorrar('lider')).toBe(false)
-    expect(puedeBorrar('lider_celula')).toBe(false)
-    expect(puedeBorrar('colider')).toBe(false)
-    expect(puedeBorrar('anfitrion')).toBe(false)
     expect(puedeBorrar('colaborador')).toBe(false)
   })
 })
@@ -46,64 +44,63 @@ describe('tieneAccesoTotal', () => {
   })
 
   it('otros roles no tienen acceso total', () => {
-    const rolesNoAdmin = TODOS_LOS_ROLES.filter(r => r !== 'pastor' && r !== 'administrador')
-    rolesNoAdmin.forEach(rol => {
-      expect(tieneAccesoTotal(rol)).toBe(false)
-    })
+    expect(tieneAccesoTotal('lider')).toBe(false)
+    expect(tieneAccesoTotal('colaborador')).toBe(false)
   })
 })
 
-describe('esLider', () => {
-  it('lider y lider_celula son líderes', () => {
-    expect(esLider('lider')).toBe(true)
-    expect(esLider('lider_celula')).toBe(true)
+describe('puedeAdministrarMinisterio', () => {
+  it('administer con ministerios puede administrar ese ministerio', () => {
+    expect(puedeAdministrarMinisterio(administerConMinisterio, 'min-1')).toBe(true)
+    expect(puedeAdministrarMinisterio(administerConMinisterio, 'min-2')).toBe(true)
   })
 
-  it('otros roles no son líderes', () => {
-    expect(esLider('pastor')).toBe(false)
-    expect(esLider('administrador')).toBe(false)
-    expect(esLider('colider')).toBe(false)
-    expect(esLider('anfitrion')).toBe(false)
-    expect(esLider('colaborador')).toBe(false)
-  })
-})
-
-describe('esLiderDeCelula', () => {
-  it('solo lider_celula es líder de célula', () => {
-    expect(esLiderDeCelula('lider_celula')).toBe(true)
+  it('administer sin ese ministerio no puede', () => {
+    expect(puedeAdministrarMinisterio(administerConMinisterio, 'min-3')).toBe(false)
   })
 
-  it('otros roles no son líder de célula', () => {
-    TODOS_LOS_ROLES.filter(r => r !== 'lider_celula').forEach(rol => {
-      expect(esLiderDeCelula(rol)).toBe(false)
-    })
+  it('administer vacío no puede administrar ningún ministerio', () => {
+    expect(puedeAdministrarMinisterio(administerVacio, 'min-1')).toBe(false)
+  })
+
+  it('null o undefined no puede', () => {
+    expect(puedeAdministrarMinisterio(null, 'min-1')).toBe(false)
+    expect(puedeAdministrarMinisterio(undefined, 'min-1')).toBe(false)
   })
 })
 
-describe('esColaborador', () => {
-  it('solo colaborador es colaborador', () => {
-    expect(esColaborador('colaborador')).toBe(true)
+describe('puedeAdministrarCelula', () => {
+  it('administer con celulas puede administrar esa célula', () => {
+    expect(puedeAdministrarCelula(administerConCelula, 'cel-1')).toBe(true)
   })
 
-  it('otros roles no son colaboradores', () => {
-    TODOS_LOS_ROLES.filter(r => r !== 'colaborador').forEach(rol => {
-      expect(esColaborador(rol)).toBe(false)
-    })
+  it('administer sin esa célula no puede', () => {
+    expect(puedeAdministrarCelula(administerConCelula, 'cel-2')).toBe(false)
+  })
+})
+
+describe('puedeAdministrarEscuela', () => {
+  it('administer con escuelas puede administrar esa escuela', () => {
+    expect(puedeAdministrarEscuela(administerConEscuela, 'esc-1')).toBe(true)
+  })
+
+  it('administer sin esa escuela no puede', () => {
+    expect(puedeAdministrarEscuela(administerConEscuela, 'esc-2')).toBe(false)
   })
 })
 
 describe('puedeCrearEventos', () => {
-  it('pastor, administrador y lider pueden crear eventos', () => {
-    expect(puedeCrearEventos('pastor')).toBe(true)
-    expect(puedeCrearEventos('administrador')).toBe(true)
-    expect(puedeCrearEventos('lider')).toBe(true)
+  it('administer con ministerios puede crear eventos', () => {
+    expect(puedeCrearEventos(administerConMinisterio)).toBe(true)
   })
 
-  it('otros roles no pueden crear eventos', () => {
-    expect(puedeCrearEventos('lider_celula')).toBe(false)
-    expect(puedeCrearEventos('colider')).toBe(false)
-    expect(puedeCrearEventos('anfitrion')).toBe(false)
-    expect(puedeCrearEventos('colaborador')).toBe(false)
+  it('administer vacío no puede crear eventos', () => {
+    expect(puedeCrearEventos(administerVacio)).toBe(false)
+  })
+
+  it('null o undefined no puede', () => {
+    expect(puedeCrearEventos(null)).toBe(false)
+    expect(puedeCrearEventos(undefined)).toBe(false)
   })
 })
 
@@ -114,39 +111,40 @@ describe('puedeGestionarUsuarios', () => {
   })
 
   it('otros roles no pueden gestionar usuarios', () => {
-    const rolesNoAdmin = TODOS_LOS_ROLES.filter(r => r !== 'pastor' && r !== 'administrador')
-    rolesNoAdmin.forEach(rol => {
-      expect(puedeGestionarUsuarios(rol)).toBe(false)
-    })
+    expect(puedeGestionarUsuarios('lider')).toBe(false)
+    expect(puedeGestionarUsuarios('colaborador')).toBe(false)
   })
 })
 
 describe('puedeVerReportes', () => {
-  it('pastor, administrador y lider pueden ver reportes', () => {
+  it('pastor y admin pueden ver reportes siempre', () => {
     expect(puedeVerReportes('pastor')).toBe(true)
     expect(puedeVerReportes('administrador')).toBe(true)
-    expect(puedeVerReportes('lider')).toBe(true)
   })
 
-  it('otros roles no pueden ver reportes', () => {
-    expect(puedeVerReportes('lider_celula')).toBe(false)
-    expect(puedeVerReportes('colider')).toBe(false)
-    expect(puedeVerReportes('anfitrion')).toBe(false)
-    expect(puedeVerReportes('colaborador')).toBe(false)
+  it('administer con ministerios puede ver reportes', () => {
+    expect(puedeVerReportes('lider', administerConMinisterio)).toBe(true)
+  })
+
+  it('administer vacío no puede ver reportes', () => {
+    expect(puedeVerReportes('lider', administerVacio)).toBe(false)
   })
 })
 
 describe('puedeModificarAsistencia', () => {
-  it('pastor, administrador, lider y lider_celula pueden modificar asistencia', () => {
+  it('pastor y admin pueden modificar asistencia siempre', () => {
     expect(puedeModificarAsistencia('pastor')).toBe(true)
     expect(puedeModificarAsistencia('administrador')).toBe(true)
-    expect(puedeModificarAsistencia('lider')).toBe(true)
-    expect(puedeModificarAsistencia('lider_celula')).toBe(true)
   })
 
-  it('otros roles no pueden modificar asistencia', () => {
-    expect(puedeModificarAsistencia('colider')).toBe(false)
-    expect(puedeModificarAsistencia('anfitrion')).toBe(false)
+  it('administer con ministerios o celulas puede modificar asistencia', () => {
+    expect(puedeModificarAsistencia('lider', administerConMinisterio)).toBe(true)
+    expect(puedeModificarAsistencia('lider', administerConCelula)).toBe(true)
+    expect(puedeModificarAsistencia('lider', administerConTodo)).toBe(true)
+  })
+
+  it('administer vacío sin rol elevado no puede', () => {
+    expect(puedeModificarAsistencia('lider', administerVacio)).toBe(false)
     expect(puedeModificarAsistencia('colaborador')).toBe(false)
   })
 })
@@ -158,24 +156,37 @@ describe('puedeEliminarCelulas', () => {
   })
 
   it('otros roles no pueden eliminar células', () => {
-    const rolesNoAdmin = TODOS_LOS_ROLES.filter(r => r !== 'pastor' && r !== 'administrador')
-    rolesNoAdmin.forEach(rol => {
-      expect(puedeEliminarCelulas(rol)).toBe(false)
-    })
+    expect(puedeEliminarCelulas('lider')).toBe(false)
+    expect(puedeEliminarCelulas('colaborador')).toBe(false)
   })
 })
 
 describe('puedeCrearCelulas', () => {
-  it('pastor, administrador y lider_celula pueden crear células', () => {
-    expect(puedeCrearCelulas('pastor')).toBe(true)
-    expect(puedeCrearCelulas('administrador')).toBe(true)
-    expect(puedeCrearCelulas('lider_celula')).toBe(true)
+  it('administer con celulas puede crear células', () => {
+    expect(puedeCrearCelulas(administerConCelula)).toBe(true)
+    expect(puedeCrearCelulas(administerConTodo)).toBe(true)
   })
 
-  it('otros roles no pueden crear células', () => {
-    expect(puedeCrearCelulas('lider')).toBe(false)
-    expect(puedeCrearCelulas('colider')).toBe(false)
-    expect(puedeCrearCelulas('anfitrion')).toBe(false)
-    expect(puedeCrearCelulas('colaborador')).toBe(false)
+  it('administer vacío no puede crear células', () => {
+    expect(puedeCrearCelulas(administerVacio)).toBe(false)
+  })
+
+  it('null o undefined no puede', () => {
+    expect(puedeCrearCelulas(null)).toBe(false)
+    expect(puedeCrearCelulas(undefined)).toBe(false)
+  })
+})
+
+describe('esLiderDeArea', () => {
+  it('lider y lider_area son líderes de área', () => {
+    expect(esLiderDeArea('lider')).toBe(true)
+    expect(esLiderDeArea('lider_area')).toBe(true)
+  })
+
+  it('otros roles no son líderes de área', () => {
+    expect(esLiderDeArea('pastor')).toBe(false)
+    expect(esLiderDeArea('administrador')).toBe(false)
+    expect(esLiderDeArea('lider_celula')).toBe(false)
+    expect(esLiderDeArea('colaborador')).toBe(false)
   })
 })

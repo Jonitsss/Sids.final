@@ -296,22 +296,17 @@ export default function PersonaDetailPage() {
                       <p>{new Date(persona.fechaNacimiento).toLocaleDateString("es-AR")}</p>
                     </div>
                   )}
-                  {persona.ministeriosActuales && persona.ministeriosActuales.length > 0 && (
+                  {persona.participaciones && persona.participaciones.length > 0 && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Ministerios Actuales</p>
+                      <p className="text-sm text-muted-foreground">Participaciones</p>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {persona.ministeriosActuales.map((m, i) => (
+                        {persona.participaciones.filter((p) => p.activo).map((p, i) => (
                           <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                            {m.nombre} — {m.rol}
+                            {p.refNombre} — {p.rol}
+                            {p.esEncargado && " 🛡️"}
                           </span>
                         ))}
                       </div>
-                    </div>
-                  )}
-                  {persona.celulaActual && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Célula Actual</p>
-                      <p>{persona.celulaActual.nombre} ({persona.celulaActual.rol})</p>
                     </div>
                   )}
                   {persona.notas && (

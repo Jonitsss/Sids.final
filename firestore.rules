@@ -1,16 +1,5 @@
 rules_version = '2';
 
-// =============================================================================
-// Firestore Security Rules · SIDS
-// =============================================================================
-// Reemplaza la regla de "30 días" que vence el 1 de julio 2026.
-// Bloquea acceso público y exige autenticación. Las operaciones destructivas
-// (delete) NO se hacen desde el cliente: se delega a Cloud Functions
-// (functions/src/index.ts -> borrarDocumento), que valida el custom claim
-// `rol` (pastor | administrador | lider | colaborador) y aplica una
-// allowlist de colecciones. Ver TODO al final.
-// =============================================================================
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -25,25 +14,28 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.rol in ['pastor', 'administrador'];
     }
 
-    function esLider() {
-      return isSignedIn() && request.auth.token.rol == 'lider';
+    function esAdminDeMinisterio(ministerioId) {
+      return esPastorOAdmin()
+        || get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.administer.ministerios.hasAny([ministerioId]);
     }
 
-    function esLiderOArea() {
-      return isSignedIn() && request.auth.token.rol in ['lider', 'lider_area'];
+    function esAdminDeCelula(celulaId) {
+      return esPastorOAdmin()
+        || get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.administer.celulas.hasAny([celulaId]);
     }
 
-    function puedeCrearEventosOCronogramas() {
-      return esPastorOAdmin() || esLider();
+    function esAdminDeEscuela(escuelaId) {
+      return esPastorOAdmin()
+        || get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.administer.escuelas.hasAny([escuelaId]);
     }
 
-    function puedeActualizarCronograma() {
-      return puedeCrearEventosOCronogramas() || isSignedIn();
+    function esProfesorEM(escuelaId) {
+      let escuela = get(/databases/$(database)/documents/escuela_ministerios/$(escuelaId));
+      return isSignedIn() && escuela.data.profesores.any(p, p.usuarioId == request.auth.uid);
     }
 
     // ---------------------------------------------------------------------
-    // usuarios: cualquier autenticado lee; solo autenticado puede actualizar
-    //           su propio documento (matching por authUid)
+    // usuarios
     // ---------------------------------------------------------------------
     match /usuarios/{userId} {
       allow read: if isSignedIn();
@@ -56,7 +48,7 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // ministerios: lectura para autenticados
+    // ministerios
     // ---------------------------------------------------------------------
     match /ministerios/{ministerioId} {
       allow read: if isSignedIn();
@@ -74,21 +66,13 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // celulas: pastor/admin todo; encargado de rama su rama; líder/colíder/anfitrión su célula
+    // celulas
     // ---------------------------------------------------------------------
     match /celulas/{celulaId} {
-      allow read: if isSignedIn() && (
-        esPastorOAdmin()
-        || resource.data.liderId == request.auth.uid
-        || resource.data.coliderId == request.auth.uid
-        || resource.data.anfitrionId == request.auth.uid
-        || (resource.data.ramaId != null
-            && get(/databases/$(database)/documents/ramas_celular/$(resource.data.ramaId)).data.encargadoId == request.auth.uid)
-      );
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && (
         esPastorOAdmin()
-        || (request.resource.data.ramaId != null
-            && get(/databases/$(database)/documents/ramas_celular/$(request.resource.data.ramaId)).data.encargadoId == request.auth.uid)
+        || esAdminDeCelula(celulaId)
       );
       allow update: if isSignedIn() && (
         esPastorOAdmin()
@@ -105,17 +89,20 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     match /eventos/{eventoId} {
       allow read: if isSignedIn();
-      allow create, update: if puedeCrearEventosOCronogramas();
+      allow create, update: if esPastorOAdmin();
       allow delete: if false;
     }
 
     // ---------------------------------------------------------------------
-    // cronogramas (grillas de servicio)
+    // cronogramas
     // ---------------------------------------------------------------------
     match /cronogramas/{cronogramaId} {
       allow read: if isSignedIn();
-      allow create: if puedeCrearEventosOCronogramas();
-      allow update: if puedeActualizarCronograma();
+      allow create: if esPastorOAdmin();
+      allow update: if isSignedIn() && (
+        esPastorOAdmin()
+        || resource.data.asignados.hasAny([request.auth.uid])
+      );
       allow delete: if false;
     }
 
@@ -129,7 +116,7 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // notificaciones: SOLO el destinatario (por usuarioId) puede leer/actualizar/borrar
+    // notificaciones
     // ---------------------------------------------------------------------
     match /notificaciones/{notifId} {
       allow read: if isSignedIn() && resource.data.usuarioId == request.auth.uid;
@@ -139,7 +126,7 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // asistencias (plural, igual que el código)
+    // asistencias
     // ---------------------------------------------------------------------
     match /asistencias/{asistenciaId} {
       allow read: if isSignedIn();
@@ -148,16 +135,16 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // miembros_ministerio (si existe)
+    // miembros_ministerio
     // ---------------------------------------------------------------------
     match /miembros_ministerio/{miembroId} {
       allow read: if isSignedIn();
-      allow create, update: if esPastorOAdmin();
+      allow create, update: if esPastorOAdmin() || esAdminDeMinisterio(resource.data.ministerioId);
       allow delete: if false;
     }
 
     // ---------------------------------------------------------------------
-    // consultas (sistema de mensajes líder → pastor/admin)
+    // consultas
     // ---------------------------------------------------------------------
     match /consultas/{consultaId} {
       allow read: if isSignedIn();
@@ -170,136 +157,104 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // miembros_celula: miembros de una célula
+    // miembros_celula
     // ---------------------------------------------------------------------
     match /miembros_celula/{miembroId} {
-      allow read: if isSignedIn() && (
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && (
         esPastorOAdmin()
-        || (resource.data.celulaId != null
-            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.liderId == request.auth.uid)
-        || (resource.data.celulaId != null
-            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.coliderId == request.auth.uid)
-        || (resource.data.celulaId != null
-            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.anfitrionId == request.auth.uid)
+        || esAdminDeCelula(resource.data.celulaId)
       );
-      allow create, update: if isSignedIn()
-        && (esPastorOAdmin()
-            || request.auth.uid == request.resource.data.createdBy
-            || request.auth.uid == resource.data.createdBy);
       allow delete: if false;
     }
 
     // ---------------------------------------------------------------------
-    // personas: base central de miembros de la iglesia
+    // personas
     // ---------------------------------------------------------------------
     match /personas/{personaId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && (esPastorOAdmin() || esLiderOArea());
-      allow update: if isSignedIn() && (esPastorOAdmin() || esLiderOArea());
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        esPastorOAdmin()
+        || resource.data.usuarioId == request.auth.uid
+      );
       allow delete: if false;
     }
 
     // ---------------------------------------------------------------------
-    // historial_persona: línea de tiempo de cada persona
+    // historial_persona
     // ---------------------------------------------------------------------
     match /personas/{personaId}/historial/{eventoId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && (esPastorOAdmin() || esLiderOArea());
+      allow create: if isSignedIn();
       allow update: if esPastorOAdmin();
       allow delete: if false;
     }
 
     // ---------------------------------------------------------------------
-    // reporte_celulas: reportes semanales de células
+    // reporte_celulas
     // ---------------------------------------------------------------------
     match /reporte_celulas/{reporteId} {
-      allow read: if isSignedIn() && (
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (
         esPastorOAdmin()
-        || resource.data.liderId == request.auth.uid
-        || resource.data.createdBy == request.auth.uid
-        || (resource.data.celulaId != null
-            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.liderId == request.auth.uid)
-        || (resource.data.celulaId != null
-            && get(/databases/$(database)/documents/celulas/$(resource.data.celulaId)).data.coliderId == request.auth.uid)
+        || esAdminDeCelula(resource.data.celulaId)
+        || request.auth.uid == request.resource.data.createdBy
       );
-      allow create: if isSignedIn()
-        && (esPastorOAdmin() || request.auth.uid == request.resource.data.createdBy);
-      allow update: if isSignedIn()
-        && (esPastorOAdmin() || request.auth.uid == resource.data.createdBy);
+      allow update: if isSignedIn() && (
+        esPastorOAdmin()
+        || request.auth.uid == resource.data.createdBy
+      );
       allow delete: if false;
     }
 
-    // =============================================================
-    // Nuevos helpers para expansión ministerial
-    // =============================================================
-    
-    function esLiderArea() {
-      return isSignedIn() && request.auth.token.rol == 'lider_area';
-    }
-    
-    function esMaestraEB() {
-      return isSignedIn() && request.auth.token.rol == 'maestra_escuela_biblica';
-    }
-    
-    function esProfesorEM(escuelaId) {
-      let escuela = get(/databases/$(database)/documents/escuela_ministerios/$(escuelaId));
-      return isSignedIn() && escuela.data.profesores.any(p, p.usuarioId == request.auth.uid);
-    }
-    
-    function esLiderRama(ramaId) {
-      let rama = get(/databases/$(database)/documents/ramas_celular/$(ramaId));
-      return isSignedIn() && rama.data.encargadoId == request.auth.uid;
-    }
-    
-    // =============================================================
-    // miembros_iglesia: solo pastor/admin
-    // =============================================================
+    // ---------------------------------------------------------------------
+    // miembros_iglesia (legacy, read-only)
+    // ---------------------------------------------------------------------
     match /miembros_iglesia/{miembroId} {
       allow read: if esPastorOAdmin();
-      allow create, update: if esPastorOAdmin();
+      allow create, update: if false;
       allow delete: if false;
     }
-    
-    // =============================================================
-    // escuela_ministerios: lectura pública, creación pastor/admin
-    // =============================================================
+
+    // ---------------------------------------------------------------------
+    // escuela_ministerios
+    // ---------------------------------------------------------------------
     match /escuela_ministerios/{nivelId} {
       allow read: if isSignedIn();
       allow create, update: if esPastorOAdmin();
       allow delete: if false;
     }
-    
-    // =============================================================
-    // asistencias_escuela_ministerios: profesor/admin o alumno
-    // =============================================================
+
+    // ---------------------------------------------------------------------
+    // asistencias_escuela_ministerios
+    // ---------------------------------------------------------------------
     match /asistencias_escuela_ministerios/{docId} {
-      allow read: if esPastorOAdmin() 
+      allow read: if esPastorOAdmin()
         || esProfesorEM(resource.data.escuelaId)
         || request.auth.uid == resource.data.usuarioId;
-      allow create, update: if esPastorOAdmin() 
+      allow create, update: if esPastorOAdmin()
         || esProfesorEM(request.resource.data.escuelaId);
       allow delete: if false;
     }
-    
-    // =============================================================
-    // notas_escuela_ministerios: profesor/admin o alumno
-    // =============================================================
-    match /notas_escuela_ministerios/{docId} {
-      allow read: if esPastorOAdmin() 
-        || esProfesorEM(resource.data.escuelaId) 
-        || request.auth.uid == resource.data.usuarioId;
-      allow create, update: if esPastorOAdmin() 
-        || esProfesorEM(request.resource.data.escuelaId);
-      allow delete: if false;
-    }
-    
+
     // ---------------------------------------------------------------------
-    // Deny everything else by default (fail-safe)
+    // notas_escuela_ministerios
+    // ---------------------------------------------------------------------
+    match /notas_escuela_ministerios/{docId} {
+      allow read: if esPastorOAdmin()
+        || esProfesorEM(resource.data.escuelaId)
+        || request.auth.uid == resource.data.usuarioId;
+      allow create, update: if esPastorOAdmin()
+        || esProfesorEM(request.resource.data.escuelaId);
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // Deny everything else by default
     // ---------------------------------------------------------------------
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
-
-

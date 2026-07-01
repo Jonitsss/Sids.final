@@ -78,18 +78,7 @@ async function sendPushToUser(usuarioId: string, titulo: string, mensaje: string
 
 const ROLES_DESTRUCTIVOS = new Set(["pastor", "administrador"]);
 
-const ROLES_VALIDOS = new Set([
-  "pastor",
-  "administrador",
-  "lider",
-  "lider_area",
-  "lider_celula",
-  "colider",
-  "anfitrion",
-  "maestra_escuela_biblica",
-  "profesor_escuela_min",
-  "colaborador",
-]);
+const ROLES_VALIDOS = new Set(["pastor", "administrador"]);
 
 const COLECCIONES_PERMITIDAS_PASTOR_ADMIN = new Set([
   "ministerios",
@@ -365,50 +354,46 @@ export const setRolUsuario = onRequest(async (req, res) => {
       return;
     }
 
-    const { uid, rol } = req.body || {};
+    const { uid, rol, administer } = req.body || {};
 
     if (!uid || !isValidId(uid)) {
       res.status(400).send({ error: "El 'uid' es requerido y debe ser válido." });
       return;
     }
-    if (!ROLES_VALIDOS.has(rol)) {
-      res.status(400).send({ error: `Rol "${rol}" no es válido.` });
-      return;
-    }
-    if (uid === callerUid && (rol === "lider" || rol === "colaborador")) {
-      res.status(400).send({ error: "No podés degradar tu propio rol desde la app." });
-      return;
+
+    if (rol) {
+      if (!ROLES_VALIDOS.has(rol)) {
+        res.status(400).send({ error: `Rol "${rol}" no es válido.` });
+        return;
+      }
+      await auth.setCustomUserClaims(uid, { rol });
     }
 
-    await auth.setCustomUserClaims(uid, { rol });
+    const updateData: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
+    if (rol) updateData.rol = rol;
+    if (administer !== undefined) updateData.administer = administer;
 
     const targetToken = uid === callerUid ? callerToken : await auth.getUser(uid).then(u => ({ email: u.email }));
     const targetEmail = targetToken?.email;
 
     const q = await db.collection("usuarios").where("authUid", "==", uid).limit(1).get();
     if (!q.empty) {
-      await q.docs[0].ref.set(
-        { rol, updatedAt: FieldValue.serverTimestamp() },
-        { merge: true }
-      );
+      await q.docs[0].ref.set(updateData, { merge: true });
     } else if (targetEmail) {
       const emailQ = await db.collection("usuarios").where("email", "==", targetEmail.toLowerCase()).limit(1).get();
       if (!emailQ.empty) {
         await emailQ.docs[0].ref.set(
-          { rol, authUid: uid, updatedAt: FieldValue.serverTimestamp() },
+          { ...updateData, authUid: uid },
           { merge: true }
         );
       } else {
         await db.collection("usuarios").doc(uid).set(
-          { rol, email: targetEmail, updatedAt: FieldValue.serverTimestamp() },
+          { ...updateData, email: targetEmail },
           { merge: true }
         );
       }
     } else {
-      await db.collection("usuarios").doc(uid).set(
-        { rol, updatedAt: FieldValue.serverTimestamp() },
-        { merge: true }
-      );
+      await db.collection("usuarios").doc(uid).set(updateData, { merge: true });
     }
 
     logger.info("rol asignado", { uid, rol, por: callerUid });

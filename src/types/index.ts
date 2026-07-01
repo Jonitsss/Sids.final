@@ -1,14 +1,25 @@
-export type Rol =
-  | "pastor"
-  | "administrador"
-  | "lider"
-  | "lider_area"
-  | "lider_celula"
-  | "colider"
-  | "anfitrion"
-  | "maestra_escuela_biblica"
-  | "profesor_escuela_min"
-  | "colaborador"
+export type Rol = "pastor" | "administrador" | "lider" | "lider_area" | "lider_celula" | "colider" | "anfitrion" | "maestra_escuela_biblica" | "profesor_escuela_min" | "colaborador"
+
+export interface Participacion {
+  id: string
+  personaId: string
+  refTipo: 'ministerio' | 'celula' | 'escuela_ministerios'
+  refId: string
+  refNombre: string
+  rol: string
+  esEncargado: boolean
+  activo: boolean
+  fechaInicio: Date
+  fechaFin?: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Administer {
+  ministerios: string[]
+  celulas: string[]
+  escuelas: string[]
+}
 
 export type EstadoAsignacion = "pendiente" | "confirmado" | "rechazado"
 
@@ -42,6 +53,8 @@ export interface Usuario {
     roles: string[]
     esAyudante: boolean
   }
+  administer?: Administer
+  personaId?: string
   fotoURL: string
   authUid?: string
   notificaciones: boolean
@@ -279,21 +292,7 @@ export interface Persona {
   notas?: string
   usuarioId?: string
   tieneUsuario?: boolean
-  ministeriosActuales?: {
-    ministerioId: string
-    nombre: string
-    rol: string
-  }[]
-  celulaActual?: {
-    celulaId: string
-    nombre: string
-    rol: string
-  }
-  escuelaMinisterioActual?: {
-    escuelaId: string
-    nivel: string
-    estado: 'cursando' | 'completado' | 'abandonado'
-  }
+  participaciones?: Participacion[]
   createdAt: Date
   updatedAt: Date
 }
