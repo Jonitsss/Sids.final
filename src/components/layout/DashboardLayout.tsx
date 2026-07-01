@@ -14,6 +14,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const initMinisterios = useDashboardStore((s) => s.initMinisterios)
   const initRamas = useDashboardStore((s) => s.initRamas)
   const initUsuarios = useDashboardStore((s) => s.initUsuarios)
+  const initPersonas = useDashboardStore((s) => s.initPersonas)
   const initNotificaciones = useDashboardStore((s) => s.initNotificaciones)
   const initConsultas = useDashboardStore((s) => s.initConsultas)
   const cleanup = useDashboardStore((s) => s.cleanup)
@@ -24,10 +25,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     initMinisterios()
     initRamas()
     initUsuarios()
+    initPersonas()
     initNotificaciones(user.uid)
     initConsultas(user.uid, userData.rol)
     return () => cleanup()
-  }, [user?.uid, userData?.rol, initMinisterios, initRamas, initUsuarios, initNotificaciones, initConsultas, cleanup])
+  }, [user?.uid, userData?.rol, initMinisterios, initRamas, initUsuarios, initPersonas, initNotificaciones, initConsultas, cleanup])
 
   useEffect(() => {
     if (typeof window === "undefined") return

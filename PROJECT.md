@@ -228,6 +228,18 @@ Cambios de esta sesión (v1.23.0) — ERP Módulo Celular:
 - **Constantes compartidas** — `TIPO_LABELS` movido a `src/lib/celulas.ts` para evitar export desde page.tsx.
 - **Página de detalle adaptada** — Formulario de reporte semanal ahora genera objetos compatibles con el nuevo tipo `ReporteCelula`.
 
+Cambios de esta sesión (v1.26.0) — Fase 1 Módulo Personas:
+- **Feature: Base de Personas** — Nueva colección `personas` como entidad central separada de `usuarios`:
+  - **Firestore rules** — CRUD para `personas`: lectura autenticados, creación/edición pastor/admin/líder, eliminación deshabilitada
+  - **Cloud Functions** — `personas` agregada a allowlist de `borrarDocumento`
+  - **Hook `usePersonas`** — Listener en tiempo real de la colección `personas`
+  - **Store** — `dashboardStore` ahora incluye `personas` con `initPersonas()` y `setPersonas()`
+  - **DashboardLayout** — Inicializa listener de personas al montar
+  - **Página `/personas`** — Listado con grillas de cards, búsqueda por nombre/email/teléfono, filtro por estado (visitante/nuevo/en_consolidación/miembro/bautizado/inactivo), paginación
+  - **Página `/personas/nueva`** — Formulario de alta con nombre, apellido, email, teléfono, estado, dirección, notas
+  - **Página `/personas/[id]`** — Detalle con modo vista/edición, cambio de estado, eliminación (pastor/admin)
+  - **Sidebar** — Link "Personas" visible para pastor, administrador y líder
+
 Cambios de esta sesión (v1.25.2):
 - **UI: Hub `/celular` rediseñado** — Reescrito `/celular/page.tsx` para alinearse con el diseño del ejemplo:
   - Cards con borde, contador de células por rama (`X células`), enlace "Ver detalles →"
@@ -532,7 +544,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.25.2 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.26.0 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 

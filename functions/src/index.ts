@@ -100,6 +100,7 @@ const COLECCIONES_PERMITIDAS_PASTOR_ADMIN = new Set([
   "consultas",
   "celulas",
   "ramas_celular",
+  "personas",
 ]);
 
 function getRol(token: Record<string, unknown> | undefined): string | null {

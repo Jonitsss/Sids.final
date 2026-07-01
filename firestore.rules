@@ -186,6 +186,16 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
+    // personas: base central de personas de la iglesia
+    // ---------------------------------------------------------------------
+    match /personas/{personaId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (esPastorOAdmin() || esLider());
+      allow update: if isSignedIn() && (esPastorOAdmin() || esLider());
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
     // reporte_celulas: reportes semanales de células
     // ---------------------------------------------------------------------
     match /reporte_celulas/{reporteId} {

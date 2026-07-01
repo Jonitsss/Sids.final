@@ -2,7 +2,7 @@ import { create } from "zustand"
 import { db } from "@/lib/firebase"
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore"
 import { mapDoc } from "@/lib/firestore"
-import { Ministerio, Usuario, Notificacion, Consulta, RamaCelular } from "@/types"
+import { Ministerio, Usuario, Notificacion, Consulta, RamaCelular, Persona } from "@/types"
 
 interface DashboardStore {
   ministerios: Ministerio[]
@@ -11,6 +11,8 @@ interface DashboardStore {
   ramasLoading: boolean
   usuarios: Usuario[]
   usuariosLoading: boolean
+  personas: Persona[]
+  personasLoading: boolean
   notificaciones: Notificacion[]
   notificacionesLoading: boolean
   noLeidas: number
@@ -21,6 +23,7 @@ interface DashboardStore {
   initMinisterios: () => void
   initRamas: () => void
   initUsuarios: () => void
+  initPersonas: () => void
   initNotificaciones: (usuarioId: string) => void
   initConsultas: (usuarioId: string, rol: string) => void
   cleanup: () => void
@@ -29,6 +32,7 @@ interface DashboardStore {
   setMinisterios: (ministeriosOrFn: Ministerio[] | ((prev: Ministerio[]) => Ministerio[])) => void
   setRamas: (ramasOrFn: RamaCelular[] | ((prev: RamaCelular[]) => RamaCelular[])) => void
   setUsuarios: (usuariosOrFn: Usuario[] | ((prev: Usuario[]) => Usuario[])) => void
+  setPersonas: (personasOrFn: Persona[] | ((prev: Persona[]) => Persona[])) => void
   setNotificaciones: (notifsOrFn: Notificacion[] | ((prev: Notificacion[]) => Notificacion[])) => void
   setConsultas: (consultas: Consulta[]) => void
 }
@@ -36,6 +40,7 @@ interface DashboardStore {
 let unsubMinisterios: (() => void) | null = null
 let unsubRamas: (() => void) | null = null
 let unsubUsuarios: (() => void) | null = null
+let unsubPersonas: (() => void) | null = null
 let unsubNotificaciones: (() => void) | null = null
 let unsubConsultas: (() => void) | null = null
 
@@ -46,6 +51,8 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   ramasLoading: true,
   usuarios: [],
   usuariosLoading: true,
+  personas: [],
+  personasLoading: true,
   notificaciones: [],
   notificacionesLoading: true,
   noLeidas: 0,
@@ -86,6 +93,18 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
         set({ usuarios: snap.docs.map((doc) => mapDoc<Usuario>(doc)), usuariosLoading: false })
       },
       () => set({ usuariosLoading: false })
+    )
+  },
+
+  initPersonas: () => {
+    if (!db || unsubPersonas) return
+    const q = query(collection(db, "personas"))
+    unsubPersonas = onSnapshot(
+      q,
+      (snap) => {
+        set({ personas: snap.docs.map((doc) => mapDoc<Persona>(doc)), personasLoading: false })
+      },
+      () => set({ personasLoading: false })
     )
   },
 
@@ -158,6 +177,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     if (unsubMinisterios) { unsubMinisterios(); unsubMinisterios = null }
     if (unsubRamas) { unsubRamas(); unsubRamas = null }
     if (unsubUsuarios) { unsubUsuarios(); unsubUsuarios = null }
+    if (unsubPersonas) { unsubPersonas(); unsubPersonas = null }
     if (unsubNotificaciones) { unsubNotificaciones(); unsubNotificaciones = null }
     if (unsubConsultas) { unsubConsultas(); unsubConsultas = null }
   },
@@ -166,11 +186,13 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     if (unsubMinisterios) { unsubMinisterios(); unsubMinisterios = null }
     if (unsubRamas) { unsubRamas(); unsubRamas = null }
     if (unsubUsuarios) { unsubUsuarios(); unsubUsuarios = null }
+    if (unsubPersonas) { unsubPersonas(); unsubPersonas = null }
     if (unsubNotificaciones) { unsubNotificaciones(); unsubNotificaciones = null }
     if (unsubConsultas) { unsubConsultas(); unsubConsultas = null }
     get().initMinisterios()
     get().initRamas()
     get().initUsuarios()
+    get().initPersonas()
     get().initNotificaciones(usuarioId)
     get().initConsultas(usuarioId, rol)
   },
@@ -191,6 +213,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     const prev = get().usuarios
     const usuarios = typeof usuariosOrFn === "function" ? usuariosOrFn(prev) : usuariosOrFn
     set({ usuarios })
+  },
+
+  setPersonas: (personasOrFn) => {
+    const prev = get().personas
+    const personas = typeof personasOrFn === "function" ? personasOrFn(prev) : personasOrFn
+    set({ personas })
   },
 
   setNotificaciones: (notifsOrFn) => {
