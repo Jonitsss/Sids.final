@@ -102,7 +102,7 @@ export default function MinisterioDetailPage() {
         if (m) {
           setRoles(m.roles || [])
           setConfigColor(m.color || "#000000")
-          setConfigLiderId(m.liderId || "")
+          setConfigLiderId(m.encargados?.[0] || "")
           const usuarios = await obtenerDocumentos<Usuario>("usuarios", [
             where("ministerioIds", "array-contains", m.id),
             where("activo", "==", true),
@@ -170,9 +170,9 @@ export default function MinisterioDetailPage() {
     try {
       await actualizarDocumento("ministerios", ministerio.id, {
         color: configColor,
-        liderId: configLiderId,
+        encargados: configLiderId ? [configLiderId] : [],
       })
-      setMinisterio((prev) => prev ? { ...prev, color: configColor, liderId: configLiderId } : prev)
+      setMinisterio((prev) => prev ? { ...prev, color: configColor, encargados: configLiderId ? [configLiderId] : [] } : prev)
       toast.success("Configuración guardada")
     } catch {
       toast.error("Error al guardar configuración")

@@ -13,7 +13,7 @@ export function tieneAccesoTotal(rol: Rol): boolean {
 }
 
 export function esLider(rol: Rol): boolean {
-  return ['lider', 'lider_celula'].includes(rol)
+  return ['lider', 'lider_area', 'lider_celula'].includes(rol)
 }
 
 export function esLiderDeCelula(rol: Rol): boolean {
@@ -25,7 +25,7 @@ export function esColaborador(rol: Rol): boolean {
 }
 
 export function puedeCrearEventos(rol: Rol): boolean {
-  return ['pastor', 'administrador', 'lider'].includes(rol)
+  return ['pastor', 'administrador', 'lider', 'lider_area'].includes(rol)
 }
 
 export function puedeGestionarUsuarios(rol: Rol): boolean {
@@ -33,11 +33,11 @@ export function puedeGestionarUsuarios(rol: Rol): boolean {
 }
 
 export function puedeVerReportes(rol: Rol): boolean {
-  return ['pastor', 'administrador', 'lider'].includes(rol)
+  return ['pastor', 'administrador', 'lider', 'lider_area'].includes(rol)
 }
 
 export function puedeModificarAsistencia(rol: Rol): boolean {
-  return ['pastor', 'administrador', 'lider', 'lider_celula'].includes(rol)
+  return ['pastor', 'administrador', 'lider', 'lider_area', 'lider_celula'].includes(rol)
 }
 
 export function puedeEliminarCelulas(rol: Rol): boolean {
@@ -45,9 +45,9 @@ export function puedeEliminarCelulas(rol: Rol): boolean {
 }
 
 export function puedeCrearCelulas(rol: Rol): boolean {
-  return ['pastor', 'administrador', 'lider_celula'].includes(rol)
+  return ['pastor', 'administrador', 'lider_area', 'lider_celula'].includes(rol)
 }
 
 export function esLiderDeArea(rol: Rol): boolean {
-  return rol === 'lider'
+  return rol === 'lider' || rol === 'lider_area'
 }

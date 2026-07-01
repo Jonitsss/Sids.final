@@ -233,11 +233,13 @@ export default function MisAsignacionesPage() {
     }
 
     const ministerio = ministerios.find((m) => m.id === ministerioId)
-    if (ministerio?.liderId) {
-      const liderDoc = await obtenerDocumento<any>("usuarios", ministerio.liderId)
-      if (liderDoc) {
-        const liderUid = liderDoc.authUid || liderDoc.id
-        if (liderUid !== uid) destinatarios.add(liderUid)
+    if (ministerio?.encargados?.length) {
+      for (const encargadoId of ministerio.encargados) {
+        const liderDoc = await obtenerDocumento<any>("usuarios", encargadoId)
+        if (liderDoc) {
+          const liderUid = liderDoc.authUid || liderDoc.id
+          if (liderUid !== uid) destinatarios.add(liderUid)
+        }
       }
     }
 

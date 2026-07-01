@@ -60,6 +60,7 @@ const menuItems: Record<string, (MenuItem | MenuGroup)[]> = {
         { href: "/ministerios", icon: Building2, label: "Todos los Ministerios" },
         { href: "/celular", icon: Network, label: "Células" },
         { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
+        { href: "/escuela-ministerios", icon: BookOpen, label: "Escuela Ministerios" },
       ],
     },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
@@ -82,6 +83,7 @@ const menuItems: Record<string, (MenuItem | MenuGroup)[]> = {
         { href: "/ministerios", icon: Building2, label: "Todos los Ministerios" },
         { href: "/celular", icon: Network, label: "Células" },
         { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
+        { href: "/escuela-ministerios", icon: BookOpen, label: "Escuela Ministerios" },
       ],
     },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
@@ -103,6 +105,28 @@ const menuItems: Record<string, (MenuItem | MenuGroup)[]> = {
       children: [
         { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
         { href: "/celular", icon: Network, label: "Células" },
+        { href: "/escuela-ministerios", icon: BookOpen, label: "Escuela Ministerios" },
+      ],
+    },
+    { href: "/eventos", icon: Calendar, label: "Eventos" },
+    { href: "/cronogramas", icon: ClipboardList, label: "Cronogramas" },
+    { href: "/mis-asignaciones", icon: UserCheck, label: "Mis Asignaciones" },
+    { href: "/personas", icon: Users, label: "Personas" },
+    { href: "/tareas", icon: CheckSquare, label: "Tareas" },
+    { href: "/consultas", icon: MessageSquare, label: "Consultas" },
+    { href: "/asistencia", icon: Users, label: "Asistencia" },
+    { href: "/notificaciones", icon: Bell, label: "Notificaciones" },
+  ],
+  lider_area: [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    {
+      icon: Building2,
+      label: "Mi Ministerio",
+      children: [
+        { href: "/ministerios", icon: Building2, label: "Mi Ministerio" },
+        { href: "/celular", icon: Network, label: "Células" },
+        { href: "/escuela-biblica", icon: BookOpen, label: "Escuela Bíblica" },
+        { href: "/escuela-ministerios", icon: BookOpen, label: "Escuela Ministerios" },
       ],
     },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
@@ -163,7 +187,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   const baseItems = menuItems[role] || menuItems.colaborador
   const items = (() => {
-    if (role === "lider") {
+    if (role === "lider" || role === "lider_area") {
       const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
       const esLiderCelular = ministerioCelular && userData?.ministerioIds?.includes(ministerioCelular.id)
       if (!esLiderCelular) {

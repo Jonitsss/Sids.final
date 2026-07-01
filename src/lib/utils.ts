@@ -18,9 +18,12 @@ const ROL_LABELS: Record<string, string> = {
   pastor: "Pastor",
   administrador: "Administrador",
   lider: "Líder de área",
+  lider_area: "Encargado de ministerio",
   lider_celula: "Líder de célula",
   colider: "Colíder",
   anfitrion: "Anfitrión",
+  maestra_escuela_biblica: "Maestra Esc. Bíblica",
+  profesor_escuela_min: "Profesor Esc. Ministerios",
   colaborador: "Colaborador",
 }
 

@@ -2,9 +2,12 @@ export type Rol =
   | "pastor"
   | "administrador"
   | "lider"
+  | "lider_area"
   | "lider_celula"
   | "colider"
   | "anfitrion"
+  | "maestra_escuela_biblica"
+  | "profesor_escuela_min"
   | "colaborador"
 
 export type EstadoAsignacion = "pendiente" | "confirmado" | "rechazado"
@@ -25,10 +28,25 @@ export interface Usuario {
   telefono: string
   rol: Rol
   ministerioIds: string[]
+  rolesMinisterios?: {
+    ministerioId: string
+    rol: string
+  }[]
+  celularRamaId?: string
+  celulaIds?: string[]
+  escuelaMinisteriosIds?: string[]
+  multimedia?: {
+    roles: string[]
+  }
+  sonido?: {
+    roles: string[]
+    esAyudante: boolean
+  }
   fotoURL: string
   authUid?: string
   notificaciones: boolean
   activo: boolean
+  fcmTokens?: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -38,12 +56,23 @@ export interface Ministerio {
   slug: string
   nombre: string
   descripcion: string
-  liderId: string
+  encargados: string[]
+  tipo?: 'alabanza' | 'diaconos' | 'celular' | 'escuela_biblica' | 'multimedia' | 'sonido' | 'escuela_ministerios'
   roles: string[]
   color: string
   icono: string
   activo: boolean
+  rolesFlexibles?: {
+    nombre: string
+    cantidad: number | 'flexible'
+    usuarioIds: string[]
+  }[]
+  ramasCelulares?: {
+    ramaId: string
+    encargadoId: string
+  }[]
   createdAt: Date
+  updatedAt?: Date
 }
 
 export interface Evento {
@@ -295,4 +324,104 @@ export interface AsistenciaEscuelaBiblica {
   fecha: Date
   asistio: boolean
   createdAt: Date
+}
+
+// ============================================
+// ESCUELA DE MINISTERIOS
+// ============================================
+
+export interface EscuelaMinisterios {
+  id: string
+  nombre: 'consolidacion' | 'nivel1' | 'nivel2' | 'nivel3' | 'teologia'
+  encargadoId: string
+  profesores: {
+    usuarioId: string
+    nombre: string
+  }[]
+  material: MaterialEM[]
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface MaterialEM {
+  id?: string
+  titulo: string
+  descripcion: string
+  url?: string
+  tipo?: 'pdf' | 'link' | 'documento' | 'video'
+  fechaPublicacion?: Date
+}
+
+export interface AsistenciaEM {
+  id: string
+  escuelaId: string
+  usuarioId: string
+  fecha: Date
+  asistio: boolean
+  createdAt: Date
+}
+
+export interface NotaEM {
+  id: string
+  escuelaId: string
+  usuarioId: string
+  nota: number
+  periodo: string
+  comentarios?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+// ============================================
+// MIEMBROS DE IGLESIA (LISTA MAESTRA)
+// ============================================
+
+export interface MiembroIglesia {
+  id?: string
+  nombre: string
+  email?: string
+  telefono?: string
+  tieneUsuario: boolean
+  usuarioId?: string
+  estado: 'activo' | 'inactivo' | 'visitante'
+  ministerios: {
+    ministerioId: string
+    rol: string
+    fechaInicio: Date
+    fechaFin?: Date
+  }[]
+  escuelaMinisterios?: {
+    escuelaId: string
+    nivel: string
+    fechaInicio: Date
+    estado: 'cursando' | 'completado' | 'abandonado'
+  }
+  fueLider: boolean
+  actividadActual: string[]
+  contacto: {
+    primera_asistencia: Date
+    ultima_asistencia: Date
+  }
+  notas?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+// ============================================
+// MULTIMEDIA y SONIDO
+// ============================================
+
+export interface MultimediaRol {
+  id: string
+  ministerioId: string
+  rol: 'proyecciones' | 'fotografia' | 'video'
+  usuarioIds: string[]
+}
+
+export interface SonidoRol {
+  id: string
+  ministerioId: string
+  rol: 'pa' | 'stream' | 'monitores'
+  usuarioIds: string[]
+  ayudantes: string[]
 }

@@ -215,6 +215,70 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // =============================================================
+    // Nuevos helpers para expansión ministerial
+    // =============================================================
+    
+    function esLiderArea() {
+      return isSignedIn() && request.auth.token.rol == 'lider_area';
+    }
+    
+    function esMaestraEB() {
+      return isSignedIn() && request.auth.token.rol == 'maestra_escuela_biblica';
+    }
+    
+    function esProfesorEM(escuelaId) {
+      let escuela = get(/databases/$(database)/documents/escuela_ministerios/$(escuelaId));
+      return isSignedIn() && escuela.data.profesores.any(p, p.usuarioId == request.auth.uid);
+    }
+    
+    function esLiderRama(ramaId) {
+      let rama = get(/databases/$(database)/documents/ramas_celular/$(ramaId));
+      return isSignedIn() && rama.data.encargadoId == request.auth.uid;
+    }
+    
+    // =============================================================
+    // miembros_iglesia: solo pastor/admin
+    // =============================================================
+    match /miembros_iglesia/{miembroId} {
+      allow read: if esPastorOAdmin();
+      allow create, update: if esPastorOAdmin();
+      allow delete: if false;
+    }
+    
+    // =============================================================
+    // escuela_ministerios: lectura pública, creación pastor/admin
+    // =============================================================
+    match /escuela_ministerios/{nivelId} {
+      allow read: if isSignedIn();
+      allow create, update: if esPastorOAdmin();
+      allow delete: if false;
+    }
+    
+    // =============================================================
+    // asistencias_escuela_ministerios: profesor/admin o alumno
+    // =============================================================
+    match /asistencias_escuela_ministerios/{docId} {
+      allow read: if esPastorOAdmin() 
+        || esProfesorEM(resource.data.escuelaId)
+        || request.auth.uid == resource.data.usuarioId;
+      allow create, update: if esPastorOAdmin() 
+        || esProfesorEM(request.resource.data.escuelaId);
+      allow delete: if false;
+    }
+    
+    // =============================================================
+    // notas_escuela_ministerios: profesor/admin o alumno
+    // =============================================================
+    match /notas_escuela_ministerios/{docId} {
+      allow read: if esPastorOAdmin() 
+        || esProfesorEM(resource.data.escuelaId) 
+        || request.auth.uid == resource.data.usuarioId;
+      allow create, update: if esPastorOAdmin() 
+        || esProfesorEM(request.resource.data.escuelaId);
+      allow delete: if false;
+    }
+    
     // ---------------------------------------------------------------------
     // Deny everything else by default (fail-safe)
     // ---------------------------------------------------------------------

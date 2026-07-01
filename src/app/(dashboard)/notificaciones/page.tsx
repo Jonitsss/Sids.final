@@ -99,9 +99,11 @@ export default function NotificacionesPage() {
       const pastores = await obtenerDocumentos<Usuario>("usuarios", [where("rol", "in", ["pastor", "administrador"])])
       for (const p of pastores) { const destId = (p as any).authUid || p.id; if (destId !== user?.uid) destinatarios.add(destId) }
       const ministerio = ministerios.find((m) => m.id === ministerioId)
-      if (ministerio?.liderId) {
-        const liderDoc = await obtenerDocumento<Usuario>("usuarios", ministerio.liderId)
-        if (liderDoc) { const liderUid = (liderDoc as any).authUid || liderDoc.id; if (liderUid !== user?.uid) destinatarios.add(liderUid) }
+      if (ministerio?.encargados?.length) {
+        for (const encargadoId of ministerio.encargados) {
+          const liderDoc = await obtenerDocumento<Usuario>("usuarios", encargadoId)
+          if (liderDoc) { const liderUid = (liderDoc as any).authUid || liderDoc.id; if (liderUid !== user?.uid) destinatarios.add(liderUid) }
+        }
       }
       for (const destId of destinatarios) {
         await enviarNotificacion({ usuarioId: destId, titulo: accion === "confirmado" ? "Asignación confirmada" : "Asignación rechazada", mensaje: msgBase, tipo: "confirmacion", referenciaId: notif.referenciaId })
