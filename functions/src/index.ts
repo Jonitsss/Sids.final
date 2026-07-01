@@ -82,9 +82,12 @@ const ROLES_VALIDOS = new Set([
   "pastor",
   "administrador",
   "lider",
+  "lider_area",
   "lider_celula",
   "colider",
   "anfitrion",
+  "maestra_escuela_biblica",
+  "profesor_escuela_min",
   "colaborador",
 ]);
 
@@ -101,6 +104,10 @@ const COLECCIONES_PERMITIDAS_PASTOR_ADMIN = new Set([
   "celulas",
   "ramas_celular",
   "personas",
+  "miembros_iglesia",
+  "escuela_ministerios",
+  "asistencias_escuela_ministerios",
+  "notas_escuela_ministerios",
 ]);
 
 function getRol(token: Record<string, unknown> | undefined): string | null {
@@ -461,6 +468,109 @@ export const enviarNotificacionPush = onRequest(async (req, res) => {
     logger.error("enviarNotificacionPush error", { error: err?.message });
     const status = err?.status || 500;
     res.status(status).send({ error: err?.message || "Error al enviar notificación." });
+  }
+});
+
+export const crearCursoEM = onRequest(async (req, res) => {
+  setCors(res, req);
+  if (req.method === "OPTIONS") { res.status(200).send(); return; }
+  if (req.method !== "POST") { res.status(405).send({ error: "Method not allowed" }); return; }
+
+  try {
+    const { uid, token } = await verifyAuth(req);
+    let rol = getRol(token);
+    if (!rol) rol = await getRolFromFirestore(uid, token.email);
+    if (!rol || !ROLES_DESTRUCTIVOS.has(rol)) {
+      res.status(403).send({ error: "Solo pastor o administrador pueden crear cursos." });
+      return;
+    }
+
+    const { nombre, encargadoId, profesores } = req.body;
+    if (!nombre || !encargadoId) {
+      res.status(400).send({ error: "nombre y encargadoId son requeridos." });
+      return;
+    }
+
+    const docRef = await db.collection("escuela_ministerios").add({
+      nombre,
+      encargadoId,
+      profesores: profesores || [],
+      material: [],
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    logger.info("curso EM creado", { id: docRef.id, nombre, por: uid });
+    res.status(201).json({ id: docRef.id, message: "Curso creado exitosamente" });
+  } catch (err: any) {
+    logger.error("crearCursoEM error", { error: err?.message });
+    res.status(err?.status || 500).send({ error: err?.message || "Error interno." });
+  }
+});
+
+export const registrarAsistenciaEM = onRequest(async (req, res) => {
+  setCors(res, req);
+  if (req.method === "OPTIONS") { res.status(200).send(); return; }
+  if (req.method !== "POST") { res.status(405).send({ error: "Method not allowed" }); return; }
+
+  try {
+    await verifyAuth(req);
+
+    const { escuelaId, usuarioId, fecha, asistio } = req.body;
+    if (!escuelaId || !usuarioId || !fecha) {
+      res.status(400).send({ error: "escuelaId, usuarioId y fecha son requeridos." });
+      return;
+    }
+
+    const docRef = await db.collection("asistencias_escuela_ministerios").add({
+      escuelaId,
+      usuarioId,
+      fecha: new Date(fecha),
+      asistio: asistio === true,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    logger.info("asistencia EM registrada", { id: docRef.id, escuelaId, usuarioId });
+    res.status(201).json({ id: docRef.id, message: "Asistencia registrada" });
+  } catch (err: any) {
+    logger.error("registrarAsistenciaEM error", { error: err?.message });
+    res.status(err?.status || 500).send({ error: err?.message || "Error interno." });
+  }
+});
+
+export const registrarNotaEM = onRequest(async (req, res) => {
+  setCors(res, req);
+  if (req.method === "OPTIONS") { res.status(200).send(); return; }
+  if (req.method !== "POST") { res.status(405).send({ error: "Method not allowed" }); return; }
+
+  try {
+    await verifyAuth(req);
+
+    const { escuelaId, usuarioId, nota, periodo, comentarios } = req.body;
+    if (!escuelaId || !usuarioId || nota === undefined || !periodo) {
+      res.status(400).send({ error: "escuelaId, usuarioId, nota y periodo son requeridos." });
+      return;
+    }
+    if (typeof nota !== "number" || nota < 0 || nota > 100) {
+      res.status(400).send({ error: "nota debe ser un número entre 0 y 100." });
+      return;
+    }
+
+    const docRef = await db.collection("notas_escuela_ministerios").add({
+      escuelaId,
+      usuarioId,
+      nota,
+      periodo,
+      comentarios: comentarios || "",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    logger.info("nota EM registrada", { id: docRef.id, escuelaId, usuarioId, nota, periodo });
+    res.status(201).json({ id: docRef.id, message: "Nota registrada" });
+  } catch (err: any) {
+    logger.error("registrarNotaEM error", { error: err?.message });
+    res.status(err?.status || 500).send({ error: err?.message || "Error interno." });
   }
 });
 
