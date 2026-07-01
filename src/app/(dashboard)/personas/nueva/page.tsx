@@ -39,6 +39,7 @@ export default function NuevaPersonaPage() {
         estado: form.estado,
         direccion: form.direccion.trim() || null,
         notas: form.notas.trim() || null,
+        tieneUsuario: false,
         familia: [],
       })
       toast.success("Persona creada")

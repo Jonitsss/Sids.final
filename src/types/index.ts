@@ -278,6 +278,22 @@ export interface Persona {
   familia?: string[]
   notas?: string
   usuarioId?: string
+  tieneUsuario?: boolean
+  ministeriosActuales?: {
+    ministerioId: string
+    nombre: string
+    rol: string
+  }[]
+  celulaActual?: {
+    celulaId: string
+    nombre: string
+    rol: string
+  }
+  escuelaMinisterioActual?: {
+    escuelaId: string
+    nivel: string
+    estado: 'cursando' | 'completado' | 'abandonado'
+  }
   createdAt: Date
   updatedAt: Date
 }
@@ -373,39 +389,10 @@ export interface NotaEM {
 }
 
 // ============================================
-// MIEMBROS DE IGLESIA (LISTA MAESTRA)
+// MIEMBROS DE IGLESIA (fusionado en Persona)
 // ============================================
-
-export interface MiembroIglesia {
-  id?: string
-  nombre: string
-  email?: string
-  telefono?: string
-  tieneUsuario: boolean
-  usuarioId?: string
-  estado: 'activo' | 'inactivo' | 'visitante'
-  ministerios: {
-    ministerioId: string
-    rol: string
-    fechaInicio: Date
-    fechaFin?: Date
-  }[]
-  escuelaMinisterios?: {
-    escuelaId: string
-    nivel: string
-    fechaInicio: Date
-    estado: 'cursando' | 'completado' | 'abandonado'
-  }
-  fueLider: boolean
-  actividadActual: string[]
-  contacto: {
-    primera_asistencia: Date
-    ultima_asistencia: Date
-  }
-  notas?: string
-  createdAt: Date
-  updatedAt: Date
-}
+// Deprecado: usar Persona con los campos extendidos
+// ministeriosActuales, celulaActual, escuelaMinisterioActual
 
 // ============================================
 // MULTIMEDIA y SONIDO

@@ -29,6 +29,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.rol == 'lider';
     }
 
+    function esLiderOArea() {
+      return isSignedIn() && request.auth.token.rol in ['lider', 'lider_area'];
+    }
+
     function puedeCrearEventosOCronogramas() {
       return esPastorOAdmin() || esLider();
     }
@@ -186,12 +190,22 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    // personas: base central de personas de la iglesia
+    // personas: base central de miembros de la iglesia
     // ---------------------------------------------------------------------
     match /personas/{personaId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && (esPastorOAdmin() || esLider());
-      allow update: if isSignedIn() && (esPastorOAdmin() || esLider());
+      allow create: if isSignedIn() && (esPastorOAdmin() || esLiderOArea());
+      allow update: if isSignedIn() && (esPastorOAdmin() || esLiderOArea());
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // historial_persona: línea de tiempo de cada persona
+    // ---------------------------------------------------------------------
+    match /personas/{personaId}/historial/{eventoId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (esPastorOAdmin() || esLiderOArea());
+      allow update: if esPastorOAdmin();
       allow delete: if false;
     }
 

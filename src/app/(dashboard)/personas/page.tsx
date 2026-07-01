@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Plus, Loader2, User, ArrowRight } from "lucide-react"
 import { useDashboardStore } from "@/stores/dashboardStore"
 import { useAuth } from "@/contexts/AuthContext"
-import { tieneAccesoTotal } from "@/lib/permissions"
+import { tieneAccesoTotal, esLiderDeArea } from "@/lib/permissions"
 import { EstadoPersona } from "@/types"
 import { eliminarDocumento } from "@/lib/firestore"
 import { toast } from "sonner"
@@ -40,7 +40,7 @@ export default function PersonasPage() {
   const [filtroEstado, setFiltroEstado] = useState<string>("todos")
   const [pagina, setPagina] = useState(1)
 
-  const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
+  const puedeCrear = userData?.rol ? (tieneAccesoTotal(userData.rol) || esLiderDeArea(userData.rol)) : false
   const ITEMS_PER_PAGE = 12
 
   const counts = {
@@ -101,7 +101,7 @@ export default function PersonasPage() {
           <h1 className="text-2xl font-bold">Personas</h1>
           <p className="text-muted-foreground">{personas.length} personas registradas</p>
         </div>
-        {userData?.rol && tieneAccesoTotal(userData.rol) && (
+        {puedeCrear && (
           <Button size="sm" onClick={() => router.push("/personas/nueva")}>
             <Plus className="h-4 w-4 mr-2" />
             Nueva Persona

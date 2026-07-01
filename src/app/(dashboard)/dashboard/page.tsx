@@ -5,7 +5,7 @@ import { useDashboard } from "@/hooks/useDashboard"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DashboardSkeleton } from "@/components/skeletons"
-import { Calendar, CheckSquare, Users, AlertCircle, Building2, Clock, User, BookOpen, Church, GitFork, PersonStanding } from "lucide-react"
+import { Calendar, CheckSquare, Users, AlertCircle, Building2, Clock, User, BookOpen, GitFork } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
@@ -105,16 +105,6 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Miembros Iglesia</CardTitle>
-            <Church className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.miembrosIglesia}</div>
-            <p className="text-xs text-muted-foreground">Lista maestra de miembros</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Cursos E.Ministerios</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -125,22 +115,22 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Personas</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.personas}</div>
+            <p className="text-xs text-muted-foreground">{stats.personas === 1 ? "1 persona registrada" : `${stats.personas} personas registradas`}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Celulares</CardTitle>
             <GitFork className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.celulares}</div>
             <p className="text-xs text-muted-foreground">Red de células</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Personas (CRM)</CardTitle>
-            <PersonStanding className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.personas}</div>
-            <p className="text-xs text-muted-foreground">Registro general</p>
           </CardContent>
         </Card>
       </div>

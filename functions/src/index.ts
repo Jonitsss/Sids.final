@@ -104,6 +104,7 @@ const COLECCIONES_PERMITIDAS_PASTOR_ADMIN = new Set([
   "celulas",
   "ramas_celular",
   "personas",
+  "historial_persona",
   "miembros_iglesia",
   "escuela_ministerios",
   "asistencias_escuela_ministerios",

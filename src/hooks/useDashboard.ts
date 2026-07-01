@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Evento, Tarea, Usuario, Ministerio, Asignacion, GrillaServicio, MiembroIglesia, EscuelaMinisterios } from "@/types"
+import { Evento, Tarea, Usuario, Ministerio, Asignacion, GrillaServicio, EscuelaMinisterios } from "@/types"
 import { obtenerDocumentos, where, orderBy, limit } from "@/lib/firestore"
 import { logger } from "@/lib/logger"
 import { useAuth } from "@/contexts/AuthContext"
@@ -12,7 +12,6 @@ export interface DashboardData {
     tareasPendientes: number
     colaboradores: number
     confirmacionesPendientes: number
-    miembrosIglesia: number
     personas: number
     cursosEM: number
     celulares: number
@@ -37,7 +36,7 @@ export function useDashboard() {
         const ahora = new Date()
         const uid = userData?.authUid || userData?.id
 
-        const [eventos, tareas, usuarios, ministerios, grillas, miembrosIglesia, personas, cursosEM, celulares] = await Promise.all([
+        const [eventos, tareas, usuarios, ministerios, grillas, personas, cursosEM, celulares] = await Promise.all([
           obtenerDocumentos<Evento>("eventos", [
             where("fecha", ">=", ahora),
             orderBy("fecha", "asc"),
@@ -50,7 +49,6 @@ export function useDashboard() {
           obtenerDocumentos<Usuario>("usuarios", [where("activo", "==", true)]),
           obtenerDocumentos<Ministerio>("ministerios", [where("activo", "==", true)]),
           uid ? obtenerDocumentos<GrillaServicio>("cronogramas", [where("fecha", ">=", ahora)]) : Promise.resolve([] as GrillaServicio[]),
-          obtenerDocumentos<MiembroIglesia>("miembros-iglesia").catch(() => []),
           obtenerDocumentos<any>("personas").catch(() => []),
           obtenerDocumentos<EscuelaMinisterios>("escuela-ministerios").catch(() => []),
           obtenerDocumentos<any>("celulares").catch(() => []),
@@ -85,7 +83,6 @@ export function useDashboard() {
               tareasPendientes: tareasRecientes.length,
               colaboradores: usuarios.length,
               confirmacionesPendientes: totalAsignaciones,
-              miembrosIglesia: miembrosIglesia.length,
               personas: personas.length,
               cursosEM: cursosEM.length,
               celulares: celulares.length,
