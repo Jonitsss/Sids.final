@@ -1,84 +1,132 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { useDashboardStore } from "@/stores/dashboardStore"
+import { useRamasCelular } from "@/hooks/useRamasCelular"
+import { useCelulas } from "@/hooks/useCelulas"
 import { useAuth } from "@/contexts/AuthContext"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CardGridSkeleton } from "@/components/skeletons"
-import { Button } from "@/components/ui/button"
-import { Users, ArrowRight, Network, Settings, Plus } from "lucide-react"
-import { TIPO_LABELS } from "@/lib/celulas"
+import { tieneAccesoTotal } from "@/lib/permissions"
+import { toast } from "sonner"
+import { crearDocumento, eliminarDocumento } from "@/lib/firestore"
+import {
+  Users,
+  Plus,
+  Trash2,
+  Loader2,
+  ArrowRight,
+} from "lucide-react"
 
-export default function CelularHubPage() {
-  const router = useRouter()
+const RAMAS_PREDETERMINADAS = [
+  { nombre: "Adolescentes", tipo: "adolescentes_varones" as const },
+  { nombre: "Mujeres", tipo: "mujeres" as const },
+  { nombre: "Hombres", tipo: "hombres" as const },
+  { nombre: "Matrimonios", tipo: "matrimonios" as const },
+]
+
+export default function CelularPage() {
   const { userData } = useAuth()
-  const { ramas, ramasLoading } = useDashboardStore()
-  const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
+  const { ramas, loading: loadingRamas } = useRamasCelular()
+  const { celulas, loading: loadingCelulas } = useCelulas(
+    userData?.id,
+    userData?.rol,
+  )
 
-  if (ramasLoading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Ministerio Celular</h1>
-          <p className="text-muted-foreground">Cargando ramas...</p>
-        </div>
-        <CardGridSkeleton cols={2} count={4} />
-      </div>
-    )
+  if (!userData) return null
+
+  const puedeEditar = tieneAccesoTotal(userData.rol)
+  const loading = loadingRamas || loadingCelulas
+
+  const handleCrearRama = async (nombre: string, tipo: string) => {
+    try {
+      await crearDocumento("ramas_celular", {
+        nombre,
+        tipo,
+        encargadoId: "",
+        ministerioId: "",
+      })
+      toast.success("Rama creada")
+    } catch {
+      toast.error("Error al crear rama")
+    }
+  }
+
+  const handleEliminarRama = async (id: string) => {
+    if (!confirm("¿Eliminar esta rama?")) return
+    try {
+      await eliminarDocumento("ramas_celular", id)
+      toast.success("Rama eliminada")
+    } catch {
+      toast.error("Error al eliminar rama")
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Ministerio Celular</h1>
-          <p className="text-muted-foreground">Grupos pequeños que se reúnen en casas</p>
-        </div>
-        {esPastorOAdmin && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => router.push("/celular/ramas")}>
-              <Settings className="h-4 w-4 mr-2" />
-              Gestionar Ramas
-            </Button>
-          </div>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold">Ministerio Celular</h1>
+        <p className="text-muted-foreground">
+          Gestión de ramas y células
+        </p>
       </div>
 
-      {ramas.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center text-muted-foreground">
-            <Network className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-medium mb-1">No hay ramas configuradas</p>
-            <p className="text-sm">
-              {esPastorOAdmin ? "Creá las ramas para empezar" : "Contactá al pastor para configurar las ramas"}
-            </p>
-          </CardContent>
-        </Card>
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       ) : (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-          {ramas.map((rama) => (
-            <Card
-              key={rama.id}
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => router.push(`/celular/ramas/${rama.id}`)}
-            >
-              <CardHeader className="flex flex-row items-center gap-3">
-                <div className="p-2 rounded-lg shrink-0 bg-primary/10">
-                  <Users className="h-5 w-5 text-primary" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {ramas.map((rama) => {
+            const celulasDeRama = celulas.filter((c) => c.ramaId === rama.id)
+            return (
+              <div
+                key={rama.id}
+                className="rounded-lg border border-border bg-card p-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  {puedeEditar && (
+                    <button
+                      onClick={() => handleEliminarRama(rama.id)}
+                      className="rounded p-1 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base truncate">{rama.nombre}</CardTitle>
-                  <p className="text-xs text-muted-foreground">{TIPO_LABELS[rama.tipo] || rama.tipo}</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {rama.encargadoId && (
-                  <p className="text-xs text-muted-foreground">Encargado asignado</p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                <h3 className="mt-3 font-semibold">{rama.nombre}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {celulasDeRama.length} célula{celulasDeRama.length !== 1 ? "s" : ""}
+                </p>
+                <a
+                  href={`/celular/ramas/${rama.id}`}
+                  className="mt-3 flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  Ver detalles
+                  <ArrowRight className="h-3 w-3" />
+                </a>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {puedeEditar && ramas.length < RAMAS_PREDETERMINADAS.length && (
+        <div className="rounded-lg border border-dashed border-border p-6">
+          <h3 className="mb-3 font-semibold">Crear rama</h3>
+          <div className="flex flex-wrap gap-2">
+            {RAMAS_PREDETERMINADAS.filter(
+              (r) => !ramas.some((rama) => rama.tipo === r.tipo),
+            ).map((rama) => (
+              <button
+                key={rama.tipo}
+                onClick={() => handleCrearRama(rama.nombre, rama.tipo)}
+                className="flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                <Plus className="h-4 w-4" />
+                {rama.nombre}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

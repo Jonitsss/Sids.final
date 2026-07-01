@@ -228,6 +228,14 @@ Cambios de esta sesión (v1.23.0) — ERP Módulo Celular:
 - **Constantes compartidas** — `TIPO_LABELS` movido a `src/lib/celulas.ts` para evitar export desde page.tsx.
 - **Página de detalle adaptada** — Formulario de reporte semanal ahora genera objetos compatibles con el nuevo tipo `ReporteCelula`.
 
+Cambios de esta sesión (v1.25.2):
+- **UI: Hub `/celular` rediseñado** — Reescrito `/celular/page.tsx` para alinearse con el diseño del ejemplo:
+  - Cards con borde, contador de células por rama (`X células`), enlace "Ver detalles →"
+  - Botón de eliminar rama (pastor/admin) con `Trash2`
+  - Sección "Crear rama" con ramas predeterminadas (Adolescentes, Mujeres, Hombres, Matrimonios)
+  - Hooks `useRamasCelular` y `useCelulas` directamente (sin store)
+  - Wrapper `DashboardLayout` removido (ya lo provee el layout del route group)
+
 Cambios de esta sesión (v1.25.1):
 - **Fix: Ya no se requiere el ministerio "Celular" creado para crear células o ramas** — Removido el bloqueo que impedía crear células y ramas si no existía el ministerio "Celular" en la colección `ministerios`. Ahora pastor/administrador puede crear células y ramas independientemente de que el ministerio esté registrado.
   - `ministerioId` ahora es opcional en los tipos `Celula` y `RamaCelular`
@@ -524,7 +532,7 @@ Pegar este prompt (o equivalente) al abrir opencode:
 
 | Componente | URL | Estado |
 |---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.25.1 |
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.25.2 |
 | Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
 | Código fuente | GitHub `main` | ✅ Actualizado |
 
