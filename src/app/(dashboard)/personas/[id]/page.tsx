@@ -14,6 +14,7 @@ import { tieneAccesoTotal, esLiderDeArea } from "@/lib/permissions"
 import { actualizarDocumento, eliminarDocumento, crearDocumento } from "@/lib/firestore"
 import { EstadoPersona, Persona } from "@/types"
 import { usePersonaHistorial } from "@/hooks/usePersonaHistorial"
+import { ParticipacionesManager } from "@/components/personas/ParticipacionesManager"
 import { toast } from "sonner"
 
 const ESTADO_LABELS: Record<EstadoPersona, string> = {
@@ -186,6 +187,7 @@ export default function PersonaDetailPage() {
       <Tabs defaultValue="info">
         <TabsList>
           <TabsTrigger value="info">Información</TabsTrigger>
+          <TabsTrigger value="participaciones">Participaciones</TabsTrigger>
           <TabsTrigger value="historial">Historial</TabsTrigger>
         </TabsList>
 
@@ -344,6 +346,14 @@ export default function PersonaDetailPage() {
               </Button>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="participaciones">
+          <ParticipacionesManager
+            personaId={personaId}
+            participaciones={persona.participaciones || []}
+            puedeEditar={puedeEditar}
+          />
         </TabsContent>
 
         <TabsContent value="historial">
