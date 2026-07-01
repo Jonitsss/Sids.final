@@ -24,6 +24,12 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/celular/ramas` | Protegida | Gestión de ramas y encargados (solo pastor/admin) |
 | `/ministerios/celulas/[id]` | Protegida | Detalle de célula: información, miembros y reportes semanales |
 | `/escuela-biblica` | Protegida | Escuela Bíblica: grupos, maestras, asistencias (en construcción) |
+| `/escuela-ministerios` | Protegida | Escuela de Ministerios: cursos por nivel |
+| `/escuela-ministerios/admin` | Protegida | Admin de cursos E.M. (pastor/admin) |
+| `/miembros-iglesia` | Protegida | Lista maestra de miembros de la iglesia |
+| `/miembros-iglesia/nueva` | Protegida | Alta de nuevo miembro |
+| `/miembros-iglesia/[miembroId]` | Protegida | Detalle/edición de miembro |
+| `/personas` | Protegida | Base de personas (CRM eclesiástico) |
 | `/eventos` | Protegida | Calendario de eventos (con detalle `/eventos/[id]`) |
 | `/cronogramas` | Protegida | Grillas de servicio (con detalle `/cronogramas/[id]`) |
 | `/mis-asignaciones` | Protegida | Mis asignaciones en grillas de servicio |
@@ -32,12 +38,12 @@ Sitio web + sistema de gestión ministerial de la **Santa Iglesia del Señor** (
 | `/consultas` | Protegida | Sistema de consultas (líder → pastor/admin) |
 | `/notificaciones` | Protegida | Bandeja de notificaciones |
 | `/perfil` | Protegida | Perfil de usuario editable |
-| `/reportes` | Protegida | Reportes ministeriales |
+| `/reportes` | Protegida | Reportes ministeriales (con gráficos recharts) |
 | `/usuarios` | Protegida | CRUD de usuarios (solo pastor) |
 
 ## Roles y Permisos
 
-El sistema tiene 7 roles con diferentes niveles de acceso. Los roles se almacenan como **custom claims** en Firebase Authentication y se sincronizan con el campo `usuarios.rol`.
+El sistema tiene 10 roles con diferentes niveles de acceso. Los roles se almacenan como **custom claims** en Firebase Authentication y se sincronizan con el campo `usuarios.rol`.
 
 ### Resumen de roles
 
@@ -50,6 +56,9 @@ El sistema tiene 7 roles con diferentes niveles de acceso. Los roles se almacena
 | **Colíder** | 🟢 Bajo | ❌ No | Sus células asignadas, eventos |
 | **Anfitrión** | 🟢 Bajo | ❌ No | Sus células asignadas, eventos |
 | **Colaborador** | 🔵 Mínimo | ❌ No | Sus asignaciones de cronograma, tareas, eventos, consultas |
+| **Maestra Esc. Bíblica** | 🟢 Bajo | ❌ No | Escuela Bíblica, asistencia |
+| **Profesor Esc. Ministerios** | 🟡 Medio | ❌ No | Escuela de Ministerios, cursos, notas |
+| **Líder de área (nuevo)** | 🟡 Medio | ❌ No | Su ministerio, miembros, escuela ministerios |
 
 ### Permisos detallados por rol
 

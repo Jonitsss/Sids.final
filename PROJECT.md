@@ -20,11 +20,14 @@ Definidos como **custom claims** en Firebase Authentication, sincronizados con
 el campo `usuarios.rol` en Firestore.
 
 | Rol | Puede borrar | Notas |
-|---|---|---|
+|---|---|---|---|
 | `pastor` | sí | Acceso total, dueña de la cuenta operativa. |
 | `administrador` | sí | Mismos permisos que pastor. Creado para delegar operación. |
 | `lider` | no | Crea eventos y cronogramas, ve todo, no borra. |
+| `lider_area` | no | Nuevo reemplazo de `lider`. Ve su ministerio, miembros, escuela ministerios. |
 | `colaborador` | no | Solo lee sus asignaciones, edita su perfil. |
+| `maestra_escuela_biblica` | no | Escuela Bíblica, asistencia. |
+| `profesor_escuela_min` | no | Escuela de Ministerios, cursos, notas. |
 
 Roles "destructivos" (los que pueden borrar): `pastor`, `administrador`.
 Se setean con la Cloud Function `setRolUsuario` o, para el bootstrap inicial,
@@ -227,6 +230,23 @@ Cambios de esta sesión (v1.23.0) — ERP Módulo Celular:
 - **Redirección** — `/ministerios/celulas` redirige automáticamente a `/celular` (a menos que tenga `?ramaId=` para creación desde rama).
 - **Constantes compartidas** — `TIPO_LABELS` movido a `src/lib/celulas.ts` para evitar export desde page.tsx.
 - **Página de detalle adaptada** — Formulario de reporte semanal ahora genera objetos compatibles con el nuevo tipo `ReporteCelula`.
+
+Cambios de esta sesión (v1.28.0) — Gráficos recharts + Dashboard expandido:
+- **Feature: Gráficos con recharts** — Nuevo componente `GraficoAsistencia.tsx` con 3 gráficos:
+  - `BarraAsistencia`: barras apiladas (presente/ausente/justificado) por mes
+  - `LineaAsistencia`: línea de tendencia mensual
+  - `PieDistribucion`: gráfico de torta (donut) con distribución de miembros por ministerio
+- **Reportes: nueva pestaña "Gráficos"** — `/reportes` ahora tiene 4 tabs: Gráficos (recharts), Asistencia Mensual, Por Ministerio, Ranking. Los gráficos se muestran en un grid 2-columnas con la línea de tendencia + donut + barras apiladas full-width.
+- **Dashboard: nuevas stats cards** — Se agregaron 4 cards adicionales al grid de dashboard: Miembros Iglesia, Cursos E.Ministerios, Celulares, Personas (CRM). `useDashboard` ahora consulta las colecciones `miembros-iglesia`, `escuela-ministerios`, `celulares` y `personas` con `.catch(() => [])` para no romper si las colecciones no existen.
+- **Version bump** — 1.27.0 → 1.28.0
+
+Cambios de esta sesión (v1.27.0) — Expansión ministerial (tipos, Cloud Functions, rutas):
+- **Feature: Tipos expandidos** — `src/types/index.ts` con nuevos roles (`lider_area`, `maestra_escuela_biblica`, `profesor_escuela_min`), `Ministerio.encargados[]` (array, reemplaza `liderId`), 6 nuevos tipos (`EscuelaMinisterios`, `MaterialEM`, `AsistenciaEM`, `NotaEM`, `MiembroIglesia`, `MultimediaRol`, `SonidoRol`)
+- **Feature: Cloud Functions nuevas** — `crearCursoEM`, `registrarAsistenciaEM`, `registrarNotaEM` en `functions/src/index.ts`
+- **Feature: Escuela Ministerios** — Hub `/escuela-ministerios` con cards por nivel, admin `/escuela-ministerios/admin` con CRUD de cursos usando `CursoEMForm.tsx`, hook `useEscuelaMinisterios.ts`
+- **Feature: Miembros Iglesia** — CRUD completo en `/miembros-iglesia` con listado, creación y detalle/edición/eliminación
+- **Sidebar actualizada** — Links a Escuela Ministerios y Miembros Iglesia para roles pastor/admin/lider/lider_area
+- **Firestore rules** — Nuevas colecciones `escuela-ministerios`, `material-em`, `asistencia-em`, `notas-em`, `miembros-iglesia`, `multimedia-roles`, `sonido-roles` agregadas con helpers `esLiderArea`, `esProfesorEM`, `esLiderRama`
 
 Cambios de esta sesión (v1.26.0) — Fase 1 Módulo Personas:
 - **Feature: Base de Personas** — Nueva colección `personas` como entidad central separada de `usuarios`:

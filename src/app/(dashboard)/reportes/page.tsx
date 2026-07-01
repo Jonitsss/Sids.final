@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ReportesSkeleton } from "@/components/skeletons"
-import { BarChart3, TrendingUp, Users, Calendar, User, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
+import { BarraAsistencia, LineaAsistencia, PieDistribucion } from "@/components/reportes/GraficoAsistencia"
+import { BarChart3, TrendingUp, Users, Calendar, User, AlertTriangle, CheckCircle, XCircle, PieChart } from "lucide-react"
 
 export default function ReportesPage() {
   const { data, loading } = useReportes()
@@ -101,12 +102,63 @@ export default function ReportesPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="asistencia">
+      <Tabs defaultValue="graficos">
         <TabsList>
+          <TabsTrigger value="graficos">Gráficos</TabsTrigger>
           <TabsTrigger value="asistencia">Asistencia Mensual</TabsTrigger>
           <TabsTrigger value="ministerio">Por Ministerio</TabsTrigger>
           <TabsTrigger value="ranking">Ranking</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="graficos">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tendencia de Asistencia</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {asistenciaMensual.every((m) => m.presente === 0 && m.ausente === 0 && m.justificado === 0) ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                    <p>No hay datos de asistencia disponibles</p>
+                  </div>
+                ) : (
+                  <LineaAsistencia data={asistenciaMensual} />
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribución por Ministerio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {porMinisterio.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <PieChart className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                    <p>No hay ministerios configurados</p>
+                  </div>
+                ) : (
+                  <PieDistribucion data={porMinisterio} />
+                )}
+              </CardContent>
+            </Card>
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Asistencia Mensual (barras apiladas)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {asistenciaMensual.every((m) => m.presente === 0 && m.ausente === 0 && m.justificado === 0) ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                    <p>No hay datos de asistencia disponibles</p>
+                  </div>
+                ) : (
+                  <BarraAsistencia data={asistenciaMensual} />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         <TabsContent value="asistencia">
           <Card>
