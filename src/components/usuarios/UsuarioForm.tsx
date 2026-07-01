@@ -1,35 +1,38 @@
 "use client"
 
-import { Ministerio, Rol } from "@/types"
+import { Ministerio, Administer } from "@/types"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-interface UsuarioForm {
+export interface UsuarioFormValues {
   nombre: string
   apellido: string
   email: string
   telefono: string
-  rol: Rol
+  rol: string
+  administer: Administer
   ministerioIds: string[]
   notificaciones: boolean
 }
 
 interface UsuarioFormProps {
-  form: UsuarioForm
-  setForm: (fn: (prev: UsuarioForm) => UsuarioForm) => void
+  form: UsuarioFormValues
+  setForm: (fn: (prev: UsuarioFormValues) => UsuarioFormValues) => void
   ministerios: Ministerio[]
 }
 
 export function UsuarioForm({ form, setForm, ministerios }: UsuarioFormProps) {
-  const toggleMinisterio = (id: string) => {
+  const toggleAdministerMinisterio = (id: string) => {
+    const current = form.administer.ministerios
+    const next = current.includes(id)
+      ? current.filter((m) => m !== id)
+      : [...current, id]
     setForm((prev) => ({
       ...prev,
-      ministerioIds: prev.ministerioIds.includes(id)
-        ? prev.ministerioIds.filter((m) => m !== id)
-        : [...prev.ministerioIds, id],
+      administer: { ...prev.administer, ministerios: next },
     }))
   }
 
@@ -54,40 +57,39 @@ export function UsuarioForm({ form, setForm, ministerios }: UsuarioFormProps) {
         <Input type="tel" value={form.telefono} onChange={(e) => setForm((prev) => ({ ...prev, telefono: e.target.value }))} />
       </div>
       <div className="space-y-2">
-        <Label>Rol</Label>
-        <Select value={form.rol} onValueChange={(v: Rol) => setForm((prev) => ({ ...prev, rol: v }))}>
+        <Label>Rol del sistema</Label>
+        <Select value={form.rol} onValueChange={(v) => setForm((prev) => ({ ...prev, rol: v }))}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="colaborador">Sin acceso de sistema</SelectItem>
             <SelectItem value="pastor">Pastor</SelectItem>
             <SelectItem value="administrador">Administrador</SelectItem>
-            <SelectItem value="lider">Líder de área</SelectItem>
-            <SelectItem value="lider_celula">Líder de célula</SelectItem>
-            <SelectItem value="colider">Colíder</SelectItem>
-            <SelectItem value="anfitrion">Anfitrión</SelectItem>
-            <SelectItem value="colaborador">Colaborador</SelectItem>
           </SelectContent>
         </Select>
+        <p className="text-xs text-muted-foreground">Pastor/Admin tienen acceso total. Para acceso granular, seleccion&aacute; Sin acceso y configur&aacute; qu&eacute; administra abajo.</p>
       </div>
-      <div className="space-y-2">
-        <Label>Ministerios</Label>
-        {ministerios.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No hay ministerios creados</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {ministerios.map((m) => (
-              <Badge
-                key={m.id}
-                variant={form.ministerioIds.includes(m.id) ? "default" : "outline"}
-                className="cursor-pointer"
-                style={form.ministerioIds.includes(m.id) ? { backgroundColor: m.color } : {}}
-                onClick={() => toggleMinisterio(m.id)}
-              >
-                {m.nombre}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
+      {form.rol !== "pastor" && form.rol !== "administrador" && (
+        <div className="space-y-2 rounded-lg border p-3">
+          <Label className="text-sm font-medium">Administra ministerios</Label>
+          <p className="text-xs text-muted-foreground mb-2">Seleccioná qué ministerios puede gestionar este usuario</p>
+          {ministerios.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No hay ministerios creados</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {ministerios.map((m) => (
+                <Badge
+                  key={m.id}
+                  variant={form.administer.ministerios.includes(m.id) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => toggleAdministerMinisterio(m.id)}
+                >
+                  {m.nombre}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex items-center justify-between rounded-lg border p-3">
         <div>
           <Label className="text-sm font-medium">Notificaciones</Label>

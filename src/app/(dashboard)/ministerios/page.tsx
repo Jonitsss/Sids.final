@@ -25,10 +25,10 @@ export default function MinisteriosPage() {
   const { ministerios, ministeriosLoading, setMinisterios } = useDashboardStore()
   const { userData, user } = useAuth()
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLider = userData?.rol === "lider" || userData?.rol === "lider_celula"
+  const ministeriosAdmin = userData?.administer?.ministerios
 
-  const ministeriosFiltrados = esLider && userData?.ministerioIds
-    ? ministerios.filter((m) => userData.ministerioIds.includes(m.id))
+  const ministeriosFiltrados = !esPastor && ministeriosAdmin && ministeriosAdmin.length > 0
+    ? ministerios.filter((m) => ministeriosAdmin.includes(m.id))
     : ministerios
   
   const [open, setOpen] = useState(false)
@@ -140,8 +140,8 @@ export default function MinisteriosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{esLider ? "Mi Ministerio" : "Ministerios"}</h1>
-          <p className="text-muted-foreground">{esLider ? "Tu ministerio asignado" : "Gestiona los ministerios de la iglesia"}</p>
+          <h1 className="text-2xl font-bold">{ministeriosAdmin && ministeriosAdmin.length > 0 && !esPastor ? "Mi Ministerio" : "Ministerios"}</h1>
+          <p className="text-muted-foreground">{ministeriosAdmin && ministeriosAdmin.length > 0 && !esPastor ? "Tu ministerio asignado" : "Gestiona los ministerios de la iglesia"}</p>
         </div>
         {esPastor && (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -182,7 +182,7 @@ export default function MinisteriosPage() {
             <Building2 className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg font-medium mb-1">No hay ministerios</p>
             <p className="text-sm">
-              {esLider ? "No tenés ministerios asignados" : "Crea el primer ministerio para empezar"}
+              {ministeriosAdmin && ministeriosAdmin.length > 0 && !esPastor ? "No tenés ministerios asignados" : "Crea el primer ministerio para empezar"}
             </p>
           </CardContent>
         </Card>

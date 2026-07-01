@@ -26,8 +26,6 @@ export default function CelulaDetailPage() {
   const { userData } = useAuth()
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLiderCelula = userData?.rol === "lider_celula"
-  const esColider = userData?.rol === "colider"
 
   const [celula, setCelula] = useState<Celula | null>(null)
   const [sinAcceso, setSinAcceso] = useState(false)

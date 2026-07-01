@@ -54,14 +54,11 @@ export default function CronogramaDetailPage() {
   const { ministerios } = useDashboardStore()
   const { userData } = useAuth()
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLider = userData?.rol === "lider"
-  const puedeEditar = esPastorOAdmin || esLider
+  const puedeEditar = esPastorOAdmin || (userData?.administer?.ministerios?.length ?? 0) > 0
   const uid = userData?.authUid || userData?.id
 
   const puedeEditarMinisterio = (ministerioId: string) => {
-    if (esPastorOAdmin) return true
-    if (esLider) return userData?.ministerioIds?.includes(ministerioId) ?? false
-    return false
+    return esPastorOAdmin || (userData?.administer?.ministerios?.includes(ministerioId) ?? false)
   }
 
   useEffect(() => {
@@ -325,7 +322,7 @@ export default function CronogramaDetailPage() {
           {ministerios
             .filter((min) => {
               if (esPastorOAdmin) return true
-              if (esLider) return userData?.ministerioIds?.includes(min.id) ?? false
+              if (puedeEditar) return userData?.administer?.ministerios?.includes(min.id) ?? false
               return asignaciones.some((a) => a.ministerioId === min.id && a.usuarioId === uid)
             })
             .map((min) => {

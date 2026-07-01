@@ -23,7 +23,7 @@ export default function CronogramasPage() {
   const { cronogramas, loading: loadingCrono, setCronogramas } = useCronogramas()
   const { userData } = useAuth()
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const puedeCrear = esPastor || userData?.rol === "lider"
+  const puedeCrear = esPastor || (userData?.administer?.ministerios?.length ?? 0) > 0
   const [open, setOpen] = useState(false)
   const [selectedEventoId, setSelectedEventoId] = useState("")
   const [creating, setCreating] = useState(false)
@@ -52,7 +52,7 @@ export default function CronogramasPage() {
   const eventoSeleccionado = eventos.find((e) => e.id === selectedEventoId)
 
   const cronogramasFiltrados = cronogramas.filter((g) => {
-    if (esPastor || userData?.rol === "lider") return true
+    if (esPastor || (userData?.administer?.ministerios?.length ?? 0) > 0) return true
     const uid = userData?.authUid || userData?.id
     return g.asignaciones?.some((a) => a.usuarioId === uid)
   })

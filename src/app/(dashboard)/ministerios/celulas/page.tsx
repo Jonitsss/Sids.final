@@ -27,7 +27,7 @@ export default function CelulasPage() {
   const { user, userData } = useAuth()
   const { ministerios } = useDashboardStore()
   const ministerioCelular = ministerios.find((m) => m.nombre === "Celular")
-  const { celulas, loading, setCelulas } = useCelulas(user?.uid, userData?.rol, ministerioCelular?.id, ramaIdFromQuery || undefined)
+  const { celulas, loading, setCelulas } = useCelulas(user?.uid, userData?.administer, ministerioCelular?.id, ramaIdFromQuery || undefined)
 
   useEffect(() => {
     if (!ramaIdFromQuery) {
@@ -36,8 +36,7 @@ export default function CelulasPage() {
   }, [ramaIdFromQuery, router])
 
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLiderCelular = userData?.rol === "lider" && ministerioCelular && userData?.ministerioIds?.includes(ministerioCelular.id)
-  const puedeCrear = esPastorOAdmin || !!esLiderCelular
+  const puedeCrear = esPastorOAdmin || (userData?.administer?.celulas?.length ?? 0) > 0
   const puedeEliminar = esPastorOAdmin
 
   const [open, setOpen] = useState(false)

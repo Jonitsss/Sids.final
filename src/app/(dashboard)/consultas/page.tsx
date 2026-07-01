@@ -26,7 +26,7 @@ export default function ConsultasPage() {
   const { user, userData } = useAuth()
   const { consultas, consultasLoading, consultasNoLeidas } = useDashboardStore()
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esDestinatario = esPastorOAdmin || userData?.rol === "lider" || userData?.rol === "lider_celula"
+  const esDestinatario = esPastorOAdmin || (userData?.administer?.ministerios?.length ?? 0) > 0 || (userData?.administer?.celulas?.length ?? 0) > 0
 
   const consultasEntrantes = useMemo(() => consultas.filter((t) => t.a === user?.uid), [consultas, user?.uid])
   const consultasSalientes = useMemo(() => consultas.filter((t) => t.de === user?.uid), [consultas, user?.uid])

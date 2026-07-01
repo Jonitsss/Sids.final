@@ -16,7 +16,7 @@ export default function RamaCelulasPage() {
   const ramaId = params.ramaId as string
   const { userData } = useAuth()
   const { ramas, ramasLoading } = useDashboardStore()
-  const { celulas, loading } = useCelulas(userData?.id, userData?.rol, undefined, ramaId)
+  const { celulas, loading } = useCelulas(userData?.id, userData?.administer, undefined, ramaId)
 
   const rama = ramas.find((r) => r.id === ramaId)
   const esPastorOAdmin = userData?.rol === "pastor" || userData?.rol === "administrador"

@@ -38,8 +38,7 @@ export default function EventosPage() {
   const { eventos, loading, refetch, setEventos } = useEventos()
   const { userData } = useAuth()
   const esPastor = userData?.rol === "pastor" || userData?.rol === "administrador"
-  const esLider = userData?.rol === "lider"
-  const puedeCrear = esPastor || esLider
+  const puedeCrear = esPastor || (userData?.administer?.ministerios?.length ?? 0) > 0
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<ViewMode>("month")
   const [open, setOpen] = useState(false)

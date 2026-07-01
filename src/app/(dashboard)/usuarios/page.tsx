@@ -7,14 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, Loader2 } from "lucide-react"
-import { Usuario, Rol } from "@/types"
+import { Usuario, Rol, Administer } from "@/types"
 import { eliminarDocumento, crearDocumento, actualizarDocumento, enviarNotificacion } from "@/lib/firestore"
-import { asignarRolUsuario, RolValido } from "@/lib/roles"
+import { asignarRolUsuario } from "@/lib/roles"
 import { useAuth } from "@/contexts/AuthContext"
 import { useDashboardStore } from "@/stores/dashboardStore"
 import { toast } from "sonner"
 import { rolLabel } from "@/lib/utils"
-import { UsuarioForm } from "@/components/usuarios/UsuarioForm"
+import { UsuarioForm, UsuarioFormValues } from "@/components/usuarios/UsuarioForm"
 import { UsuarioRow } from "@/components/usuarios/UsuarioRow"
 
 export default function UsuariosPage() {
@@ -26,13 +26,14 @@ export default function UsuariosPage() {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<UsuarioFormValues>({
     nombre: "",
     apellido: "",
     email: "",
     telefono: "",
-    rol: "colaborador" as Rol,
-    ministerioIds: [] as string[],
+    rol: "colaborador",
+    administer: { ministerios: [], celulas: [], escuelas: [] },
+    ministerioIds: [],
     notificaciones: true,
   })
 
@@ -66,7 +67,7 @@ export default function UsuariosPage() {
   const visible = filtered.slice(0, pagina * ITEMS_PER_PAGE)
   const hasMore = visible.length < filtered.length
 
-  const resetForm = () => setForm({ nombre: "", apellido: "", email: "", telefono: "", rol: "colaborador", ministerioIds: [], notificaciones: true })
+  const resetForm = () => setForm({ nombre: "", apellido: "", email: "", telefono: "", rol: "colaborador", administer: { ministerios: [], celulas: [], escuelas: [] }, ministerioIds: [], notificaciones: true })
 
   const handleCreate = async () => {
     if (!form.nombre || !form.email) return
@@ -78,7 +79,7 @@ export default function UsuariosPage() {
     try {
       await crearDocumento<Usuario>("usuarios", {
         nombre: form.nombre, apellido: form.apellido, email,
-        telefono: form.telefono, rol: form.rol, ministerioIds: form.ministerioIds,
+        telefono: form.telefono, rol: form.rol as Rol, administer: form.administer, ministerioIds: form.ministerioIds,
         fotoURL: "", notificaciones: form.notificaciones, activo: true,
       })
       toast.success("Perfil creado. La persona debe registrarse con ese email.")
@@ -93,7 +94,9 @@ export default function UsuariosPage() {
     setEditId(u.id)
     setForm({
       nombre: u.nombre, apellido: u.apellido, email: u.email,
-      telefono: u.telefono, rol: u.rol, ministerioIds: u.ministerioIds || [],
+      telefono: u.telefono, rol: u.rol,
+      administer: u.administer || { ministerios: [], celulas: [], escuelas: [] },
+      ministerioIds: u.ministerioIds || [],
       notificaciones: u.notificaciones ?? true,
     })
     setEditOpen(true)
@@ -108,7 +111,7 @@ export default function UsuariosPage() {
     setUsuarios((prev) =>
       prev.map((u) =>
         u.id === editId
-          ? { ...u, nombre: form.nombre, apellido: form.apellido, email: form.email.toLowerCase().trim(), telefono: form.telefono, rol: form.rol, ministerioIds: form.ministerioIds, notificaciones: form.notificaciones }
+          ? { ...u, nombre: form.nombre, apellido: form.apellido, email: form.email.toLowerCase().trim(), telefono: form.telefono, rol: form.rol as Rol, administer: form.administer, ministerioIds: form.ministerioIds, notificaciones: form.notificaciones }
           : u
       )
     )
@@ -118,12 +121,13 @@ export default function UsuariosPage() {
 
     actualizarDocumento("usuarios", editId, {
       nombre: form.nombre, apellido: form.apellido, email: form.email.toLowerCase().trim(),
-      telefono: form.telefono, rol: form.rol, ministerioIds: form.ministerioIds,
+      telefono: form.telefono, rol: form.rol as Rol, administer: form.administer, ministerioIds: form.ministerioIds,
       notificaciones: form.notificaciones,
     }).catch(() => toast.error("Error al guardar cambios"))
 
     if (oldUser?.rol !== form.rol) {
-      asignarRolUsuario(oldUser?.authUid || editId, form.rol as RolValido).catch(() => {})
+      const rolValido = form.rol === "pastor" || form.rol === "administrador" ? form.rol : undefined
+      asignarRolUsuario(oldUser?.authUid || editId, rolValido, form.administer).catch(() => {})
       enviarNotificacion({
         usuarioId: (oldUser as any)?.authUid || editId,
         titulo: "Tu rol ha sido actualizado",

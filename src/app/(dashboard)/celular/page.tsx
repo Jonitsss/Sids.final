@@ -26,7 +26,7 @@ export default function CelularPage() {
   const { ramas, loading: loadingRamas } = useRamasCelular()
   const { celulas, loading: loadingCelulas } = useCelulas(
     userData?.id,
-    userData?.rol,
+    userData?.administer,
   )
 
   if (!userData) return null

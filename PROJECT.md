@@ -14,48 +14,79 @@
 - Backend: **Firebase** (Auth + Firestore + Storage + Cloud Functions v2).
 - Deploy frontend: **Vercel**. Backend: **Firebase** (región `southamerica-east1`).
 
-## 2. Roles del sistema (custom claim `rol`)
+## 2. Roles del sistema (v1.30.0 — simplificado)
 
-Definidos como **custom claims** en Firebase Authentication, sincronizados con
-el campo `usuarios.rol` en Firestore.
+A partir de v1.30.0 los roles de sistema se simplificaron a solo dos:
+`pastor` y `administrador`. El resto de los roles anteriores (`lider`,
+`lider_area`, `lider_celula`, `colider`, `anfitrion`, `colaborador`, etc.)
+dejaron de ser roles del sistema y ahora se gestionan mediante el campo
+`administer` en Firestore (qué entidades administra cada usuario).
 
-| Rol | Puede borrar | Notas |
-|---|---|---|---|
-| `pastor` | sí | Acceso total, dueña de la cuenta operativa. |
-| `administrador` | sí | Mismos permisos que pastor. Creado para delegar operación. |
-| `lider` | no | Crea eventos y cronogramas, ve todo, no borra. |
-| `lider_area` | no | Nuevo reemplazo de `lider`. Ve su ministerio, miembros, escuela ministerios. |
-| `colaborador` | no | Solo lee sus asignaciones, edita su perfil. |
-| `maestra_escuela_biblica` | no | Escuela Bíblica, asistencia. |
-| `profesor_escuela_min` | no | Escuela de Ministerios, cursos, notas. |
+| Rol | Acceso |
+|---|---|
+| `pastor` | Total — ve y gestiona todo |
+| `administrador` | Total — igual que pastor |
+| Sin rol (colaborador legacy) | Solo lo que tenga en `administer` |
 
-Roles "destructivos" (los que pueden borrar): `pastor`, `administrador`.
-Se setean con la Cloud Function `setRolUsuario` o, para el bootstrap inicial,
-con el script `functions/src/scripts/setInitialRol.ts`.
+**Permisos granulares** se definen por `administer` en el documento del usuario:
+- `administer.ministerios[]` — qué ministerios puede gestionar
+- `administer.celulas[]` — qué células puede gestionar
+- `administer.escuelas[]` — qué escuelas puede gestionar
 
-## 3. Arquitectura de seguridad (CRÍTICO)
+Usuarios `pastor`/`administrador` tienen acceso total (no necesitan `administer`).
+Para los demás, todos los permisos se derivan de qué entidades administran,
+no de un nombre de rol.
 
-Este es el cambio central de la sesión y la razón de ser de `functions/`.
+Los roles legacy en Firebase custom claims solo persisten durante la migración.
+`setRolUsuario` ya solo acepta `"pastor" | "administrador"` como roles válidos,
+pero también acepta un objeto `administer` opcional para escribirlo en Firestore.
 
-- **Firestore rules**: `allow delete: if false;` en **todas** las colecciones
-  operativas (`ministerios`, `eventos`, `cronogramas`, `tareas`, `asistencias`,
-  `miembros_ministerio`, `usuarios`, `notificaciones`).
-- **Borrado** se hace **únicamente** vía Cloud Function `borrarDocumento`
-  (`functions/src/index.ts`) vía HTTP POST con Bearer token (no callable).
-  - Usa Admin SDK → ignora Firestore rules.
-  - Valida `req.auth.token.rol in {pastor, administrador}` con fallback a
-    Firestore (`getRolFromFirestore` busca por Auth UID → authUid → email).
-  - Aplica allowlist de colecciones (ningún path traversal).
-  - Para roles no destructivos, solo permite borrar sus propias `notificaciones`.
-  - Audita con `logger.info` (`uid`, `rol`, `coleccion`, `id`).
-- **Asignación de roles** vía Cloud Function `setRolUsuario` (HTTP POST con
-  Bearer token). Solo pastor/admin. Impide auto-degradación.
-  - Escribe `rol` al documento real encontrado por authUid o email, y setea
-    custom claims con `auth.setCustomUserClaims`.
-  - Auto-linke `authUid` si encuentra el documento por email.
+## 3. Arquitectura de seguridad (v1.30.0 — permisos por administer)
 
-El cliente nunca llama `deleteDoc()` directo: `eliminarDocumento(coleccion, id)`
-en `src/lib/firestore.ts:91` se redefinió para invocar la function.
+### Nuevo modelo de permisos (administer-based)
+
+Desde v1.30.0, los permisos se determinan por **qué entidades administra** el
+usuario (campo `administer` en su documento de `usuarios`), no por su nombre de
+rol:
+
+- `pastor`/`administrador` → acceso total (heredan todos los permisos).
+- Otros usuarios → solo pueden gestionar entidades listadas en su `administer`.
+
+Las funciones de `src/lib/permissions.ts` reflejan este cambio:
+- `puedeAdministrarMinisterio(administer, ministerioId)` — acceso a ministerio
+- `puedeAdministrarCelula(administer, celulaId)` — acceso a célula
+- `puedeAdministrarEscuela(administer, escuelaId)` — acceso a escuela
+- `tieneAccesoTotal(rol)` — solo pastor/admin
+
+### Firestore Rules
+
+Las reglas leen el campo `administer` del documento `usuarios/{uid}` para
+determinar permisos granulares. Helpers nuevos:
+- `esAdminDeMinisterio(ministerioId)` — verifica `administer.ministerios`
+- `esAdminDeCelula(celulaId)` — verifica `administer.celulas`
+- `esAdminDeEscuela(escuelaId)` — verifica `administer.escuelas`
+
+Colecciones de solo lectura para cualquier autenticado (`isSignedIn()`);
+escrituras controladas por `esPastorOAdmin()` o los helpers `esAdminDe*`.
+
+### Cloud Functions
+
+- **`borrarDocumento`** — igual que antes: solo pastor/admin pueden borrar
+  (validación `ROLES_DESTRUCTIVOS` = `{"pastor", "administrador"}`).
+- **`setRolUsuario`** — ahora acepta `administer` opcional. Solo valida roles
+  `pastor`/`administrador` en `ROLES_VALIDOS`. Escribe `administer` al
+  documento del usuario en Firestore.
+- `AuthContext.fetchUserData()` migra automáticamente usuarios legacy:
+  si no tienen `administer`, lo deriva de campos legacy (`ministerioIds`,
+  `celulaIds`, `escuelaMinisteriosIds`) y lo escribe en Firestore.
+
+### Protecciones que no cambian
+
+- `allow delete: if false;` en todas las colecciones operativas.
+- Borrado solo vía `borrarDocumento` (Cloud Function).
+- Cliente nunca llama `deleteDoc()` directo.
+- CORS restringido a allowlist.
+- `getRolFromFirestore` con fallback Auth UID → authUid → email.
 
 ### Caveat de tokens y sparse documents
 
@@ -176,6 +207,29 @@ ab58931 fix: agregar tipo 'aprobacion' a interfaz Notificacion
 9992c15 fix(manifest): remove short_name to change push notification label
 65272df feat(usuarios): close edit modal instantly, save in background
 ```
+
+Cambios de esta sesión (v1.30.0) — Simplificación roles y permisos:
+- **Nuevos tipos** — `Administer` (ministerios[], celulas[], escuelas[] que administra),
+  `Participacion` (participaciones de una persona por ministerio/célula/escuela),
+  `Persona` ahora usa `participaciones[]` en vez de `ministeriosActuales`/`celulaActual`,
+  `Usuario` tiene `administer` y `personaId`
+- **Permisos basados en administer** — Se reescribió `src/lib/permissions.ts` con
+  funciones que verifican `administer` en vez de `rol`. Tests actualizados (30 tests).
+- **Firestore rules simplificadas** — Eliminados helpers legacy (`esLider`, `esLiderOArea`,
+  `esMaestraEB`, etc). Nuevos helpers `esAdminDeMinisterio`, `esAdminDeCelula`,
+  `esAdminDeEscuela` que leen `administer` del documento del usuario.
+- **Cloud Functions actualizadas** — `ROLES_VALIDOS` solo pastor/admin.
+  `setRolUsuario` acepta y escribe `administer` en Firestore.
+- **AuthContext migra usuarios legacy** — Al autenticarse, si no tienen `administer`,
+  se deriva de campos legacy (`ministerioIds` → `administer.ministerios`, etc.)
+  y se persiste en Firestore.
+- **Componentes migrados** — 7 archivos actualizados para usar administer-based checks
+  (cronogramas, eventos, ministerios, células, consultas).
+- **UI admin de administer** — `UsuarioForm` simplificado (solo pastor/admin como roles
+  del sistema) + selector de ministerios que administra.
+- **RolValido limitado** — `src/lib/roles.ts` solo permite `"pastor" | "administrador"`
+  en `asignarRolUsuario`.
+- **Version bump** — 1.29.0 → 1.30.0
 
 Cambios de esta sesión (v1.20.0):
 - **Acceso a ministerios para `lider_celula`** — Se agregó "Mi Ministerio" en la sidebar para líderes de célula y se corrigió el filtro en `/ministerios` para que muestre solo los ministerios donde el líder está asignado (`ministerioIds`). Antes no veía el link en la sidebar y al entrar a `/ministerios` se mostraba todo.
@@ -563,10 +617,10 @@ Pegar este prompt (o equivalente) al abrir opencode:
 ### Qué está deployado
 
 | Componente | URL | Estado |
-|---|---|---|
-| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | ✅ Actualizado v1.26.0 |
-| Cloud Functions | Firebase `southamerica-east1` | ✅ 3 funciones deployadas (borrarDocumento, setRolUsuario, enviarNotificacionPush) |
-| Código fuente | GitHub `main` | ✅ Actualizado |
+|---|---|---|---|
+| Frontend | `https://sids-final.vercel.app` (y `santaiglesia.com.ar`) | 🔄 Pendiente deploy v1.30.0 |
+| Cloud Functions | Firebase `southamerica-east1` | 🔄 Pendiente deploy (ROLES_VALIDOS, setRolUsuario actualizados) |
+| Código fuente | GitHub `feature/expansion-ministerial` | ✅ v1.30.0 |
 
 ### Qué necesitás en tu PC de casa
 
